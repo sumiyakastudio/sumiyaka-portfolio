@@ -14,6 +14,7 @@
  * canvas 2D のみ（filter・blend・3D 不使用＝iOS/WebKit 安全）。
  */
 
+import { defaultProfile, drawNib, sliceWithBrushEdge } from "./inkBrush";
 import type { GlyphSheet } from "./glyphSheet";
 import type { TENKI_T } from "./tenkiTiming";
 
@@ -92,18 +93,6 @@ export function brushHead(
   return { x: sheet.lines[n - 1].right + 3, y: sheet.lines[n - 1].midY, live: 0 };
 }
 
-let scratch: HTMLCanvasElement | null = null;
-
-function ensureScratch(w: number, h: number): CanvasRenderingContext2D | null {
-  if (typeof document === "undefined") return null;
-  if (!scratch) scratch = document.createElement("canvas");
-  if (scratch.width < w || scratch.height < h) {
-    scratch.width = Math.max(scratch.width, w);
-    scratch.height = Math.max(scratch.height, h);
-  }
-  return scratch.getContext("2d");
-}
-
 export interface WriteDrawOptions {
   t: number;
   T: Timing;
@@ -146,27 +135,31 @@ export function drawWrittenGlyphs(
     const sh = (yBot - yTop) * sc;
     if (sw < 0.5 || sh < 0.5) continue;
 
-    const sctx = ensureScratch(Math.ceil(sw) + 2, Math.ceil(sh) + 2);
-    if (!sctx || !scratch) continue;
-    sctx.setTransform(1, 0, 0, 1, 0, 0);
-    sctx.globalCompositeOperation = "source-over";
-    sctx.clearRect(0, 0, scratch.width, scratch.height);
-    sctx.drawImage(sheet.canvas, sx, sy, sw, sh, 0, 0, sw, sh);
-
-    let g1 = (sweepX - xa) * sc;
-    let g0 = (fadeX - xa) * sc;
-    if (g1 - g0 < 1) g0 = g1 - 1;
-    if (g1 < 1) g1 = 1;
-    sctx.globalCompositeOperation = "destination-in";
-    const grad = sctx.createLinearGradient(g0, 0, g1, 0);
-    grad.addColorStop(0, "rgba(255,255,255,0)");
-    grad.addColorStop(1, "rgba(255,255,255,1)");
-    sctx.fillStyle = grad;
-    sctx.fillRect(0, 0, sw, sh);
-    sctx.globalCompositeOperation = "source-over";
-
-    ctx.drawImage(scratch, 0, 0, sw, sh, xa, yTop, xb - xa, yBot - yTop);
-    painted = true;
+    // かすれは「筆先の帯」の中だけに効く。通り過ぎた側の版下は勾配で必ず 0 になるので、
+    // 書き終えた題字の筆画に穴が残ることはない。
+    const done = sweepX >= ln.right + 2.9;
+    const dry = done ? 0 : 0.55;
+    if (
+      sliceWithBrushEdge(
+        ctx,
+        sheet.canvas,
+        sc,
+        sx,
+        sy,
+        sw,
+        sh,
+        xa,
+        yTop,
+        xb - xa,
+        yBot - yTop,
+        fadeX,
+        sweepX,
+        dry,
+        17.3 + li * 6.1
+      )
+    ) {
+      painted = true;
+    }
   }
   return painted;
 }
@@ -227,19 +220,31 @@ export function drawBrushMarks(
     ctx.stroke();
   }
 
-  /* 筆先の灯 */
+  /* 筆先（穂先）＋その灯。字画の切れ目（返し）では持ち上がって薄くなる */
   const head = brushHead(plan, sheet, tt);
   if (head) {
-    const r = Math.max(9, sheet.fontPx * 0.34);
-    const I = (head.live ? 0.5 : 0.34) * fade * lit(head.x, head.y);
+    // いま何行目のどこを書いているか＝穂先の太さ（入り細・送り太・抜き細）
+    let prof = 0.5;
+    let lift = 1;
+    for (let li = 0; li < sheet.lines.length; li++) {
+      const a = plan.lineT[li * 2];
+      const b = plan.lineT[li * 2 + 1];
+      if (tt >= a && tt <= b) {
+        prof = defaultProfile((tt - a) / Math.max(1e-4, b - a));
+        break;
+      }
+    }
+    if (!head.live) lift = 0.42;
+    else if (prof < 0.3) lift = 0.55 + prof;
+    const w = Math.max(1.6, sheet.fontPx * 0.075 * (0.45 + prof));
+    const I = 0.62 * fade * lift * lit(head.x, head.y);
+    drawNib(ctx, head.x, head.y, 1, 0.12, w, I, o.ink);
+    const r = Math.max(9, sheet.fontPx * 0.3);
     const g = ctx.createRadialGradient(head.x, head.y, 0, head.x, head.y, r);
-    g.addColorStop(0, col(I * 0.62));
-    g.addColorStop(0.4, col(I * 0.16));
+    g.addColorStop(0, col(I * 0.36));
     g.addColorStop(1, col(0));
     ctx.fillStyle = g;
     ctx.fillRect(head.x - r, head.y - r, r * 2, r * 2);
-    ctx.fillStyle = col(Math.min(0.9, I * 1.5));
-    ctx.fillRect(head.x - 1, head.y - sheet.fontPx * 0.11, 2, sheet.fontPx * 0.22);
   }
 
   ctx.globalCompositeOperation = prev;

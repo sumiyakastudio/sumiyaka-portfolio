@@ -1,0 +1,48 @@
+/* =============================================
+   OP「一筆と灯」— 第1幕
+   FV の上に重ねる透明の幕。地色は Hero 側（--paper）がすでに敷いている。
+   ★スクロールを止めない：pointer-events: none・body には触らない。
+   ============================================= */
+/* ⚠ 祖先に transform 等があると position:fixed の基準がビューポートでなくなる。
+   ここでは幕の寸法に頼らず、canvas 側へ実測のビューポート寸法を直接与える
+   （幕は左上に貼るだけ・はみ出しは overflow で切る）。 */
+.op {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  pointer-events: none;
+  overflow: hidden;
+  opacity: 1;
+  transition: opacity 0.36s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.out {
+  opacity: 0;
+}
+
+.canvas {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: block;
+  background: transparent;
+}
+
+/* 書体の解決だけに使う計測用（画面には出さない） */
+.probe {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  font-family: var(--font-display-washi, serif);
+  font-weight: 800;
+  font-size: 100px;
+  line-height: 1;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .op {
+    transition: none;
+  }
+}

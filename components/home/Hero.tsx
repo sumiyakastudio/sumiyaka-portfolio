@@ -465,6 +465,7 @@ export default function Hero({ openingDone }: HeroProps) {
               墨の一滴が落ちて背景に滲み、灯が一点ともる。
               可読性スクリムと灯（lantern.ts）はこのステージの内側にある。 */}
           <TenkiStage
+            active={openingDone}
             light={light}
             exitRef={exitRef}
             onLetter={handleLetter}

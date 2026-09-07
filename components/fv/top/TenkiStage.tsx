@@ -85,10 +85,14 @@ interface TenkiDebug {
 declare global {
   interface Window {
     __tenki?: TenkiDebug;
+    /** QC 用：数値を入れるとその時刻に止まる（未設定なら通常再生） */
+    __tenkiScrub?: number | null;
   }
 }
 
 interface TenkiStageProps {
+  /** OP（第1幕）から渡された＝ここからステージ時計を回す */
+  active: boolean;
   light: boolean;
   exitRef: MutableRefObject<number>;
   onLetter: (i: number) => void;
@@ -104,7 +108,17 @@ const TAU = Math.PI * 2;
 const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
 const cl = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
 
-export default function TenkiStage({ light, exitRef, onLetter, onSettled }: TenkiStageProps) {
+export default function TenkiStage({
+  active,
+  light,
+  exitRef,
+  onLetter,
+  onSettled,
+}: TenkiStageProps) {
+  const activeRef = useRef(active);
+  useEffect(() => {
+    activeRef.current = active;
+  }, [active]);
   const hostRef = useRef<HTMLDivElement>(null);
   const fluidRef = useRef<HTMLCanvasElement>(null);
   const grainRef = useRef<HTMLCanvasElement>(null);
@@ -190,7 +204,13 @@ export default function TenkiStage({ light, exitRef, onLetter, onSettled }: Tenk
           ink: INK255,
           labelFont: `500 ${cl((sheet?.fontPx ?? 24) * 0.17, 8, 11).toFixed(1)}px ${monoFamily}`,
         });
-        host.classList.add(styles.on);
+        // OP（第1幕）が終わるまでは幕の下で待つ
+        const reveal = () => {
+          if (disposed) return;
+          if (activeRef.current) host.classList.add(styles.on);
+          else requestAnimationFrame(reveal);
+        };
+        reveal();
         window.__tenki = {
           mode: "still",
           fluid: false,
@@ -220,7 +240,7 @@ export default function TenkiStage({ light, exitRef, onLetter, onSettled }: Tenk
     }
 
     /* ======================= フル経路 ======================= */
-    host.classList.add(styles.on);
+    // ★.on（幕開け）は OP から渡されてから。それまでは準備だけ進める
     const mainCtx = mainCanvas.getContext("2d");
 
     /* ---- 墨の流体（WebGL・/about の実証済み実装）。失敗しても演出は続く ---- */
@@ -254,6 +274,10 @@ export default function TenkiStage({ light, exitRef, onLetter, onSettled }: Tenk
 
     /* ---- 状態 ---- */
     let t = 0;
+    /** 準備用の時計（OP のあいだも進む。版下・断片の用意の再挑戦間隔に使う） */
+    let prepT = 0;
+    /** OP から渡されて幕が開いた */
+    let opened = false;
     let last = 0;
     let rafId = 0;
     let running = false;
@@ -478,10 +502,13 @@ export default function TenkiStage({ light, exitRef, onLetter, onSettled }: Tenk
         drawFragments(ctx, frags, row, {
           t,
           align: clamp01((t - T.alignStart) / T.alignDur),
+          connect: clamp01((t - T.connectStart) / T.connectDur),
           collapse: clamp01((t - T.collapseStart) / T.collapseDur),
           alpha,
           ink: INK255,
           labelFont,
+          alignStart: T.alignStart,
+          alignDur: T.alignDur,
           lit,
         });
         ctx.restore();
@@ -535,14 +562,22 @@ export default function TenkiStage({ light, exitRef, onLetter, onSettled }: Tenk
       const exit = clamp01(exitRef.current);
 
       /* ---- 速報レイアウト（版下も書体も待たない）。取れるまで毎 0.1s 再挑戦 ---- */
-      if (!frags && t >= primeAt) {
-        primeAt = t + 0.1;
+      if (!frags && prepT >= primeAt) {
+        primeAt = prepT + 0.1;
         primeLayout();
       }
       /* ---- 版下（書体の読込が済んでから）。焼けるまで毎 0.12s 再挑戦 ---- */
-      if (!sheet && fontsDone && t >= sheetAt) {
-        sheetAt = t + 0.12;
+      if (!sheet && fontsDone && prepT >= sheetAt) {
+        sheetAt = prepT + 0.12;
         applySheet();
+      }
+      prepT += dt;
+
+      /* ---- OP（第1幕）が終わるまでは準備だけ。時計は 0 のまま ---- */
+      if (!activeRef.current) return;
+      if (!opened) {
+        opened = true;
+        hostEl.classList.add(styles.on);
       }
 
       /* ---- 時計：版下が要る時刻に間に合っていなければ、そこで止めて待つ ---- */
@@ -563,6 +598,8 @@ export default function TenkiStage({ light, exitRef, onLetter, onSettled }: Tenk
         holdT = 0;
         holdRelease = 0;
       }
+      // QC 用の一時停止（撮影を演出の時刻で揃えるため。通常再生では未設定）
+      if (typeof window.__tenkiScrub === "number") t = window.__tenkiScrub;
 
       // 筆が通った文字から DOM へ渡す（書き順＝行 → 左から右）
       if (sheet && plan) {

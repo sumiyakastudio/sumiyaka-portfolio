@@ -67,7 +67,7 @@ export function drawTenkiStill(
   const gap = cl(H * 0.055, 22, 62);
   const above = sheet.h1T - H * 0.05;
   // 帯の中心までの距離（rowH*0.9 + gap）＋散らばりの上の張り出し（rowH*2.1）が入るか
-  const need = rowH * 3.3 + gap;
+  const need = rowH * 2.9 + gap;
   const up = above >= need;
   const rowY = up
     ? sheet.h1T - (rowH * 0.9 + gap)
@@ -94,10 +94,14 @@ export function drawTenkiStill(
   drawFragments(ctx, frags, row, {
     t: 0,
     align: 0.92,
+    // 1 を超える値＝「連結は済んだ」状態。走る光そのものは静止画では描かない
+    connect: 1.2,
     collapse: 0.8,
     alpha: 1,
     ink: o.ink,
     labelFont: o.labelFont,
+    alignStart: 0,
+    alignDur: 1,
     lit,
     // 左＝散らばったまま／中＝整列の途中／右＝一本化済み
     progressOf: (i, k) => (k < 2 ? 1 : (i / (k - 1)) * 1.55 - 0.3),
