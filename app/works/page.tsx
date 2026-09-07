@@ -4,6 +4,7 @@ import SubPageFVAnim from "@/components/animation/SubPageFVAnim";
 import ScrollReveal from "@/components/animation/ScrollReveal";
 import DrawRule from "@/components/animation/DrawRule";
 import WorksFVStack from "@/components/fv/works/WorksFVStack";
+import { pickFVSheets } from "@/components/fv/works/fvSheets";
 import WorksExplorer from "@/components/works/WorksExplorer";
 import WorksAio from "@/components/works/WorksAio";
 import WorksPrice from "@/components/works/WorksPrice";
@@ -28,10 +29,13 @@ export default function WorksPage() {
 
   return (
     <main className={styles.page}>
-      {/* Hero — 清・紙。紙の束が差し込まれ、手前の一枚に題字が押し込まれる
-          （入場は WorksFVStack が持つ＝customEntrance。収縮と位相は舞台のまま） */}
+      {/* Hero — 清・紙。掲載サイトのフルスクショが差し込まれて束になり、
+          手前の一枚（題箋）に題字が押し込まれる。マウスを載せると束が広がり、
+          広がった札のすべてが縦に流れる（入場は WorksFVStack が持つ＝
+          customEntrance。収縮と位相は舞台のまま）。
+          ★ 束に使う作品は data の tier / order から選ぶ＝ハードコードしない */}
       <SubPageFVAnim className={styles.fv} customEntrance>
-        <WorksFVStack count={works.length}>
+        <WorksFVStack count={works.length} sheets={pickFVSheets(works)}>
           <h1 data-wk-title className={styles.fvTitle}>WEB制作</h1>
           <p data-wk-sub className={styles.fvSub}>
             LP・コーポレート・ブランド・多言語 —{" "}

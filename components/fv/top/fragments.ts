@@ -51,6 +51,27 @@ export interface Frag {
   heads: number[];
   /** 値を表す短い棒 [row, x0, x1] × k */
   bars: number[];
+  /** 出自＝OP で灯敷が砕けた破片。これがそのまま書類へ姿を変える */
+  chip?: FragChip;
+}
+
+/** 灯敷の破片（版下の切り出し）。位置・角度・寸法をそのまま引き継いで書類になる */
+export interface FragChip {
+  sheet: HTMLCanvasElement;
+  /** 版下画素 */
+  sx: number;
+  sy: number;
+  sw: number;
+  sh: number;
+  /** 出発（ステージ css・中心） */
+  cx: number;
+  cy: number;
+  w: number;
+  h: number;
+  rot: number;
+  spin: number;
+  /** 飛び立ちの時差（秒） */
+  delay: number;
 }
 
 export interface FragRow {
@@ -93,6 +114,10 @@ export interface DrawFragOptions {
   progressOf?: (i: number, n: number) => number;
   /** 断片ごとの一本化を外から与える（静止 1 コマ用） */
   collapseOf?: (i: number, n: number) => number;
+  /** 変形の経過（秒）。OP の「ほどけ」開始からの時間。未指定＝変形済み */
+  morphT?: number;
+  /** 変形にかける時間 */
+  morphDur?: number;
 }
 
 const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
@@ -101,6 +126,7 @@ const smooth = (a: number, b: number, v: number) => {
   return u * u * (3 - 2 * u);
 };
 const easeIO = (u: number) => (u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2);
+const easeOut3 = (u: number) => 1 - Math.pow(1 - clamp01(u), 3);
 /** 行き過ぎて戻る＝「カチッ」と揃った手ごたえ */
 const easeBack = (u: number) => {
   if (u <= 0) return 0;
@@ -151,6 +177,36 @@ export function regionFromSheet(
 /** 断片の数＝8〜10 枚。1 枚を大きく取り、表として読めるようにする */
 export function countForRow(row: FragRow): number {
   return Math.max(8, Math.min(10, Math.round((row.right - row.left) / 86)));
+}
+
+/**
+ * 灯敷の破片を書類へ結びつける。破片は左→右、書類は散らばりの x 順に並べて
+ * 素直に対応させる（飛ぶ経路が交差しない）。
+ */
+export function attachChips(
+  frags: Frag[],
+  chips: readonly Omit<FragChip, "sheet">[],
+  sheet: HTMLCanvasElement
+): void {
+  if (!frags.length || !chips.length) return;
+  const order = frags.map((_, i) => i).sort((a, b) => frags[a].sx - frags[b].sx);
+  for (let k = 0; k < order.length; k++) {
+    const c = chips[Math.min(k, chips.length - 1)];
+    frags[order[k]].chip = {
+      sheet,
+      sx: c.sx,
+      sy: c.sy,
+      sw: c.sw,
+      sh: c.sh,
+      cx: c.cx,
+      cy: c.cy,
+      w: c.w,
+      h: c.h,
+      rot: c.rot,
+      spin: c.spin,
+      delay: c.delay,
+    };
+  }
 }
 
 export function buildFragments(cfg: FragConfig): Frag[] {
@@ -285,16 +341,42 @@ export function drawFragments(
 
     const dx = f.sx + Math.sin(o.t * f.w1 + f.p1) * f.ax;
     const dy = f.sy + Math.sin(o.t * f.w2 + f.p2) * f.ay;
-    const rot = (f.rot + Math.sin(o.t * 0.42 + f.p1) * 0.05) * (1 - pb);
-    const cx = dx + (tx - dx) * pb;
-    const cy = dy + (ty - dy) * pb;
-    const w = f.w0 + (tw - f.w0) * p;
-    const hFull = f.h0 + (th - f.h0) * p;
+    let rot = (f.rot + Math.sin(o.t * 0.42 + f.p1) * 0.05) * (1 - pb);
+    let cx = dx + (tx - dx) * pb;
+    let cy = dy + (ty - dy) * pb;
+    let w = f.w0 + (tw - f.w0) * p;
+    let hFull = f.h0 + (th - f.h0) * p;
+
+    /* ---- 変形：灯敷の破片が飛びながら、そのまま書類になる ----
+       m=0 墨の不定形／m=1 紙の書類。位置・角度・寸法は破片から引き継ぐ。 */
+    let m = 1;
+    if (f.chip && o.morphT !== undefined) {
+      const c = f.chip;
+      const dur = Math.max(0.1, (o.morphDur ?? 0.55) - c.delay);
+      m = clamp01((o.morphT - c.delay) / dur);
+      if (m < 1) {
+        const e = easeOut3(m);
+        cx = c.cx + (cx - c.cx) * e;
+        cy = c.cy + (cy - c.cy) * e - Math.sin(Math.PI * e) * 22;
+        w = c.w + (w - c.w) * e;
+        hFull = c.h + (hFull - c.h) * e;
+        rot = (c.rot + c.spin * e) * (1 - e) + rot * e;
+      }
+    }
     const h = hFull * (1 - 0.94 * conv);
 
     bx.push(cx);
     by.push(cy);
     bw.push(w);
+
+    /* 墨 → 中間 → 紙。重なる区間を必ず作り、パッと切り替わらないようにする */
+    const chipA = f.chip ? 1 - smooth(0.18, 0.78, m) : 0;
+    const paperK = f.chip ? smooth(0.34, 0.95, m) : 1;
+    const cornerK = f.chip ? smooth(0.22, 0.86, m) : 1;
+    const headK = f.chip ? smooth(0.42, 0.68, m) : 1;
+    const rowK = f.chip ? smooth(0.58, 0.86, m) : 1;
+    const barK = f.chip ? smooth(0.76, 1, m) : 1;
+    const labelK = f.chip ? smooth(0.88, 1, m) : 1;
 
     const L = lit(cx, cy);
     const detail = (1 - conv) * o.alpha * L;
@@ -309,34 +391,64 @@ export function drawFragments(
     if (rot) ctx.rotate(rot);
 
     /* 紙の面と落ち影（暗い地の上では影が「浮いている」ことを伝える） */
-    if (detail > 0.015) {
+    if (detail * paperK > 0.015) {
       ctx.globalCompositeOperation = "source-over";
-      ctx.shadowColor = `rgba(0, 0, 0, ${(0.5 * detail).toFixed(3)})`;
+      ctx.shadowColor = `rgba(0, 0, 0, ${(0.5 * detail * paperK).toFixed(3)})`;
       ctx.shadowBlur = 12 * (1 - conv);
       ctx.shadowOffsetY = 4 * (1 - conv);
-      ctx.fillStyle = col(detail * 0.055);
+      ctx.fillStyle = col(detail * paperK * 0.055);
       ctx.fillRect(-w / 2, -h / 2, w, h);
       ctx.shadowColor = "rgba(0,0,0,0)";
       ctx.shadowBlur = 0;
       ctx.shadowOffsetY = 0;
     }
 
+    /* 墨の面（灯敷の破片そのもの）。紙が立ち上がるにつれて退く＝中間の姿を通る */
+    if (f.chip && chipA > 0.01) {
+      ctx.globalCompositeOperation = "source-over";
+      ctx.globalAlpha = clamp01(chipA * o.alpha);
+      ctx.drawImage(f.chip.sheet, f.chip.sx, f.chip.sy, f.chip.sw, f.chip.sh, -w / 2, -h / 2, w, h);
+      ctx.globalAlpha = 1;
+    }
+
     ctx.globalCompositeOperation = "lighter";
 
-    /* 枠（CSV は枠なし＝罫だけ） */
-    if (f.kind !== 0 && detail > 0.01) {
-      ctx.strokeStyle = col(detail * (f.kind === 2 ? 0.34 : 0.28) + flash * 0.5);
+    /* 枠＝角から立ち上がる（cornerK が 1 で矩形が閉じる） */
+    const frameA =
+      (f.kind !== 0 ? detail * (f.kind === 2 ? 0.34 : 0.28) : detail * 0.16) * cornerK +
+      flash * 0.5;
+    if (frameA > 0.012) {
+      ctx.strokeStyle = col(frameA);
       ctx.lineWidth = lw;
-      ctx.strokeRect(-w / 2, -h / 2, w, h);
-    } else if (flash > 0.01) {
-      ctx.strokeStyle = col(flash * 0.4);
-      ctx.lineWidth = lw;
-      ctx.strokeRect(-w / 2, -h / 2, w, h);
+      if (cornerK >= 0.999) {
+        ctx.strokeRect(-w / 2, -h / 2, w, h);
+      } else {
+        const ax = (w / 2) * cornerK;
+        const ay = (h / 2) * cornerK;
+        const xl = -w / 2;
+        const xr = w / 2;
+        const yt = -h / 2;
+        const yb = h / 2;
+        ctx.beginPath();
+        ctx.moveTo(xl, yt + ay);
+        ctx.lineTo(xl, yt);
+        ctx.lineTo(xl + ax, yt);
+        ctx.moveTo(xr - ax, yt);
+        ctx.lineTo(xr, yt);
+        ctx.lineTo(xr, yt + ay);
+        ctx.moveTo(xr, yb - ay);
+        ctx.lineTo(xr, yb);
+        ctx.lineTo(xr - ax, yb);
+        ctx.moveTo(xl + ax, yb);
+        ctx.lineTo(xl, yb);
+        ctx.lineTo(xl, yb - ay);
+        ctx.stroke();
+      }
     }
 
     /* 縦の罫（升目） */
-    if (f.kind === 1 && detail > 0.01) {
-      ctx.strokeStyle = col(detail * 0.2);
+    if (f.kind === 1 && detail * rowK > 0.01) {
+      ctx.strokeStyle = col(detail * rowK * 0.2);
       ctx.lineWidth = 1;
       ctx.beginPath();
       for (let c = 1; c < f.cols; c++) {
@@ -349,11 +461,11 @@ export function drawFragments(
 
     /* 見出しの帯（濃い）＋セル境界 */
     const headY = ((0 - MID) / ROWS) * hFull * (1 - conv);
-    if (detail > 0.02) {
+    if (detail * headK > 0.02) {
       const hb = hFull * 0.16 * (1 - conv);
-      ctx.fillStyle = col(detail * 0.13);
+      ctx.fillStyle = col(detail * headK * 0.13);
       ctx.fillRect(-w / 2, headY - hb * 0.55, w, hb);
-      ctx.fillStyle = col(detail * 0.34);
+      ctx.fillStyle = col(detail * headK * 0.34);
       for (const hx of f.heads) {
         ctx.fillRect(-w / 2 + w * hx, headY - hb * 0.5, 1, hb);
       }
@@ -368,17 +480,18 @@ export function drawFragments(
       const x0 = (a0 + (0 - a0) * e) * w - w / 2;
       const x1 = (a1 + (1 - a1) * e) * w - w / 2;
       const y = ((r - MID) / ROWS) * hFull * (1 - conv);
+      const rk = r === 0 ? headK : rowK;
       const a = isMid
-        ? o.alpha * L * (0.46 + 0.54 * conv + connLit * (1 - conv))
-        : o.alpha * L * (r === 0 ? 0.6 : 0.4) * (1 - conv);
+        ? o.alpha * L * rk * (0.46 + 0.54 * conv + connLit * (1 - conv))
+        : o.alpha * L * rk * (r === 0 ? 0.6 : 0.4) * (1 - conv);
       if (a <= 0.012) continue;
       ctx.fillStyle = col(a);
       ctx.fillRect(x0, y - lw / 2, Math.max(1, x1 - x0), isMid ? lw : lw * 0.85);
     }
 
     /* 値を表す短い棒（桁の抽象・文字は書かない） */
-    if (detail > 0.02) {
-      ctx.fillStyle = col(detail * 0.62);
+    if (detail * barK > 0.02) {
+      ctx.fillStyle = col(detail * barK * 0.62);
       for (let k = 0; k < f.bars.length; k += 3) {
         const r = f.bars[k];
         const y = ((r - MID) / ROWS) * hFull * (1 - conv);
@@ -390,12 +503,12 @@ export function drawFragments(
     ctx.restore();
 
     /* ラベル（CSV / XLSX / PDF）— 断片の左上に小さく */
-    if (detail > 0.05) {
+    if (detail * labelK > 0.05) {
       ctx.save();
       ctx.translate(cx, cy);
       if (rot) ctx.rotate(rot);
       ctx.font = o.labelFont;
-      ctx.fillStyle = col(detail * 0.42);
+      ctx.fillStyle = col(detail * labelK * 0.42);
       ctx.fillText(f.label, -w / 2, -h / 2 - 5);
       ctx.restore();
     }

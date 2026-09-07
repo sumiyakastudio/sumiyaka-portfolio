@@ -1,11 +1,13 @@
 /* =============================================
-   WorksFVStack — /works FV「紙の束」（清・紙）
+   WorksFVStack — /works FV「掲載サイトの束」（清・紙）
+   2026-09-07：無地の白い紙 → 実際の掲載サイトのフルスクショへ置き換え。
    色のトークンは app/works/page.module.css の .page が定義する
    --wk-* を継承する（FV は .page の内側にある）。
-   動かすのは transform(2D)・opacity・text-shadow のみ。
+   動かすのは transform(2D)・opacity・box-shadow・object-position のみ。
    ============================================= */
 
-/* 舞台いっぱいに広がる層。紙の束を中央に置き、隅に索引を持つ */
+/* 舞台いっぱいに広がる層。束を中央に置き、隅に索引を持つ。
+   ここ全体がホバーの受け皿＝FV に入った時点で束が広がる */
 .stage {
   position: absolute;
   inset: 0;
@@ -14,41 +16,74 @@
   justify-content: center;
 }
 
-/* 束の外形。高さは 50vh の収縮後にも収まる 40vh を上限に、幅から比で決める。
-   vh は iOS でアドレスバー込みの値になるが、紙の大きさなので害はない。
-   svh が使える環境では svh を優先（二段指定） */
-.stack {
-  position: relative;
-  width: min(84%, calc(36vh * 1.6), 640px);
-  width: min(84%, calc(36svh * 1.6), 640px);
-  aspect-ratio: 8 / 5;
-}
-
-.depth {
+/* 束の層。収縮のとき data-fv-depth で奥へ沈む（題箋は沈まない）。
+   札は装飾なので、ポインタは一切拾わない＝ホバーの判定は .stage 一本 */
+.pile {
   position: absolute;
   inset: 0;
+  pointer-events: none;
 }
 
-/* 奥の紙。既定の transform は CSS 変数で置き、GSAP が同じ終端値へ上書きする */
-.sheet {
+/* ---------------------------------------------
+   札＝掲載サイトのフルスクショ1枚
+   ・枠は 16:10。lib/hoverScroll.ts の FRAME_RATIO と一致させること
+     （ここを変えると縦流しの速度がページ間でずれる）
+   ・居場所は「札自身の大きさに対する％」で持つ。幅が変わっても崩れない
+   ・幅は 300px を上限にする。フルスクショの原寸（1320px幅）を出さない＝
+     next/image が小さい派生を返す。FV のバイト数はこの上限で決まる
+   --------------------------------------------- */
+.card {
+  --xm: 1; /* 平常時の横の振り幅（SP で詰める） */
+  --ym: 1; /* 平常時の縦の振り幅（SP で広げる＝題箋の上下へ逃がす） */
+  --hxm: 1; /* 広がったときの横の振り幅（狭い PC で詰める） */
+
   position: absolute;
-  inset: 0;
+  left: 50%;
+  top: 50%;
+  width: min(22%, calc(19vh * 1.6), 300px);
+  width: min(22%, calc(19svh * 1.6), 300px);
+  aspect-ratio: 16 / 10;
+  box-sizing: border-box;
+  /* 紙に貼った写真＝白い余白と実影 */
+  border: 3px solid var(--wk-front);
+  overflow: hidden;
+  overflow: clip;
   background-color: var(--wk-paper);
   background-image: var(--wk-grain);
   box-shadow: var(--wk-shadow-sheet);
-  opacity: 0;
-  transform: translate(var(--x, 0px), var(--y, 0px)) rotate(var(--r, 0deg));
+  opacity: 0; /* 入場（GSAP）が 1 にする。reduced-motion は下で即置き */
+  transform: translate(
+      calc(-50% + var(--x) * var(--xm)),
+      calc(-50% + var(--y) * var(--ym))
+    )
+    rotate(var(--r));
+  /* ⚠ 入場中は transition を持たせない。GSAP が毎フレーム transform を
+     書くので、transition があると追従が遅れて動きが濁る。
+     入場が終わってから .live で有効にする */
+  transition: none;
 }
 
-/* 手前の一枚＝サイト内で唯一の真っ白。上左に光が当たる細い縁と実影 */
+.shot {
+  object-fit: cover;
+  /* 縦流しはこの値を lib/hoverScroll.ts の createHoverScroll が書き換える */
+  object-position: 50% 0%;
+}
+
+/* ---------------------------------------------
+   手前の一枚＝題箋（白い紙）。題字が活版で押し込まれる。
+   ★ 題字は必ずこの不透明な紙の上にしか乗らない。束は常にこれより奥なので、
+     広がっている最中でも画像が題字の背面に来ることが構造的に起こらない
+   --------------------------------------------- */
 .front {
-  position: absolute;
-  inset: 0;
+  position: relative;
+  z-index: 1;
+  flex: none;
+  width: min(92%, 580px);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 24px 32px;
+  padding: 30px 40px;
   background-color: var(--wk-front);
   background-image: var(--wk-grain);
   box-shadow:
@@ -57,6 +92,38 @@
     0 4px 10px -4px rgba(31, 28, 28, 0.16),
     0 24px 48px -18px rgba(31, 28, 28, 0.36);
   opacity: 0;
+  transition: none;
+}
+
+/* 入場が終わってから、広がり／畳みの transition を有効にする */
+.live .card {
+  transition: transform 0.62s var(--ease-out-expo) var(--hd, 0s);
+}
+
+.live .front {
+  transition:
+    transform 0.62s var(--ease-out-expo),
+    box-shadow 0.62s ease;
+}
+
+/* ---------------------------------------------
+   ホバー＝束が下へ帯状にバッと広がる。題箋は少し持ち上がって手前に残る
+   --------------------------------------------- */
+.spread .card {
+  transform: translate(
+      calc(-50% + var(--hx) * var(--hxm)),
+      calc(-50% + var(--hy))
+    )
+    rotate(var(--hr)) scale(0.6);
+}
+
+.spread .front {
+  transform: translateY(-26%) scale(0.94);
+  box-shadow:
+    inset 1px 1px 0 rgba(255, 255, 255, 0.9),
+    0 2px 2px rgba(31, 28, 28, 0.12),
+    0 10px 18px -6px rgba(31, 28, 28, 0.18),
+    0 38px 62px -20px rgba(31, 28, 28, 0.42);
 }
 
 /* 隅の索引。settled で現れる */
@@ -84,21 +151,72 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* ---- 狭い PC：広がりの横幅を詰めて、画面の外へ出さない ---- */
+@media (max-width: 1100px) {
+  .card {
+    --hxm: 0.86;
+  }
+}
+
+/* ---- 広い PC：札の上限が 300px で頭打ちになるぶん、間隔を広げて
+       札どうしを離す（1280 では詰まっているのが正しい＝入りきらない） ---- */
+@media (min-width: 1500px) {
+  .card {
+    --hxm: 1.14;
+  }
+}
+
+/* ---- 軽量経路（タッチ・reduced-motion）＝札は4枚。ホバーが無いので、
+       静止1コマで「サイトが重なっている」と読めるところまで題箋の外へ出す ----
+   ⚠ 振り幅は「札の大きさに対する％」なのに、隠す相手（題箋）は px で決まる。
+     札が小さくなる帯（768〜1279）では％を大きくしないと札が題箋の裏に
+     まるごと隠れる。だから帯ごとに数値を分けてある。 */
+@media (min-width: 1280px) {
+  .still .card {
+    --xm: 1.14;
+    --ym: 1.5;
+  }
+}
+
 @media (min-width: 768px) and (max-width: 1279px) {
+  .still .card {
+    --xm: 1.6;
+    --ym: 1.8;
+  }
+
+  /* 題箋も詰める（サブコピーが折り返さない下限＝約 376px） */
+  .still .front {
+    width: min(92%, 390px);
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1279px) {
+  .card {
+    width: min(21%, calc(19vh * 1.6), 280px);
+    width: min(21%, calc(19svh * 1.6), 280px);
+  }
+
+  .front {
+    padding: 26px 34px;
+  }
+
   .corner {
     left: 24px;
     bottom: 24px;
   }
 }
 
+/* ---- SP：札は 4枚（TSX 側）。題箋の左右には逃がさず、上下へ散らす ---- */
 @media (max-width: 767px) {
-  .stack {
-    width: min(88%, calc(36vh * 1.6), 640px);
-    width: min(88%, calc(36svh * 1.6), 640px);
+  .card {
+    width: min(40%, 170px);
+    --xm: 0.55;
+    --ym: 1.9;
+    border-width: 2px;
   }
 
   .front {
-    padding: 16px 18px;
+    padding: 18px 22px;
   }
 
   .corner {
@@ -111,11 +229,13 @@
   }
 }
 
-/* 動きを減らす：終端値で置く（JS 側でも即置きする） */
+/* 動きを減らす：終端値で置く（JS 側でも即置きする）。
+   広がりも縦流しも起動しない＝静止1コマで「サイトが重なっている」と読める */
 @media (prefers-reduced-motion: reduce) {
-  .sheet,
+  .card,
   .front {
     opacity: 1;
+    transition: none;
   }
 
   .corner {

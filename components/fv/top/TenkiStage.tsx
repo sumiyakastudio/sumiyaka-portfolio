@@ -11,6 +11,7 @@ import {
   type GlyphSheet,
 } from "./glyphSheet";
 import {
+  attachChips,
   buildFragments,
   countForRow,
   drawFragments,
@@ -19,6 +20,8 @@ import {
   type Frag,
   type FragRow,
 } from "./fragments";
+import { getOpState } from "./opClock";
+import { createOpening, OP_FULL, OP_LIGHT, type OpeningArt } from "./opening";
 import {
   drawBrushMarks,
   drawWrittenGlyphs,
@@ -106,6 +109,10 @@ const FLUID_BG = 29 / 255;
 const TAU = Math.PI * 2;
 
 const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
+const smooth01 = (v: number, a: number, b: number) => {
+  const u = clamp01((v - a) / (b - a || 1e-6));
+  return u * u * (3 - 2 * u);
+};
 const cl = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
 
 export default function TenkiStage({
@@ -166,6 +173,13 @@ export default function TenkiStage({
       return f || "ui-monospace, SFMono-Regular, Menlo, monospace";
     })();
 
+    /** 題字と同じ書体（灯敷の版下にも使う） */
+    const displayFamily = () => {
+      const el = getLetters()[0];
+      const f = el ? getComputedStyle(el).fontFamily : "";
+      return f || "serif";
+    };
+
     const sizeGrain = () => drawPaperGrain(grainCanvas, host.clientWidth, host.clientHeight);
     sizeGrain();
 
@@ -183,54 +197,122 @@ export default function TenkiStage({
       return 0.62 + 0.38 * Math.min(1, s);
     };
 
-    /* ======================= 軽量経路：静止 1 コマ ======================= */
+    /* ============ 軽量経路：短縮版の第1幕 → 変形 → 静止 1 コマ ============ */
     if (lightNow) {
       fluidCanvas.style.display = "none";
-      const paint = async () => {
+      const opLight = createOpening(OP_LIGHT, true);
+      const mctx = mainCanvas.getContext("2d");
+      const D = Math.max(1, Math.min(dpr, 2));
+      let ready = false;
+      let raf = 0;
+
+      const stillOpts = () => ({
+        cssW: cw,
+        cssH: ch,
+        dpr,
+        lights,
+        ink: INK255,
+        labelFont: `500 ${cl((sheet?.fontPx ?? 24) * 0.17, 8, 11).toFixed(1)}px ${monoFamily}`,
+      });
+
+      /** 灯は lantern の主灯だけ（OP の点灯時刻から立ち上げ、変形の終わりで全体へ） */
+      const paintLantern = (ot: number) => {
+        const rise = clamp01((ot - OP_LIGHT.igniteAt) / 0.4);
+        lantern?.setPhase(1 - Math.pow(1 - rise, 3), smooth01(ot, OP_LIGHT.unravelAt, OP_LIGHT.unravelAt + OP_LIGHT.morphDur));
+        lantern?.drawStatic(true);
+        lantern?.getLights(lights);
+      };
+
+      const prepare = async () => {
         await waitForGlyphFonts(getLetters()[0] ?? null, 1500);
         if (disposed) return;
         cw = host.clientWidth;
         ch = host.clientHeight;
         sheet = buildGlyphSheet(stage, getLetters(), { extra: getContent() });
+        opLight.bake(cw, ch, dpr, displayFamily());
         lantern?.resize();
         if (sheet) lantern?.setIgniteX(sheet.centerX);
-        lantern?.drawStatic(true);
-        lantern?.getLights(lights);
-        drawTenkiStill(mainCanvas, sheet, {
-          cssW: cw,
-          cssH: ch,
-          dpr,
-          lights,
-          ink: INK255,
-          labelFont: `500 ${cl((sheet?.fontPx ?? 24) * 0.17, 8, 11).toFixed(1)}px ${monoFamily}`,
-        });
-        // OP（第1幕）が終わるまでは幕の下で待つ
-        const reveal = () => {
-          if (disposed) return;
-          if (activeRef.current) host.classList.add(styles.on);
-          else requestAnimationFrame(reveal);
-        };
-        reveal();
+        paintLantern(0);
+        ready = true;
+        host.classList.add(styles.on);
+      };
+      void prepare();
+
+      const publishStill = (tt: number) => {
         window.__tenki = {
           mode: "still",
           fluid: false,
           fps: 0,
-          t: 0,
+          t: tt,
           letters: sheet?.letters.length ?? 0,
         };
       };
-      void paint();
+
+      /** 静止画を 1 枚描く（変形の途中も同じ関数で描ける） */
+      const paintStill = (morphT?: number) => {
+        drawTenkiStill(mainCanvas, sheet, {
+          ...stillOpts(),
+          morphT,
+          morphDur: OP_LIGHT.morphDur,
+          opArt: opLight,
+        });
+      };
+
+      const frame = () => {
+        if (disposed) return;
+        if (!ready || !mctx) {
+          raf = requestAnimationFrame(frame);
+          return;
+        }
+        const ops = getOpState();
+        const alive = ops.live && !ops.skipped;
+        const ot = alive ? ops.t : 99;
+        const mT = ot - OP_LIGHT.unravelAt;
+        if (alive && ot < OP_LIGHT.unravelAt) {
+          // 第1幕（短縮版）＝灯敷と灯だけ
+          const pw = Math.max(1, Math.round(cw * D));
+          const phh = Math.max(1, Math.round(ch * D));
+          if (mainCanvas.width !== pw || mainCanvas.height !== phh) {
+            mainCanvas.width = pw;
+            mainCanvas.height = phh;
+          }
+          mctx.setTransform(D, 0, 0, D, 0, 0);
+          mctx.clearRect(0, 0, cw, ch);
+          opLight.drawGlyphs(mctx, ot, cw, ch);
+          paintLantern(ot);
+          publishStill(0);
+          raf = requestAnimationFrame(frame);
+          return;
+        }
+        // 変形（破片がそのまま書類になる）→ 完成したら止める
+        const done = mT >= OP_LIGHT.morphDur;
+        paintLantern(done ? 99 : ot);
+        paintStill(done ? undefined : Math.max(0, mT));
+        publishStill(0);
+        if (!done) raf = requestAnimationFrame(frame);
+      };
+      raf = requestAnimationFrame(frame);
+      cleanups.push(() => cancelAnimationFrame(raf));
+
       let timer: number | undefined;
       const onResize = () => {
         window.clearTimeout(timer);
         timer = window.setTimeout(() => {
-          if (!disposed) void paint();
+          if (disposed) return;
+          cw = host.clientWidth;
+          ch = host.clientHeight;
+          sheet = buildGlyphSheet(stage, getLetters(), { extra: getContent() });
+          opLight.bake(cw, ch, dpr, displayFamily());
+          lantern?.resize();
+          paintLantern(99);
+          paintStill(undefined);
         }, 300);
       };
       window.addEventListener("resize", onResize);
       cleanups.push(() => {
         window.removeEventListener("resize", onResize);
         window.clearTimeout(timer);
+        opLight.destroy();
       });
       return () => {
         disposed = true;
@@ -240,7 +322,8 @@ export default function TenkiStage({
     }
 
     /* ======================= フル経路 ======================= */
-    // ★.on（幕開け）は OP から渡されてから。それまでは準備だけ進める
+    // ★第1幕と第2幕を同じ描画面で描く。幕は最初から開けておく
+    host.classList.add(styles.on);
     const mainCtx = mainCanvas.getContext("2d");
 
     /* ---- 墨の流体（WebGL・/about の実証済み実装）。失敗しても演出は続く ---- */
@@ -273,6 +356,21 @@ export default function TenkiStage({
     };
 
     /* ---- 状態 ---- */
+    /** OP（第1幕）の絵。第2幕と同じ描画面に描く＝境目でクロスフェードしない */
+    const OPT = lightNow ? OP_LIGHT : OP_FULL;
+    let op: OpeningArt | null = null;
+    let chipsDone = false;
+    let opT = 0;
+    let opAlive = false;
+    /** 灯は 1 つだけ：OP の点灯時刻から lantern の主灯を立ち上げ、
+     *  変形が終わるにつれて副灯・火の粉を足していく（切り替わりが起きない） */
+    const lanternPhase = () => {
+      if (!opAlive) return [1, 1] as const;
+      const rise = clamp01((opT - OPT.igniteAt) / 0.55);
+      const main = 1 - Math.pow(1 - rise, 3);
+      const amb = smooth01(opT, OPT.unravelAt, OPT.unravelAt + OPT.morphDur);
+      return [main, amb] as const;
+    };
     let t = 0;
     /** 準備用の時計（OP のあいだも進む。版下・断片の用意の再挑戦間隔に使う） */
     let prepT = 0;
@@ -366,6 +464,21 @@ export default function TenkiStage({
     }
 
     /** 速報：版下も書体も待たず、DOM の矩形だけで断片を用意する（初速の要） */
+    /** 灯敷の破片を書類へ結びつける（版下と断片が揃ってから一度だけ） */
+    function linkChips() {
+      if (chipsDone || !op || !op.ready || !frags || !op.sheet) return;
+      attachChips(frags, op.chips(frags.length), op.sheet);
+      chipsDone = true;
+    }
+
+    /** OP の版下をいまのステージ寸法で焼く */
+    function bakeOpening() {
+      if (!op) op = createOpening(OPT, false);
+      op.bake(cw, ch, dpr, displayFamily());
+      chipsDone = false;
+      linkChips();
+    }
+
     function primeLayout(): boolean {
       sizeMain();
       const rough = probeGlyphLayout(stage, getLetters());
@@ -382,6 +495,8 @@ export default function TenkiStage({
       lantern?.setIgniteX(
         Math.min(0.9, Math.max(0.1, (rough.h1L + rough.h1R) / 2 / Math.max(1, cw)))
       );
+      chipsDone = false;
+      linkChips();
       return true;
     }
 
@@ -415,6 +530,7 @@ export default function TenkiStage({
       dropY1 = cl(dropY1, dropY0 + 26, ch * 0.88);
       inkK = below > ch * 0.1 ? 1 : 0.5;
       computeFree(s.band);
+      linkChips();
       mainDone = false;
       // 待たせている最中に版下が来たら、帯が実測値へ寄り切るぶんだけ余分に待つ
       if (holdT > 0) holdRelease = holdT + 0.22;
@@ -484,14 +600,27 @@ export default function TenkiStage({
 
       // 版下待ちで止まっているあいだ、一本化した線がわずかに呼吸する
       const breathe = holdT > 0 ? 0.84 + 0.16 * Math.sin(holdT * 3.4) : 1;
-      const alpha = clamp01(t / T.fadeIn) * (1 - clamp01(exit)) * breathe;
+      // 幕の立ち上がりは OP の時計で（第2幕の時計はまだ 0 のため）
+      const showT = opAlive ? opT : t;
+      const alpha = clamp01(showT / T.fadeIn) * (1 - clamp01(exit)) * breathe;
       if (alpha <= 0.004) return;
       let any = false;
+
+      /* 第1幕：一筆と灯敷。ほどけ始めたら破片（＝書類の種）が引き継ぐ */
+      if (opAlive && op && opT < OPT.unravelAt) {
+        ctx.globalAlpha = alpha;
+        op.drawGlyphs(ctx, opT, cw, ch);
+        ctx.globalAlpha = 1;
+        any = true;
+      }
+      const morphT = opAlive && chipsDone ? opT - OPT.unravelAt : undefined;
+      if (morphT !== undefined && morphT >= -0.001) any = true;
 
       /* 断片：散らばり → 整列 → 一本化。筆が来たところから消費される */
       const writing = !!(sheet && plan) && t >= T.writeStart;
       const consumeX = writing && sheet && plan ? lineFront(plan, sheet, 0, t) : row.left;
-      if (!writing || consumeX < row.right) {
+      const beforeUnravel = opAlive && opT < OPT.unravelAt;
+      if (!beforeUnravel && (!writing || consumeX < row.right)) {
         ctx.save();
         if (writing) {
           // 一本化ずみの帯を、筆先の右側だけ残す（＝線が筆に吸い込まれていく）
@@ -509,6 +638,8 @@ export default function TenkiStage({
           labelFont,
           alignStart: T.alignStart,
           alignDur: T.alignDur,
+          morphT: morphT !== undefined && morphT >= 0 ? morphT : undefined,
+          morphDur: OPT.morphDur,
           lit,
         });
         ctx.restore();
@@ -573,11 +704,31 @@ export default function TenkiStage({
       }
       prepT += dt;
 
-      /* ---- OP（第1幕）が終わるまでは準備だけ。時計は 0 のまま ---- */
-      if (!activeRef.current) return;
+      /* ---- OP の時計を取り込む（第1幕の絵はこの時計で描く） ---- */
+      const ops = getOpState();
+      opAlive = ops.live && !ops.skipped;
+      opT = opAlive ? ops.t : prepT;
+      if (opAlive && op) op.advanceStroke(opT);
       if (!opened) {
         opened = true;
         hostEl.classList.add(styles.on);
+      }
+
+      /* ---- 第2幕の時計は openingDone から。それまでも絵は描き続ける ---- */
+      if (!activeRef.current) {
+        const [mk, ak] = lanternPhase();
+        lantern?.setPhase(mk, ak);
+        lantern?.step(dt);
+        lantern?.getLights(lights);
+        if (row && rowTarget) {
+          const k0 = Math.min(1, dt * 9);
+          row.y += (rowTarget.y - row.y) * k0;
+          row.left += (rowTarget.left - row.left) * k0;
+          row.right += (rowTarget.right - row.right) * k0;
+          row.h += (rowTarget.h - row.h) * k0;
+        }
+        drawMain(0);
+        return;
       }
 
       /* ---- 時計：版下が要る時刻に間に合っていなければ、そこで止めて待つ ---- */
@@ -625,6 +776,8 @@ export default function TenkiStage({
         row.h += (rowTarget.h - row.h) * k;
       }
 
+      const [mk2, ak2] = lanternPhase();
+      lantern?.setPhase(mk2, ak2);
       lantern?.setExit(exit);
       lantern?.step(dt);
       lantern?.getLights(lights);
@@ -730,6 +883,7 @@ export default function TenkiStage({
         if (disposed) return;
         sizeGrain();
         lantern?.resize();
+        bakeOpening();
         if (sheet) applySheet();
         else primeLayout();
         // 流体は生成時の寸法で FBO を持つ。大きく変わったときだけ作り直す
@@ -749,6 +903,7 @@ export default function TenkiStage({
     /* ---- 起動：★何も待たずに時計を回して散らばりを始める（初速） ----
        版下（＝書体の読込が要る）は並行して焼き、筆が始まる時刻までに間に合わせる。 */
     sizeMain();
+    bakeOpening();
     primeLayout();
     start();
     publish();
@@ -766,6 +921,7 @@ export default function TenkiStage({
       }
       if (disposed) return;
       fontsDone = true;
+      if (getOpState().t < OPT.unravelAt) bakeOpening();
       applySheet();
       publish();
       // 上限で打ち切って代替書体のまま焼いた場合の保険：本物が届いたら焼き直す
@@ -785,6 +941,8 @@ export default function TenkiStage({
       cleanups.forEach((c) => c());
       fluid?.destroy();
       fluid = null;
+      op?.destroy();
+      op = null;
       lantern?.destroy();
     };
   }, [light, exitRef, onLetter, onSettled]);

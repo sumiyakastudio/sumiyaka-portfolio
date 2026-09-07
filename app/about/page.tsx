@@ -59,13 +59,13 @@ export const metadata: Metadata = {
 const TIMELINE: { when: string; text: ReactNode }[] = [
   {
     when: "9歳",
-    text: "初めて触れたのは、パソコンでした。インターネットはどう動いているのか——関心の始まり。",
+    text: "初めて触れたのは、スマホでもゲームでもなく、パソコンでした。インターネットはどう動いているのか——関心の始まり。",
   },
   {
     when: "15歳",
     text: (
       <>
-        WordPressとHTML/CSS/JavaScriptを独学。サーバー契約からサイト公開まで自力でやり切り、「作る側」に。以来、
+        WordPressとHTML/CSS/JavaScriptを独学。サーバー契約からサイト公開、オリジナルテーマ作成まで自力でやり切り、「作る側」に。以来、
         <CountUp value={15} prefix="約" suffix="年" className={styles.num} />。
       </>
     ),

@@ -42,6 +42,11 @@ export interface LanternAPI {
   /** 静止 1 コマ（安定位相・点灯済みの状態で描く） */
   drawStatic(ignited: boolean): void;
   ignite(): void;
+  /**
+   * 幕の段階。mainK＝主灯（右上）の強さ、ambientK＝それ以外（副灯・点灯・火の粉・
+   * 手元の灯）の強さ。OP のあいだは mainK だけを立ち上げ、灯を 1 つに保つ。
+   */
+  setPhase(mainK: number, ambientK: number): void;
   /** ポインタ（0..1 正規化） */
   setPointer(x: number, y: number, on: boolean): void;
   /** 題字の中心 x（0..1） */
@@ -67,6 +72,8 @@ export function createLantern(
   let t = 0;
   let exit = 0;
   let igniteX = IGNITE_DEF.bx;
+  let mainK = 1;
+  let ambK = 1;
 
   interface Orb { def: OrbDef; p1: number; p2: number; f1: number; f2: number; }
   const orbs: Orb[] = ORB_DEFS.map((d, i) => ({
@@ -234,10 +241,10 @@ export function createLantern(
     gctx!.setTransform(DPR, 0, 0, DPR, 0, -exit * ch * 0.22 * DPR);
     gctx!.clearRect(0, exit * ch * 0.22, cw, ch);
     gctx!.globalCompositeOperation = "lighter";
-    orbs.forEach((o, i) => drawOrb(o, t, i, dim));
-    drawIgnite(t, dim);
-    drawEmbers(dt, t, dim);
-    drawLantern(dt, dim);
+    orbs.forEach((o, i) => drawOrb(o, t, i, dim * (i === 0 ? mainK : ambK)));
+    drawIgnite(t, dim * ambK);
+    drawEmbers(dt, t, dim * ambK);
+    drawLantern(dt, dim * ambK);
     gctx!.globalCompositeOperation = "source-over";
     // 退場中は照明も上へ
     lights[1] -= exit * 0.22;
@@ -262,6 +269,10 @@ export function createLantern(
     ignite() {
       if (igniteOrb.born !== null) return;
       igniteOrb.born = t;
+    },
+    setPhase(nextMain, nextAmbient) {
+      mainK = Math.min(1, Math.max(0, nextMain));
+      ambK = Math.min(1, Math.max(0, nextAmbient));
     },
     setPointer(x, y, on) {
       lantern.tx = x;

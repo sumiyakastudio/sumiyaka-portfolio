@@ -14,12 +14,14 @@
  */
 
 import {
+  attachChips,
   buildFragments,
   drawFragments,
   countForRow,
   type FragRow,
 } from "./fragments";
 import type { GlyphSheet } from "./glyphSheet";
+import type { OpeningArt } from "./opening";
 
 export interface StillOptions {
   cssW: number;
@@ -31,6 +33,11 @@ export interface StillOptions {
   ink: [number, number, number];
   /** ラベルの書体（ctx.font 形式） */
   labelFont: string;
+  /** 変形の経過（秒）。灯敷の破片が書類へ姿を変える途中を 1 コマで見せる */
+  morphT?: number;
+  morphDur?: number;
+  /** 破片の出どころ（OP の版下） */
+  opArt?: OpeningArt | null;
 }
 
 const cl = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
@@ -45,8 +52,12 @@ export function drawTenkiStill(
   const DPR = Math.max(1, Math.min(o.dpr || 1, 2));
   const W = Math.max(1, o.cssW);
   const H = Math.max(1, o.cssH);
-  canvas.width = Math.max(1, Math.round(W * DPR));
-  canvas.height = Math.max(1, Math.round(H * DPR));
+  const pw = Math.max(1, Math.round(W * DPR));
+  const ph = Math.max(1, Math.round(H * DPR));
+  if (canvas.width !== pw || canvas.height !== ph) {
+    canvas.width = pw;
+    canvas.height = ph;
+  }
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   ctx.clearRect(0, 0, W, H);
   if (!sheet || !sheet.lines.length) return true;
@@ -90,6 +101,10 @@ export function drawTenkiStill(
     count: n,
     seed: 424242,
   });
+  // 灯敷の破片を書類へ結びつける（軽量経路でも「墨 → 紙」の変化が見える）
+  if (o.opArt?.ready && o.opArt.sheet) {
+    attachChips(frags, o.opArt.chips(frags.length), o.opArt.sheet);
+  }
 
   drawFragments(ctx, frags, row, {
     t: 0,
@@ -102,6 +117,8 @@ export function drawTenkiStill(
     labelFont: o.labelFont,
     alignStart: 0,
     alignDur: 1,
+    morphT: o.morphT,
+    morphDur: o.morphDur,
     lit,
     // 左＝散らばったまま／中＝整列の途中／右＝一本化済み
     progressOf: (i, k) => (k < 2 ? 1 : (i / (k - 1)) * 1.55 - 0.3),
@@ -114,12 +131,21 @@ export function drawTenkiStill(
 
   ctx.globalCompositeOperation = "lighter";
 
+  /* 変形の途中は飾り（先端の灯・送りの罫・墨の余韻）を出さない＝画面を散らかさない */
+  const mp =
+    o.morphT === undefined ? 1 : Math.max(0, Math.min(1, o.morphT / Math.max(0.05, o.morphDur ?? 0.34)));
+  const deco = mp <= 0.7 ? 0 : (mp - 0.7) / 0.3;
+  if (deco <= 0.01) {
+    ctx.globalCompositeOperation = "source-over";
+    return true;
+  }
+
   /* ---- 一本化した線の先端（右端）に灯りを一点 ---- */
   const hx = row.right;
   const hy = rowY;
   const hL = lit(hx, hy);
   const g = ctx.createRadialGradient(hx, hy, 0, hx, hy, rowH * 1.5);
-  g.addColorStop(0, col(0.42 * hL));
+  g.addColorStop(0, col(0.42 * hL * deco));
   g.addColorStop(1, col(0));
   ctx.fillStyle = g;
   ctx.fillRect(hx - rowH * 1.5, hy - rowH * 1.5, rowH * 3, rowH * 3);
@@ -130,7 +156,7 @@ export function drawTenkiStill(
     if (stop > rowY + 4) {
       for (let i = 0; i < 5; i++) {
         const x = Math.round(row.left + span * (0.6 + (i / 4) * 0.38)) + 0.5;
-        const a = 0.1 + 0.12 * (i / 4);
+        const a = (0.1 + 0.12 * (i / 4)) * deco;
         ctx.fillStyle = col(a * lit(x, (rowY + stop) / 2));
         ctx.fillRect(x, rowY + rowH * 0.35, 1, stop - rowY - rowH * 0.35);
       }
@@ -144,12 +170,12 @@ export function drawTenkiStill(
     const by = belowTop + (H - belowTop) * 0.46;
     const br = Math.min(H * 0.16, W * 0.2);
     const bg = ctx.createRadialGradient(bx, by, 0, bx, by, br);
-    bg.addColorStop(0, col(0.075));
-    bg.addColorStop(0.45, col(0.028));
+    bg.addColorStop(0, col(0.075 * deco));
+    bg.addColorStop(0.45, col(0.028 * deco));
     bg.addColorStop(1, col(0));
     ctx.fillStyle = bg;
     ctx.fillRect(bx - br, by - br, br * 2, br * 2);
-    ctx.fillStyle = col(0.3);
+    ctx.fillStyle = col(0.3 * deco);
     ctx.beginPath();
     ctx.arc(bx, by, 1.6, 0, Math.PI * 2);
     ctx.fill();
