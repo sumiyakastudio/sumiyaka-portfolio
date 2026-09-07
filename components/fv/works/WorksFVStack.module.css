@@ -1,14 +1,33 @@
 /* =============================================
    WorksFVStack — /works FV「掲載サイトの束」（清・紙）
-   2026-09-07：無地の白い紙 → 実際の掲載サイトのフルスクショへ置き換え。
+   2026-09-05：無地の白い紙 → 実際の掲載サイトのフルスクショへ置き換え。
+   2026-09-07：ホバーの広がりを「横一列の弧」→「不規則な散らばり」へ。
+     ・行き先（--hx / --hy / --hr / --hs）は JS が実測から入れる（px）。
+       ％で持つと、px で決まる題箋の裏に札がまるごと隠れる帯が出る。
+     ・横は外側（.card）／縦・傾き・大きさは内側（.stem）が持つ。別々の
+       イージングを掛けるので、直線ではなく弧を描いて飛ぶ。
    色のトークンは app/works/page.module.css の .page が定義する
    --wk-* を継承する（FV は .page の内側にある）。
    動かすのは transform(2D)・opacity・box-shadow・object-position のみ。
    ============================================= */
 
 /* 舞台いっぱいに広がる層。束を中央に置き、隅に索引を持つ。
-   ここ全体がホバーの受け皿＝FV に入った時点で束が広がる */
+   ここ全体がホバーの受け皿＝FV に入った時点で束が散らばる */
 .stage {
+  /* ★ 時間の設計。TSX 側の SPREAD_STEP_MS / RETURN_STEP_MS と対で使う。
+     ここを変えるときは、あちらの「縦流しの開始ずらし」も見直すこと */
+  --wk-spread-dur: 1.05s;
+  --wk-return-dur: 0.9s;
+  /* ★ 頭でっかちなイージング（expo.out や back.out）は、時間の 2割で 6〜9割
+     進んでしまい「瞬間移動」に見える（2026-09-07 実測）。飛んでいる途中が
+     見えるよう、立ち上がりを抑えて中盤で運ぶ形にしてある。
+     横：中盤で運び、最後にわずかに行き過ぎてから収まる
+     縦：横よりさらに立ち上がりを遅らせる。時間差がつくぶん道筋が弧になる */
+  --wk-ease-spread-x: cubic-bezier(0.42, 0.02, 0.28, 1.18);
+  --wk-ease-spread-y: cubic-bezier(0.62, 0.01, 0.32, 1);
+  --wk-ease-return-x: cubic-bezier(0.45, 0.02, 0.3, 1.06);
+  --wk-ease-return-y: cubic-bezier(0.58, 0.02, 0.35, 1);
+
   position: absolute;
   inset: 0;
   display: flex;
@@ -25,17 +44,15 @@
 }
 
 /* ---------------------------------------------
-   札＝掲載サイトのフルスクショ1枚
-   ・枠は 16:10。lib/hoverScroll.ts の FRAME_RATIO と一致させること
-     （ここを変えると縦流しの速度がページ間でずれる）
-   ・居場所は「札自身の大きさに対する％」で持つ。幅が変わっても崩れない
+   札（外側）＝横位置だけを持つ入れもの。
    ・幅は 300px を上限にする。フルスクショの原寸（1320px幅）を出さない＝
      next/image が小さい派生を返す。FV のバイト数はこの上限で決まる
+   ・平常時の居場所は「札自身の大きさに対する％」（幅が変わっても崩れない）
+   ・散らばりの行き先 --hx は JS が px で入れる（実測ベース）
    --------------------------------------------- */
 .card {
   --xm: 1; /* 平常時の横の振り幅（SP で詰める） */
   --ym: 1; /* 平常時の縦の振り幅（SP で広げる＝題箋の上下へ逃がす） */
-  --hxm: 1; /* 広がったときの横の振り幅（狭い PC で詰める） */
 
   position: absolute;
   left: 50%;
@@ -43,23 +60,32 @@
   width: min(22%, calc(19vh * 1.6), 300px);
   width: min(22%, calc(19svh * 1.6), 300px);
   aspect-ratio: 16 / 10;
+  opacity: 0; /* 入場（GSAP）が 1 にする。reduced-motion は下で即置き */
+  transform: translate(-50%, -50%) translateX(calc(var(--x) * var(--xm)));
+  /* ⚠ 入場中は transition を持たせない。GSAP が毎フレーム transform を
+     書くので、transition があると追従が遅れて動きが濁る。
+     入場が終わってから .live で有効にする */
+  transition: none;
+}
+
+/* ---------------------------------------------
+   札（内側）＝縦位置・傾き・大きさ。見えている紙そのもの。
+   ・16:10。lib/hoverScroll.ts の FRAME_RATIO と一致させること
+     （ここを変えると縦流しの速度がページ間でずれる）
+   ・紙に貼った写真＝白い余白と実影
+   --------------------------------------------- */
+.stem {
+  position: absolute;
+  inset: 0;
+  display: block;
   box-sizing: border-box;
-  /* 紙に貼った写真＝白い余白と実影 */
   border: 3px solid var(--wk-front);
   overflow: hidden;
   overflow: clip;
   background-color: var(--wk-paper);
   background-image: var(--wk-grain);
   box-shadow: var(--wk-shadow-sheet);
-  opacity: 0; /* 入場（GSAP）が 1 にする。reduced-motion は下で即置き */
-  transform: translate(
-      calc(-50% + var(--x) * var(--xm)),
-      calc(-50% + var(--y) * var(--ym))
-    )
-    rotate(var(--r));
-  /* ⚠ 入場中は transition を持たせない。GSAP が毎フレーム transform を
-     書くので、transition があると追従が遅れて動きが濁る。
-     入場が終わってから .live で有効にする */
+  transform: translateY(calc(var(--y) * var(--ym))) rotate(var(--r));
   transition: none;
 }
 
@@ -72,7 +98,7 @@
 /* ---------------------------------------------
    手前の一枚＝題箋（白い紙）。題字が活版で押し込まれる。
    ★ 題字は必ずこの不透明な紙の上にしか乗らない。束は常にこれより奥なので、
-     広がっている最中でも画像が題字の背面に来ることが構造的に起こらない
+     散らばっている最中でも画像が題字の背面に来ることが構造的に起こらない
    --------------------------------------------- */
 .front {
   position: relative;
@@ -95,30 +121,51 @@
   transition: none;
 }
 
-/* 入場が終わってから、広がり／畳みの transition を有効にする */
+/* ---- 入場が終わってから、散らばり／畳みの transition を有効にする ----
+   クラスを外したとき（＝戻り）は下の .live 側が効く＝戻りも同じ質で動く */
 .live .card {
-  transition: transform 0.62s var(--ease-out-expo) var(--hd, 0s);
+  transition: transform var(--wk-return-dur) var(--wk-ease-return-x) var(--rd, 0ms);
+}
+
+.live .stem {
+  transition: transform var(--wk-return-dur) var(--wk-ease-return-y) var(--rd, 0ms);
 }
 
 .live .front {
   transition:
-    transform 0.62s var(--ease-out-expo),
-    box-shadow 0.62s ease;
+    transform var(--wk-return-dur) var(--wk-ease-return-x),
+    box-shadow var(--wk-return-dur) ease;
+}
+
+.live.spread .card {
+  transition: transform var(--wk-spread-dur) var(--wk-ease-spread-x) var(--hd, 0ms);
+}
+
+.live.spread .stem {
+  transition: transform var(--wk-spread-dur) var(--wk-ease-spread-y) var(--hd, 0ms);
+}
+
+.live.spread .front {
+  transition:
+    transform var(--wk-spread-dur) var(--wk-ease-spread-x),
+    box-shadow var(--wk-spread-dur) ease;
 }
 
 /* ---------------------------------------------
-   ホバー＝束が下へ帯状にバッと広がる。題箋は少し持ち上がって手前に残る
+   ホバー＝束が題箋のまわりへばらばらに散る。題箋は少し持ち上がって手前に残る
    --------------------------------------------- */
 .spread .card {
-  transform: translate(
-      calc(-50% + var(--hx) * var(--hxm)),
-      calc(-50% + var(--hy))
-    )
-    rotate(var(--hr)) scale(0.6);
+  transform: translate(-50%, -50%) translateX(var(--hx, 0px));
 }
 
+.spread .stem {
+  transform: translateY(var(--hy, 0px)) rotate(var(--hr, 0deg))
+    scale(var(--hs, 0.55));
+}
+
+/* --plift / --pscale は TSX が入れる（散らばりの計算と同じ値を使うため） */
 .spread .front {
-  transform: translateY(-26%) scale(0.94);
+  transform: translateY(var(--plift, -26%)) scale(var(--pscale, 0.94));
   box-shadow:
     inset 1px 1px 0 rgba(255, 255, 255, 0.9),
     0 2px 2px rgba(31, 28, 28, 0.12),
@@ -149,21 +196,6 @@
   letter-spacing: 0.12em;
   color: var(--wk-ink-2);
   font-variant-numeric: tabular-nums;
-}
-
-/* ---- 狭い PC：広がりの横幅を詰めて、画面の外へ出さない ---- */
-@media (max-width: 1100px) {
-  .card {
-    --hxm: 0.86;
-  }
-}
-
-/* ---- 広い PC：札の上限が 300px で頭打ちになるぶん、間隔を広げて
-       札どうしを離す（1280 では詰まっているのが正しい＝入りきらない） ---- */
-@media (min-width: 1500px) {
-  .card {
-    --hxm: 1.14;
-  }
 }
 
 /* ---- 軽量経路（タッチ・reduced-motion）＝札は4枚。ホバーが無いので、
@@ -212,6 +244,9 @@
     width: min(40%, 170px);
     --xm: 0.55;
     --ym: 1.9;
+  }
+
+  .stem {
     border-width: 2px;
   }
 
@@ -230,11 +265,16 @@
 }
 
 /* 動きを減らす：終端値で置く（JS 側でも即置きする）。
-   広がりも縦流しも起動しない＝静止1コマで「サイトが重なっている」と読める */
+   散らばりも縦流しも起動しない＝静止1コマで「サイトが重なっている」と読める */
 @media (prefers-reduced-motion: reduce) {
   .card,
   .front {
     opacity: 1;
+  }
+
+  .card,
+  .stem,
+  .front {
     transition: none;
   }
 
