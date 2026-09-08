@@ -18,6 +18,71 @@ const REBUILD_URLS = {
 
 export const works: Work[] = [
   // -------------------------------------------------------------------------
+  // 1. KISSA AOKI (Finder: kominka-cafe / work-29)
+  // -------------------------------------------------------------------------
+  {
+    slug: "kominka-cafe",
+    title: "古民家喫茶 あおき",
+    id: "work-29",
+    tier: "A",
+    order: 1,
+    category: ["CORPORATE"],
+    technologies: ["HTML", "CSS", "JavaScript"],
+    description:
+      "明治の農家を改修した古民家喫茶の店舗サイト。画面を縦34分割した格子に置き、罫をほとんど引かず、生成りの地に色面の矩形と写真を重ねて章を立てた全8ページ。本文は1行ずつ下から迫り上がる。",
+    thumbnail: "/works/kominka-cafe/thumbnail.webp",
+    images: ["/works/kominka-cafe/01.webp"],
+    liveUrl: "https://sumiyakastudio.github.io/kominka-cafe/",
+    isPickUp: false,
+    // Finder fields
+    genre: "カフェ・飲食",
+    siteType: "店舗サイト（マルチページ）",
+    purpose: "集客・来店促進",
+    tags: [
+      "店舗サイト",
+      "全8ページ",
+      "和モダン",
+      "縦組みの見出しとナビ",
+      "行マスクの出現演出",
+      "メニュー17品",
+      "年表8項目",
+      "SVGの経路図",
+      "アコーディオンFAQ",
+      "疑似送信フォーム",
+      "地図埋め込みなし",
+      "レスポンシブ",
+    ],
+    summary:
+      "「土間で珈琲、座敷で茶を。」を掲げた、築百二十年の農家を改修した喫茶店のサイト。画面を縦に34分割し、左4列を縦組みナビの固定レール、右30列を内容に充てて、位置と幅をすべてこの格子で決めている。罫は1px1色だけを使い、区切りは余白と色面の矩形で作った。TOP／お品書き（珈琲と茶・甘味・昼のごはん・季節のもの＝17品）／家のこと（年表8項目と4つの部屋）／アクセス／お知らせ8件／お問い合わせ（FAQ6問と疑似送信フォーム）／プライバシー／404の全8ページ。写真28枚はすべて生成し、同じ家・同じ光に見えるよう共通のスタイル句で揃えたうえ、原寸で全数を検品している。",
+    challenge:
+      "基軸に選んだ実在サイトのCSSを静的に解析したところ、格子がpx固定ではなく画面幅を34で割った可変値であること、区切り記号が存在しないこと、本文が1行ずつ迫り上がる演出こそが特徴であることが分かり、目視で立てた初版の設計を作り直した。可変の格子はそのまま真似るとiOSで横あふれを起こすため、レイアウトからは可変単位を排してCSSグリッドの34分割に翻訳し、文字サイズにだけ上限付きで残している。地図の埋め込みは実在の場所を指してしまうため使わず、駅から店までの道順を直線と小さな矩形と漢数字だけのインラインSVGで描いた。3つの描画エンジン×8ページの実測では、写真がiOSでだけ高さ0に潰れる不具合を検出して修正している。",
+    designTone: "和モダン / 生成りの紙 × 色面の矩形",
+    features: [
+      "34分割の格子レイアウト",
+      "縦組みの固定ナビ（SPは全面メニュー）",
+      "行マスクの出現演出（IntersectionObserver＋CSS）",
+      "一文字の副題",
+      "SVGの経路図・格子戸の紋・屋根線",
+      "アコーディオンFAQ",
+      "疑似送信フォーム（ハニーポット付き）",
+      "レスポンシブ",
+    ],
+    techTags: ["JavaScript"],
+    techStack: ["HTML", "CSS", "JavaScript"],
+    pageCount: 8,
+    scale: null,
+    budgetRange: "¥220,000（税抜）",
+    durationRange: null,
+    createdAt: "2026-09-08",
+    year: 2026,
+    isFeatured: false,
+    hasCms: false,
+    hasAnimation: true,
+    hasForm: true,
+    detailUrl: null,
+    siteUrl: "https://sumiyakastudio.github.io/kominka-cafe/",
+  },
+  // -------------------------------------------------------------------------
   // 1. AOKI ACUPUNCTURE & SEITAI (Finder: aoki-seitai / work-27)
   // -------------------------------------------------------------------------
   {
@@ -25,7 +90,7 @@ export const works: Work[] = [
     title: "あおき鍼灸整体院",
     id: "work-27",
     tier: "A",
-    order: 1,
+    order: 2,
     category: ["CORPORATE"],
     technologies: ["HTML", "CSS", "JavaScript"],
     description:
@@ -104,7 +169,7 @@ export const works: Work[] = [
     title: "AOKI TRAVEL",
     id: "work-26",
     tier: "S",
-    order: 2,
+    order: 3,
     category: ["CORPORATE"],
     technologies: ["HTML", "CSS", "JavaScript"],
     description:
@@ -184,7 +249,7 @@ export const works: Work[] = [
     title: "AOKI STAFFING 採用サイト",
     id: "work-25",
     tier: "A",
-    order: 3,
+    order: 4,
     category: ["CORPORATE"],
     technologies: ["HTML", "CSS", "JavaScript"],
     description:
@@ -251,7 +316,7 @@ export const works: Work[] = [
     title: "SUIGEN 水源",
     id: "work-24",
     tier: "S",
-    order: 4,
+    order: 5,
     category: ["CORPORATE", "LP"],
     technologies: ["HTML", "CSS", "JavaScript", "Lenis"],
     description:
@@ -313,7 +378,7 @@ export const works: Work[] = [
     title: "REGENT BEVERAGE",
     id: "work-23",
     tier: "S",
-    order: 5,
+    order: 6,
     category: ["CORPORATE"],
     technologies: ["HTML", "CSS", "JavaScript", "GSAP", "Lenis"],
     description:
@@ -372,7 +437,7 @@ export const works: Work[] = [
     title: "RECLEAR",
     id: "work-22",
     tier: "A",
-    order: 6,
+    order: 7,
     category: ["LP"],
     technologies: ["HTML", "CSS", "JavaScript"],
     description:
@@ -432,7 +497,7 @@ export const works: Work[] = [
     title: "陽だまりデンタルクリニック",
     id: "work-21",
     tier: "A",
-    order: 7,
+    order: 8,
     category: ["CORPORATE"],
     technologies: ["HTML", "CSS", "JavaScript", "jsPDF"],
     description:
@@ -493,7 +558,7 @@ export const works: Work[] = [
     title: "もりのこ幼稚園",
     id: "work-20",
     tier: "A",
-    order: 8,
+    order: 9,
     category: ["CORPORATE"],
     technologies: ["HTML", "CSS", "JavaScript"],
     description:
@@ -553,7 +618,7 @@ export const works: Work[] = [
     title: "J. CALDWELL & SONS",
     id: "work-17",
     tier: "S",
-    order: 9,
+    order: 10,
     category: ["MULTI-LANG"],
     technologies: ["HTML", "CSS", "JavaScript", "i18n"],
     description:
@@ -611,7 +676,7 @@ export const works: Work[] = [
     title: "AOKI ATELIER",
     id: "work-16",
     tier: "A",
-    order: 10,
+    order: 11,
     category: ["CORPORATE"],
     technologies: ["HTML", "CSS", "JavaScript", "GSAP"],
     description:
@@ -669,7 +734,7 @@ export const works: Work[] = [
     title: "CodeQuest",
     id: "work-19",
     tier: "S",
-    order: 11,
+    order: 12,
     category: ["LP"],
     technologies: ["HTML", "CSS", "JavaScript", "GSAP", "PixelArt"],
     description:
@@ -727,7 +792,7 @@ export const works: Work[] = [
     title: "AOKI REFORM",
     id: "work-15",
     tier: "S",
-    order: 12,
+    order: 13,
     category: ["CORPORATE"],
     technologies: ["HTML", "CSS", "JavaScript", "IntersectionObserver"],
     description:
@@ -788,7 +853,7 @@ export const works: Work[] = [
     title: "AOKI BEAUTY CLINIC NO2",
     id: "work-14b",
     tier: "S",
-    order: 13,
+    order: 14,
     category: ["MULTI-LANG"],
     technologies: ["HTML", "CSS", "JavaScript", "GSAP", "i18n"],
     description:
@@ -847,7 +912,7 @@ export const works: Work[] = [
     title: "AOKI TAX OFFICE",
     id: "work-14a",
     tier: "A",
-    order: 14,
+    order: 15,
     category: ["CORPORATE"],
     technologies: ["HTML", "CSS", "JavaScript", "Lenis"],
     description:
@@ -906,7 +971,7 @@ export const works: Work[] = [
     title: "AOKI GYM",
     id: "work-12",
     tier: "A",
-    order: 15,
+    order: 16,
     category: ["LP"],
     technologies: ["HTML", "CSS", "JavaScript", "GSAP"],
     description:
@@ -974,7 +1039,7 @@ export const works: Work[] = [
     title: "BISTRO AOKI",
     id: "work-11",
     tier: "A",
-    order: 16,
+    order: 17,
     category: ["CORPORATE"],
     technologies: ["HTML", "CSS", "JavaScript", "GSAP"],
     description:
@@ -1032,7 +1097,7 @@ export const works: Work[] = [
     title: "AOKI ESTATE",
     id: "work-10",
     tier: "S",
-    order: 17,
+    order: 18,
     category: ["CORPORATE"],
     technologies: ["HTML", "CSS", "JavaScript"],
     description:
@@ -1094,7 +1159,7 @@ export const works: Work[] = [
     title: "AOKI FAMILY ENGLISH",
     id: "work-08",
     tier: "A",
-    order: 18,
+    order: 19,
     category: ["CORPORATE"],
     technologies: ["HTML", "CSS", "JavaScript"],
     description:
@@ -1156,7 +1221,7 @@ export const works: Work[] = [
     title: "AOKI ANIMATION",
     id: "work-09",
     tier: "A",
-    order: 19,
+    order: 20,
     category: ["CORPORATE"],
     technologies: ["HTML", "CSS", "JavaScript"],
     description:
@@ -1211,7 +1276,7 @@ export const works: Work[] = [
     title: "BLUE WOODS No.1 POP-UP SHOP",
     id: "work-02",
     tier: "A",
-    order: 20,
+    order: 21,
     category: ["LP"],
     technologies: ["HTML", "CSS", "JavaScript"],
     description:
@@ -1266,7 +1331,7 @@ export const works: Work[] = [
     title: "AKASHIKI WORKS FINDER",
     id: "work-18",
     tier: "A",
-    order: 21,
+    order: 22,
     category: ["CORPORATE"],
     technologies: ["React", "TypeScript", "CSS"],
     description:
@@ -1327,7 +1392,7 @@ export const works: Work[] = [
     title: "AOKI MITUMORI",
     id: "work-05",
     tier: "B",
-    order: 22,
+    order: 23,
     category: ["CORPORATE"],
     technologies: ["HTML", "CSS", "JavaScript"],
     description:
@@ -1381,7 +1446,7 @@ export const works: Work[] = [
     title: "AOKI BEAUTY CLINIC",
     id: "work-01",
     tier: "B",
-    order: 23,
+    order: 24,
     category: ["LP"],
     technologies: ["HTML", "CSS", "JavaScript"],
     description:
@@ -1435,7 +1500,7 @@ export const works: Work[] = [
     title: "AOKI STANDARD CO.",
     id: "work-02b",
     tier: "A",
-    order: 24,
+    order: 25,
     category: ["CORPORATE"],
     technologies: ["HTML", "CSS", "JavaScript"],
     description:
@@ -1488,7 +1553,7 @@ export const works: Work[] = [
     title: "AOKI TECH STUDIO",
     id: "work-03",
     tier: "A",
-    order: 25,
+    order: 26,
     category: ["CORPORATE"],
     technologies: ["HTML", "CSS", "JavaScript"],
     description:
@@ -1551,7 +1616,7 @@ export const works: Work[] = [
     title: "AOKICOSMETIC",
     id: "work-07",
     tier: "S",
-    order: 26,
+    order: 27,
     category: ["CORPORATE", "LP"],
     technologies: ["HTML", "CSS", "JavaScript"],
     description:
@@ -1612,7 +1677,7 @@ export const works: Work[] = [
     title: "AOKI LOTION",
     id: "work-06",
     tier: "B",
-    order: 27,
+    order: 28,
     category: ["LP"],
     technologies: ["HTML", "CSS", "JavaScript"],
     description:
@@ -1667,7 +1732,7 @@ export const works: Work[] = [
     title: "CAFE AOKI",
     id: "work-04",
     tier: "A",
-    order: 28,
+    order: 29,
     category: ["CORPORATE"],
     technologies: ["HTML", "CSS", "JavaScript"],
     description:
