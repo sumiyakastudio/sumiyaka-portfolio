@@ -80,6 +80,8 @@ export interface FdeIntro {
   tagline: string;
   /** FDEを知らない人向けの説明（2〜3文） */
   explain: string;
+  /** 説明の結び＝1文だけ少し目立たせる（2026-09-16 あおき指示「仕事の完了は、私が必要なくなることです」） */
+  closing: string;
   /** 数字の測り方（正直な但し書き） */
   measured: string;
   /** 導入先（正直に） */

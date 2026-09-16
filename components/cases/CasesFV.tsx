@@ -1,39 +1,71 @@
 "use client";
 
-import { useEffect, useRef, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
+import Image from "next/image";
 import { useFVPhase } from "@/components/fv/useFVPhase";
 import { formatDuration } from "@/lib/caseCatalog";
+import { useFullMotion } from "@/lib/useLightVisuals";
 import type { CaseDuration, CaseStudy, FdeIntro } from "@/types/case";
 import styles from "./CasesFV.module.css";
 
 /**
- * /cases の FV「現場に入って、AIが回るまで」（2026-09-16 格上げ）。
+ * /cases の FV「現場に入って、AIが回るまで」（2026-09-16 作り直し）。
  *
- * 舞台は SubPageFVAnim（customEntrance）。ここは独自の入場だけを持つ：
+ * ◆ なぜ作り直したか
+ *   前の版は数字の行が3本（導入前→導入後／C-03の行／凡例）あり、3秒で読めなかった。
+ *   帯グラフも小さく、図としての力が無かった（あおきさん指摘）。
+ *   → 帯は**FV の背景そのもの**へ。前景は**1行の数字**だけにする。
+ *   → さらに 6選のサムネを「束」として置き、WEB・TOOLS の FV と同じ密度にする。
+ *
+ * ◆ 舞台は SubPageFVAnim（customEntrance）。ここは独自の入場だけを持つ：
  *   0.00 暖黒の現場。左の外から灯が入り、横切っていく
- *   0.05 灯が通ったところから机の横罫が引かれる（順に）
+ *   0.06 灯が通ったところから机の横罫が引かれる（順に）
  *   0.55 地が紙色へ転調する（暖黒の層が引いていく＝「現場に入った」）
- *   0.72 導入前の帯（薄墨のトラック）が出る
- *   0.80 帯が導入後の長さへ縮み、上の数字が導入前→導入後へカウントダウンする
- *   1.00 収縮（SubPageFVAnim）：帯の層＝data-fv-depth が奥へ沈む
- *   1.05 題字 FDE ＋ 正式名称 ＋ 一言 が立ち上がる
+ *   0.58 12件の帯（導入前＝薄墨・FV全幅）が上から順に左→右へ引かれる
+ *   0.70 題字 FDE が筆のように左から現れる（1文字ずつ・字送り）
+ *   0.95 濃い帯（導入後＝各事例のテーマ色）が全幅から各比率へ縮み、
+ *        同時に数字が「導入前 → 導入後」へカウントダウンする
+ *   1.00 収縮（SubPageFVAnim）：束の層＝data-fv-depth が奥へ沈む
+ *   1.20 6選の札が下から順に滑り込み、扇状に広がる（各 80ms ずらし）
+ *   2.10 数字が着地してわずかに沈む／以後は灯だけが弱く呼吸する
  *
- * - 帯は12本＝事例の件数。縮んだ先の長さは各事例の (AI＋人)÷導入前、色は各事例の accent。
- *   同じ図を一覧側では描かない（数字は各カードに文字で出る）ので二重にならない。
- * - 数字のカウントダウンは代表1件（6選のうち手作業との差が最も大きい事例）。
- *   値は data/cases.ts の実測値どうしを結ぶだけで、新しい数字は作らない。
- * - 動きは transform / opacity / background の位置だけ。filter・blend・3D・vw は使わない。
- * - prefers-reduced-motion では終端値を即置き（暖黒の層は最初から無い）。
- * - JS が無い環境でも、SSR が最終値（導入後の時間）を出しているので数字は正しい。
+ * ◆ 数字は代表1件（6選のうち手作業との差が最も大きい事例）。
+ *   data/cases.ts の実測値どうしを結ぶだけで、新しい数字は作らない。
+ *   「導入前」は見積なので、必ず（見積）を添える（types/case.ts の取り決め）。
+ * ◆ 動きは transform / opacity / background の位置だけ。
+ *   filter・backdrop-filter のアニメ・mix-blend-mode・3D transform・
+ *   複雑な clip-path・vw フォント・100vh 単独指定は使わない（contract.ts §2）。
+ * ◆ prefers-reduced-motion では終端値を即置き（useFullMotion が false ＝
+ *   マウス視差も灯の呼吸も起動しない。contract.ts §5）。
+ * ◆ JS が無い環境でも、SSR が最終値と札を出しているので図と数字は正しい。
  */
 
 /** 机の横罫（FV の高さに対する位置％）。灯が通った順に引かれる */
-const DESK_RULES = [32, 41, 50, 59, 68, 77, 86];
+const DESK_RULES = [30, 39, 48, 57, 66, 75, 84];
 
-/** カウントダウンの開始の遅れ（ms）＝帯が縮み始めるのと揃える */
-const COUNT_DELAY_MS = 800;
+/** カウントダウンの開始の遅れ（ms）＝濃い帯が縮み始めるのと揃える */
+const COUNT_DELAY_MS = 950;
 /** カウントダウンにかける時間（ms） */
-const COUNT_DURATION_MS = 1100;
+const COUNT_DURATION_MS = 1150;
+
+/** 束に置く札の上限（6選＝isPickUp がこれを超えても束は増やさない） */
+const DECK_MAX = 6;
+
+/**
+ * 扇の広がり（札自身の大きさに対する％／deg）。
+ * 幅が変わっても崩れないよう％で持ち、狭い画面では CSS の --fan で詰める。
+ */
+const FAN = { x: 34, y: 21, arc: 6, rot: 8.5 } as const;
+
+/** i 番目の札の居場所。件数が変わっても自動で扇になる（値をハードコードしない） */
+function fanSlot(i: number, n: number): { x: number; y: number; r: number } {
+  const t = n <= 1 ? 0 : (i / (n - 1)) * 2 - 1; /* -1（左上）〜 +1（右下） */
+  return {
+    x: t * FAN.x,
+    y: t * FAN.y - (1 - t * t) * FAN.arc /* 真ん中をわずかに持ち上げて弧にする */,
+    r: t * FAN.rot,
+  };
+}
 
 /** 導入後の合計（人＋AI）。帯の比率と代表の選定にだけ使う（画面には出さない） */
 function afterTotal(c: CaseStudy): number {
@@ -58,6 +90,9 @@ function pickRepresentative(cases: CaseStudy[]): CaseStudy | null {
 /** 減速（3次）。落ち方が速く、着地でゆっくり止まる＝読める */
 const easeOut = (t: number) => 1 - Math.pow(1 - t, 3);
 
+/** 視差の入力（-1〜1）に丸める */
+const clamp1 = (v: number) => (v < -1 ? -1 : v > 1 ? 1 : v);
+
 export default function CasesFV({
   intro,
   cases,
@@ -72,6 +107,11 @@ export default function CasesFV({
   const rafRef = useRef(0);
   const phase = useFVPhase(rootRef);
 
+  /* 灯の呼吸とマウス視差は「マウスのある端末」かつ「画面の中」のときだけ走らせる */
+  const full = useFullMotion();
+  const [live, setLive] = useState(false);
+
+  /* ---- 背景の帯＝12件ぶん。長さは (AI＋人)÷導入前、色は各事例の accent ---- */
   const bars = cases.map((c) => {
     const raw = c.before.minutes > 0 ? afterTotal(c) / c.before.minutes : 0;
     return {
@@ -81,12 +121,18 @@ export default function CasesFV({
     };
   });
 
+  /* ---- 束＝6選の札（無ければ先頭から埋める） ---- */
+  const picked = cases.filter((c) => c.isPickUp);
+  const deck = (picked.length > 0 ? picked : cases).slice(0, DECK_MAX);
+
+  /* ---- 数字＝代表1件 ---- */
   const rep = pickRepresentative(cases);
-  const repAfter: CaseDuration | null = rep ? rep.after.human ?? rep.after.ai : null;
+  const repAfter: CaseDuration | null = rep ? (rep.after.human ?? rep.after.ai) : null;
   const fromMinutes = rep ? rep.before.minutes : 0;
   const toMinutes = repAfter ? repAfter.minutes : 0;
   const finalText = repAfter ? formatDuration(repAfter) : "";
 
+  /* ---------------- 数字のカウントダウン ---------------- */
   useEffect(() => {
     if (startedRef.current || phase === "idle") return;
     const el = numRef.current;
@@ -99,18 +145,23 @@ export default function CasesFV({
       return;
     }
 
+    // ⚠ 開始値は「今すぐ」置く。待ってから置くと、行が現れてから数字が
+    //    「導入後 → 導入前」へ跳ね上がって見える（この時点ではまだ opacity 0）
+    el.textContent = formatDuration({ minutes: fromMinutes });
+
     let begun = 0;
     const step = (now: number) => {
       if (!begun) begun = now;
       const t = Math.min(1, (now - begun) / COUNT_DURATION_MS);
       el.textContent =
-        t >= 1 ? finalText : formatDuration({ minutes: fromMinutes + (toMinutes - fromMinutes) * easeOut(t) });
+        t >= 1
+          ? finalText
+          : formatDuration({ minutes: fromMinutes + (toMinutes - fromMinutes) * easeOut(t) });
       if (t < 1) rafRef.current = requestAnimationFrame(step);
     };
 
     timerRef.current = window.setTimeout(() => {
       timerRef.current = null;
-      el.textContent = formatDuration({ minutes: fromMinutes });
       rafRef.current = requestAnimationFrame(step);
     }, COUNT_DELAY_MS);
   }, [phase, finalText, fromMinutes, toMinutes]);
@@ -123,9 +174,90 @@ export default function CasesFV({
     };
   }, []);
 
+  /* ---------------- マウス視差＋灯の呼吸（PC・画面内だけ） ----------------
+     ⚠ 常時走る演出は画面外で止める（contract.ts §4）。IntersectionObserver で
+       FV が画面から出たら .live を外し、灯の呼吸も視差の受け付けも止める。 */
+  useEffect(() => {
+    const root = rootRef.current;
+    if (!root || !full) return;
+
+    let visible = false;
+    let frame = 0;
+
+    const io = new IntersectionObserver(
+      (entries) => {
+        visible = entries[0]?.isIntersecting ?? false;
+        setLive(visible);
+        if (!visible) {
+          root.style.removeProperty("--mx");
+          root.style.removeProperty("--my");
+        }
+      },
+      { rootMargin: "0px" }
+    );
+    io.observe(root);
+
+    const onMove = (e: MouseEvent) => {
+      if (!visible || frame) return;
+      const cx = e.clientX;
+      const cy = e.clientY;
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        const r = root.getBoundingClientRect();
+        if (!r.width || !r.height) return;
+        root.style.setProperty("--mx", clamp1(((cx - r.left) / r.width) * 2 - 1).toFixed(3));
+        root.style.setProperty("--my", clamp1(((cy - r.top) / r.height) * 2 - 1).toFixed(3));
+      });
+    };
+    window.addEventListener("mousemove", onMove, { passive: true });
+
+    return () => {
+      io.disconnect();
+      window.removeEventListener("mousemove", onMove);
+      cancelAnimationFrame(frame);
+      root.style.removeProperty("--mx");
+      root.style.removeProperty("--my");
+    };
+  }, [full]);
+
   return (
-    <div ref={rootRef} className={styles.stage} data-phase={phase}>
-      {/* ---- 現場（暖黒）＋灯。紙色へ転調して引いていく ---- */}
+    <div
+      ref={rootRef}
+      className={[styles.stage, live ? styles.live : ""].filter(Boolean).join(" ")}
+      data-phase={phase}
+    >
+      {/* ---- ① 背景＝12件の帯（薄墨＝導入前・全幅／濃い帯＝導入後・左寄せ） ---- */}
+      <div
+        className={styles.bg}
+        aria-hidden="true"
+        style={{ gridTemplateRows: `repeat(${bars.length}, minmax(0, 1fr))` }}
+      >
+        {bars.map((b, i) => (
+          <div key={b.slug} className={styles.row}>
+            <span
+              className={styles.rowTrack}
+              style={
+                {
+                  "--case-i": i,
+                  "--case-ratio": b.ratio,
+                  "--case-accent": b.accent,
+                } as CSSProperties
+              }
+            >
+              <span className={styles.rowFill} />
+            </span>
+          </div>
+        ))}
+      </div>
+
+      {/* ---- ② 灯の名残り。転調のあとも弱く残って束の上を照らす ----
+          外側＝現れかた（1度だけ）／内側＝呼吸（.live のときだけ・画面外で止まる）。
+          2枚に分けてあるので、画面へ戻ったときに灯が消えて出直すことがない */}
+      <span className={styles.glow} aria-hidden="true">
+        <span className={styles.glowCore} />
+      </span>
+
+      {/* ---- ③ 現場（暖黒）＋灯＋机の横罫。紙色へ転調して引いていく ---- */}
       <div className={styles.scene} aria-hidden="true">
         <span className={styles.lamp} />
         {DESK_RULES.map((top, i) => (
@@ -137,83 +269,110 @@ export default function CasesFV({
         ))}
       </div>
 
-      <div className={styles.fvInner}>
-        <p className={styles.eyebrow}>
-          <span className={styles.eyebrowNo}>{intro.eyebrow}</span>
-          <span className={styles.eyebrowRule} aria-hidden="true" />
-          <span className={styles.eyebrowName}>{intro.title}</span>
-        </p>
+      {/* ---- ④ 前景＝左に題字と1行の数字／右に6選の束（SPは上下） ---- */}
+      <div className={styles.layout}>
+        <div className={styles.textCol}>
+          <div className={styles.textBlock}>
+            <p className={styles.eyebrow}>
+              <span className={styles.eyebrowNo}>{intro.eyebrow}</span>
+              <span className={styles.eyebrowRule} aria-hidden="true" />
+              <span className={styles.eyebrowName}>{intro.title}</span>
+            </p>
 
-        <h1 className={styles.title}>{intro.pageTitle}</h1>
-        <p className={styles.titleEn}>{intro.pageTitleEn}</p>
-        <p className={styles.tagline}>{intro.tagline}</p>
-        <p className={styles.count}>{cases.length} CASES</p>
-
-        <div className={styles.chart} data-fv-depth="0.5">
-          {rep && repAfter ? (
-            <>
-              <p className={styles.hero}>
-                <span className={styles.heroBefore}>
-                  導入前 {formatDuration(rep.before)}（見積）
-                </span>
-                <span className={styles.heroArrow} aria-hidden="true">
-                  →
-                </span>
-                <span className={styles.heroAfter}>
-                  導入後{" "}
-                  {rep.after.human ? (
-                    <>
-                      人{" "}
-                      <span ref={numRef} className={styles.heroNum}>
-                        {finalText}
-                      </span>
-                      <span className={styles.heroSub}>
-                        （AI {formatDuration(rep.after.ai)}）
-                      </span>
-                    </>
-                  ) : (
-                    <>
-                      <span ref={numRef} className={styles.heroNum}>
-                        {finalText}
-                      </span>
-                      <span className={styles.heroSub}>（AIが動いた時間）</span>
-                    </>
-                  )}
-                </span>
-              </p>
-              <p className={styles.heroCase}>
-                <span className={styles.heroCaseNo}>{rep.no}</span>
-                {rep.title}
-              </p>
-            </>
-          ) : null}
-
-          <ul className={styles.bars} aria-hidden="true">
-            {bars.map((b, i) => (
-              <li key={b.slug} className={styles.bar}>
+            {/* 題字＝筆で引くように左から1文字ずつ。読み上げは aria-label で1語に戻す */}
+            <h1 className={styles.title} aria-label={intro.pageTitle}>
+              {[...intro.pageTitle].map((ch, i) => (
                 <span
-                  className={styles.barTrack}
-                  style={
-                    {
-                      "--case-ratio": b.ratio,
-                      "--case-i": i,
-                      "--case-accent": b.accent,
-                    } as CSSProperties
-                  }
+                  key={`${ch}-${i}`}
+                  className={styles.titleChar}
+                  style={{ "--ci": i } as CSSProperties}
                 >
-                  <span className={styles.barFill} />
+                  {ch}
                 </span>
-              </li>
-            ))}
-          </ul>
+              ))}
+            </h1>
 
-          {/* 帯が何を表すかは、この1行で常に読める（灰と墨の区別が付かないのを防ぐ） */}
-          <p className={styles.legend}>
-            <span className={styles.legendItem}>薄い帯＝導入前（手作業・見積）</span>
-            <span className={styles.legendSep} aria-hidden="true">／</span>
-            <span className={styles.legendItem}>濃い帯＝導入後（人の時間＋AIの稼働）</span>
-          </p>
+            <p className={styles.titleEn}>{intro.pageTitleEn}</p>
+            <p className={styles.tagline}>{intro.tagline}</p>
+
+            {rep && repAfter ? (
+              <>
+                {/* 3秒で読める1行。手作業（見積）→ 人の手（実測）。数字は data 由来 */}
+                <p className={styles.hero}>
+                  <span className={styles.heroPart}>
+                    <span className={styles.heroLabel}>手作業</span>
+                    <span className={styles.heroBefore}>{formatDuration(rep.before)}</span>
+                    <span className={styles.heroEst}>（見積）</span>
+                  </span>
+                  <span className={styles.heroArrow} aria-hidden="true">
+                    →
+                  </span>
+                  <span className={styles.heroPart}>
+                    <span className={styles.heroLabel}>
+                      {rep.after.human ? "人の手" : "AI"}
+                    </span>
+                    <span ref={numRef} className={styles.heroAfter}>
+                      {finalText}
+                    </span>
+                  </span>
+                </p>
+
+                <p className={styles.note}>
+                  <span className={styles.noteName}>{rep.title}</span>
+                  <span className={styles.noteSep} aria-hidden="true">
+                    ｜
+                  </span>
+                  {rep.after.human
+                    ? `実測（人の手 ${formatDuration(rep.after.human)}＋AIの稼働 ${formatDuration(rep.after.ai)}）`
+                    : "実測（AIが動いた時間）"}
+                </p>
+              </>
+            ) : null}
+
+            <p className={styles.count}>{cases.length} CASES</p>
+          </div>
         </div>
+
+        {/* ---- 束＝6選の札。収縮で奥へ沈み、settled のあとも残る ---- */}
+        {deck.length > 0 ? (
+          <div className={styles.deckCol}>
+            <div className={styles.deckDepth} data-fv-depth="0.55">
+              <div className={styles.deckParallax}>
+                {deck.map((c, i) => {
+                  const slot = fanSlot(i, deck.length);
+                  // 重なり順は DOM の順そのまま（後の札ほど手前）。ここで z-index を
+                  // 書くと、ホバーで持ち上げた札を上へ出せない（インラインが CSS に勝つ）
+                  return (
+                    <a
+                      key={c.slug}
+                      href={`#${c.slug}`}
+                      className={styles.deckCard}
+                      aria-label={`${c.no} ${c.title}`}
+                      style={
+                        {
+                          "--x": `${slot.x}%`,
+                          "--y": `${slot.y}%`,
+                          "--r": `${slot.r}deg`,
+                          "--di": i,
+                        } as CSSProperties
+                      }
+                    >
+                      <span className={styles.deckSheet}>
+                        <Image
+                          src={c.thumbnail}
+                          alt=""
+                          fill
+                          sizes="(max-width: 767px) 190px, (max-width: 1023px) 240px, 340px"
+                          className={styles.deckShot}
+                        />
+                      </span>
+                    </a>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        ) : null}
       </div>
     </div>
   );

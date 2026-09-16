@@ -44,12 +44,13 @@
   position: relative;
   height: 100vh;
   height: 100svh;
-  /* 収縮後（SubPageFVAnim が height:50vh をインラインで当てる）でも、数字・帯・凡例まで
-     入る高さを下限として確保する。min-height は height より強いので切られない。
+  /* 収縮後（SubPageFVAnim が height:50vh をインラインで当てる）でも、題字・1行の数字・
+     6選の束まで入る高さを下限として確保する（2026-09-16 の格上げで束を足したぶん引き上げ）。
+     min-height は height より強いので切られない。
      画面が低い端末では 100svh を超えないよう min() で抑える（min() 非対応の
      古い環境は 1行目の固定値が効く＝どちらでも FV は成立する） */
-  min-height: 560px;
-  min-height: min(560px, 100svh);
+  min-height: 640px;
+  min-height: min(640px, 100svh);
   overflow: hidden;
   background-color: var(--cs-ground);
   background-image: radial-gradient(
@@ -100,6 +101,39 @@
   line-height: 2.1;
   letter-spacing: 0.02em;
   color: var(--cs-ink);
+}
+
+/* 結びの1文＝「仕事の完了は、私が必要なくなることです。」
+   本文より一段大きく・太く、先頭に灯色の短い罫。ここだけ目に留まるようにする */
+.leadClose {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  max-width: 820px;
+  margin: 1.4rem 0 0;
+  font-size: 1.22rem;
+  font-weight: 600;
+  line-height: 1.8;
+  letter-spacing: 0.06em;
+  color: var(--cs-ink);
+}
+
+.leadCloseRule {
+  flex: 0 0 auto;
+  width: 2.2rem;
+  height: 2px;
+  background: var(--cs-lamp-ink);
+}
+
+@media (max-width: 767px) {
+  .leadClose {
+    font-size: 1.05rem;
+    letter-spacing: 0.04em;
+    gap: 0.6rem;
+  }
+  .leadCloseRule {
+    width: 1.5rem;
+  }
 }
 
 /* ---- 3段（01 現場に入る → 02 教え込む → 03 回せる状態にする） ---- */
@@ -493,8 +527,8 @@
    ======================================== */
 @media (max-width: 1023px) {
   .fv {
-    min-height: 530px;
-    min-height: min(530px, 100svh);
+    min-height: 600px;
+    min-height: min(600px, 100svh);
   }
 
   .leadInner,
@@ -523,8 +557,8 @@
 
 @media (max-width: 767px) {
   .fv {
-    min-height: 500px;
-    min-height: min(500px, 100svh);
+    min-height: 560px;
+    min-height: min(560px, 100svh);
   }
 
   .lead {

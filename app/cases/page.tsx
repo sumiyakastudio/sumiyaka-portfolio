@@ -31,7 +31,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/cases" },
   openGraph: {
     // 1200×630。数字カードの型（紙色の地に業務名と削減率）
-    images: [{ url: "/cases/og-2.jpg", width: 1200, height: 630 }],
+    images: [{ url: "/cases/og-3.jpg", width: 1200, height: 630 }],
   },
 };
 
@@ -80,6 +80,14 @@ export default function CasesPage() {
 
           <ScrollReveal delay={0.06}>
             <p className={styles.leadBody}>{intro.explain}</p>
+          </ScrollReveal>
+
+          {/* 結びの1文＝少し目立たせる（2026-09-16 あおきさん指示） */}
+          <ScrollReveal delay={0.12}>
+            <p className={styles.leadClose}>
+              <span className={styles.leadCloseRule} aria-hidden="true" />
+              {intro.closing}
+            </p>
           </ScrollReveal>
 
           <ol className={styles.steps}>
@@ -176,7 +184,7 @@ export default function CasesPage() {
 
           <ScrollReveal>
             <p className={styles.closingLead}>
-              同じやり方が御社の業務で効くかどうかは、業務の形を見ないと分かりません。
+              御社の業務の形に合わせて、同じやり方を組み立てます。まずは現場の話から。
             </p>
           </ScrollReveal>
 

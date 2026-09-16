@@ -129,7 +129,7 @@ export default function CaseCard({ item }: { item: CaseStudy }) {
               <dd className={styles.storyText}>{item.story.after}</dd>
               <dt className={styles.storyLabel}>人の判断が残る箇所</dt>
               <dd className={styles.storyText}>{item.humanKeeps}</dd>
-              <dt className={`${styles.storyLabel} ${styles.storyLabelCaveat}`}>注意</dt>
+              <dt className={`${styles.storyLabel} ${styles.storyLabelCaveat}`}>計測について</dt>
               <dd className={`${styles.storyText} ${styles.storyTextCaveat}`}>{item.caveat}</dd>
             </dl>
           </div>

@@ -1,11 +1,14 @@
 /* ==========================================================================
-   CasesFV — /cases の FV「現場に入って、AIが回るまで」
+   CasesFV — /cases（FDE）の FV「現場に入って、AIが回るまで」
+   2026-09-16 作り直し：帯グラフを FV の背景そのものにし、前景は1行だけにする。
+   さらに 6選のサムネを「束」として置き、WEB・TOOLS の FV と同じ密度にする。
 
    ① 暖黒の現場に、左の外から灯（金）が入って横切る
    ② 灯が通ったところから机の横罫が引かれる
-   ③ 地が紙色へ転調する（暖黒の層が引く）
-   ④ 導入前の帯が導入後の長さへ縮み、数字がカウントダウンする
-   ⑤ 題字 FDE が立ち上がる
+   ③ 地が紙色へ転調する（暖黒の層が引く）と同時に、12件の帯が上から順に引かれる
+   ④ 濃い帯（導入後）が全幅から各事例の比率へ縮み、数字がカウントダウンする
+   ⑤ 題字 FDE が筆のように左から現れ、6選の札が下から順に扇状へ広がる
+   ⑥ 以後は灯だけが弱く呼吸し、マウスに合わせて束と帯がごくわずかに動く
 
    動きは transform / opacity / background の位置だけ。
    filter・backdrop-filter のアニメ・mix-blend-mode・3D transform・
@@ -15,26 +18,131 @@
    ⚠ 金（--color-accent）はサブページの新規要素では使わない規則（contract.ts §6）だが、
      この FV の「灯」だけは 2026-09-16 の指示で例外として使う（灯敷＝現場に灯をともす）。
      紙の上に置く文字には彩度を落とした --cs-lamp-ink を使う（可読性のため）。
+   ⚠ 帯の上に載る文字は、題字ブロックの背後に敷く紙色のベール（.textBlock::before）で
+     コントラスト 4.5:1 以上を確保している。ベールを外すなら濃い帯の不透明度も下げること。
    ========================================================================== */
 
 .stage {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
 }
 
 /* ========================================
-   ① 現場（暖黒）＋灯＋机の横罫
+   ① 背景＝12件の帯（装飾・aria-hidden）
+   薄い帯＝導入前（手作業・FV全幅）／濃い帯＝導入後（(AI＋人)÷導入前・左寄せ）
+   ======================================== */
+.bg {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: grid;
+  /* grid-template-rows（件数ぶん）は TSX が入れる＝件数をここに書かない */
+  gap: 6px;
+  padding: 10px 0;
+  pointer-events: none;
+  /* マウス視差（--mx/--my は TSX が -1〜1 で入れる。未設定なら 0＝動かない） */
+  transform: translate(calc(var(--mx, 0) * 2px), calc(var(--my, 0) * 2px));
+  transition: transform 340ms ease-out;
+}
+
+.row {
+  position: relative;
+  min-height: 0;
+}
+
+/* 導入前＝トラック一杯の長さ。左から右へ引かれる */
+.rowTrack {
+  position: absolute;
+  inset: 0;
+  background: rgba(23, 23, 23, 0.07);
+  transform: scaleX(0);
+  transform-origin: left center;
+  animation: casesTrackDraw 0.56s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-delay: calc(0.58s + var(--case-i, 0) * 0.062s);
+}
+
+@keyframes casesTrackDraw {
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* 導入後＝全幅から --case-ratio まで縮む。トラックの中に居るので、
+   トラックが引かれきる前にはみ出すことがない（親の scaleX を掛けて見える） */
+.rowFill {
+  position: absolute;
+  inset: 0;
+  background: var(--case-accent, #171717);
+  opacity: 0.38;
+  transform-origin: left center;
+  transform: scaleX(1);
+  animation: casesFillShrink 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-delay: calc(0.95s + var(--case-i, 0) * 0.05s);
+}
+
+@keyframes casesFillShrink {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(var(--case-ratio, 1));
+  }
+}
+
+/* ========================================
+   ② 灯の名残り＝転調のあとも弱く残り、束の上端を照らす
+   呼吸（.live）は「マウスのある端末」かつ「画面の中」でだけ走る
+   ======================================== */
+.glow {
+  position: absolute;
+  left: 74%;
+  top: 33%;
+  z-index: 2;
+  width: 620px;
+  height: 620px;
+  margin: -310px 0 0 -310px;
+  pointer-events: none;
+  opacity: 0;
+  animation: casesFade 1.1s ease 1.15s forwards;
+}
+
+.glowCore {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  opacity: 0.18;
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(200, 169, 110, 0.62) 0%,
+    rgba(200, 169, 110, 0.3) 32%,
+    rgba(200, 169, 110, 0.1) 58%,
+    rgba(200, 169, 110, 0) 76%
+  );
+}
+
+.live .glowCore {
+  animation: casesBreathe 6s ease-in-out infinite;
+}
+
+@keyframes casesBreathe {
+  0%,
+  100% {
+    opacity: 0.16;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.26;
+    transform: scale(1.06);
+  }
+}
+
+/* ========================================
+   ③ 現場（暖黒）＋灯＋机の横罫。紙色へ転調して引いていく
    ======================================== */
 .scene {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 1;
+  inset: 0;
+  z-index: 3;
   overflow: hidden;
   pointer-events: none;
   background: var(--sumi-noh, #1f1c1c);
@@ -106,36 +214,70 @@
 }
 
 /* ========================================
-   ⑤ 題字（紙の上）
+   ④ 前景＝左に題字と1行の数字／右に6選の束
    ======================================== */
-.fvInner {
+.layout {
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 104px 40px 0;
-  text-align: center;
+  inset: 0;
+  z-index: 4;
+  max-width: 1560px;
+  margin: 0 auto;
+  padding: 0 40px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 32px;
+}
+
+.textCol {
+  min-width: 0;
+  padding-top: 96px;
+}
+
+/* 題字ブロック。背後に紙色のベールを敷いて、帯の上でも 4.5:1 を保つ */
+.textBlock {
+  position: relative;
+  text-align: left;
+}
+
+.textBlock::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: -40px -64px -28px;
+  background: radial-gradient(
+    72% 66% at 50% 46%,
+    rgba(246, 242, 240, 0.98) 0%,
+    rgba(246, 242, 240, 0.92) 46%,
+    rgba(246, 242, 240, 0.5) 74%,
+    rgba(246, 242, 240, 0) 100%
+  );
+  opacity: 0;
+  animation: casesFade 0.9s ease 0.56s forwards;
+}
+
+@keyframes casesFade {
+  to {
+    opacity: 1;
+  }
 }
 
 .eyebrow,
-.title,
 .titleEn,
 .tagline,
+.hero,
+.note,
 .count {
   opacity: 0;
   transform: translateY(12px);
-  animation: casesRise 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: casesRise 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-.eyebrow { animation-delay: 1.02s; }
-.title { animation-delay: 1.1s; }
-.titleEn { animation-delay: 1.24s; }
-.tagline { animation-delay: 1.32s; }
-.count { animation-delay: 1.4s; }
+.eyebrow { animation-delay: 0.88s; }
+.titleEn { animation-delay: 1s; }
+.tagline { animation-delay: 1.08s; }
+.hero { animation-delay: 0.84s; }
+.note { animation-delay: 1.45s; }
+.count { animation-delay: 1.55s; }
 
 @keyframes casesRise {
   to {
@@ -154,7 +296,7 @@
   font-size: 0.72rem;
   line-height: 1.6;
   letter-spacing: 0.22em;
-  color: var(--cs-ink-3, #6a6862);
+  color: var(--cs-ink-2, #3d3c39);
 }
 
 .eyebrowNo {
@@ -172,19 +314,34 @@
   letter-spacing: 0.2em;
 }
 
-/* ---- 題字＝FDE（Anton） ---- */
+/* ---- 題字＝FDE（Anton）。1文字ずつ、筆で引くように左から現れる ---- */
 .title {
-  margin: 0.85rem 0 0;
+  margin: 0.8rem 0 0;
   font-family: var(--font-display);
-  font-size: 5.2rem;
+  font-size: 5.6rem;
   font-weight: 400;
   line-height: 1.02;
-  letter-spacing: 0.12em;
-  padding-left: 0.12em; /* 末尾の字間ぶんを相殺して視覚中央へ */
+  letter-spacing: 0.1em;
   color: var(--cs-ink, #171717);
   text-shadow:
     -1px -1px 0 rgba(255, 255, 255, 0.9),
     2px 2px 0 rgba(23, 23, 23, 0.1);
+}
+
+.titleChar {
+  display: inline-block;
+  opacity: 0;
+  transform: translateX(-18px) scaleX(0.68);
+  transform-origin: left center;
+  animation: casesBrush 0.72s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-delay: calc(0.7s + var(--ci, 0) * 0.09s);
+}
+
+@keyframes casesBrush {
+  to {
+    opacity: 1;
+    transform: translateX(0) scaleX(1);
+  }
 }
 
 .titleEn {
@@ -194,9 +351,8 @@
   font-weight: 400;
   line-height: 1.6;
   letter-spacing: 0.34em;
-  padding-left: 0.34em;
   text-transform: uppercase;
-  color: var(--cs-ink-3, #6a6862);
+  color: var(--cs-ink-2, #3d3c39);
 }
 
 .tagline {
@@ -208,8 +364,101 @@
   color: var(--cs-ink-2, #3d3c39);
 }
 
+/* ---- 3秒で読める1行＝手作業（見積）→ 人の手（実測） ---- */
+.hero {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.15rem 0.85rem;
+  margin: 1.4rem 0 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.heroPart {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  white-space: nowrap;
+}
+
+.heroLabel {
+  font-size: 0.8rem;
+  font-weight: 500;
+  line-height: 1.6;
+  letter-spacing: 0.1em;
+  color: var(--cs-ink-2, #3d3c39);
+}
+
+/* 数字は Barlow・単位（時間／分）は和文へ落とす。var(--font-heading) をそのまま
+   使うと末尾の sans-serif で解決が打ち切られて和文フォントに到達しないため、
+   スタックを展開して書く（Header.module.css と同じ理由） */
+.heroBefore,
+.heroAfter {
+  font-family: var(--font-barlow), var(--font-noto-sans-jp), "Helvetica Neue",
+    "Hiragino Kaku Gothic ProN", sans-serif;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+  line-height: 1.1;
+}
+
+.heroBefore {
+  font-size: 1.9rem;
+  font-weight: 500;
+  color: var(--cs-ink-2, #3d3c39);
+}
+
+.heroEst {
+  font-size: 0.66rem;
+  letter-spacing: 0.04em;
+  color: var(--cs-ink-2, #3d3c39);
+}
+
+.heroArrow {
+  font-size: 1.1rem;
+  color: var(--cs-line-strong, #c7c2b8);
+}
+
+/* カウントダウンの数字。減る向きなので「導入前」の桁ぶんの幅を先に確保しておく
+   （途中で行が動かない。着地の「8分」はその中央に置かれる）。
+   着地（開始 0.95s ＋ 1.15s）でわずかに沈む＝数字が確定したことが分かる */
+.heroAfter {
+  display: inline-block;
+  min-width: 3.9em;
+  text-align: center;
+  font-size: 2.9rem;
+  font-weight: 600;
+  color: var(--cs-ink, #171717);
+  transform: translateY(-2px);
+  animation: casesLand 0.42s cubic-bezier(0.16, 1, 0.3, 1) 2.1s forwards;
+}
+
+@keyframes casesLand {
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* ---- 小さな1行＝どの事例の数字か（凡例は置かない。帯は装飾） ---- */
+.note {
+  margin: 0.6rem 0 0;
+  font-size: 0.7rem;
+  line-height: 1.8;
+  letter-spacing: 0.02em;
+  color: var(--cs-ink-2, #3d3c39);
+}
+
+.noteName {
+  font-weight: 700;
+}
+
+.noteSep {
+  padding: 0 0.15em;
+  color: var(--cs-line-strong, #c7c2b8);
+}
+
 .count {
-  margin: 0.9rem 0 0;
+  display: inline-block;
+  margin: 1.1rem 0 0;
   padding: 3px 12px;
   font-family: var(--font-mono);
   font-size: 0.68rem;
@@ -221,185 +470,199 @@
 }
 
 /* ========================================
-   ④ 導入前 → 導入後（数字と帯）
+   ⑤ 束＝6選の札。下から順に滑り込み、扇状に広がる
    ======================================== */
-.chart {
-  width: 100%;
-  max-width: 520px;
-  margin-top: 1.1rem;
-  text-align: left;
+.deckCol {
+  position: relative;
+  min-width: 0;
 }
 
-/* ---- 代表1件の数字（導入前は静止・導入後がカウントダウン） ---- */
-.hero {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: center;
-  gap: 0.35rem 0.7rem;
-  margin: 0;
-  font-size: 0.8rem;
-  line-height: 1.7;
-  letter-spacing: 0.02em;
-  font-variant-numeric: tabular-nums;
-  color: var(--cs-ink-3, #6a6862);
+/* 収縮のとき奥へ沈む層（SubPageFVAnim が transform を書く）。
+   視差は必ず内側の .deckParallax が持つ＝同じ要素で取り合わない */
+.deckDepth {
+  position: absolute;
+  inset: 0;
+}
 
+.deckParallax {
+  position: absolute;
+  inset: 0;
+  transform: translate(calc(var(--mx, 0) * 6px), calc(var(--my, 0) * 6px));
+  transition: transform 340ms ease-out;
+}
+
+.deckCard {
+  --fan: 1; /* 扇の広がり（狭い画面で詰める） */
+
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(50%, 340px);
+  aspect-ratio: 16 / 10;
+  text-decoration: none;
   opacity: 0;
-  animation: casesRise 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.72s forwards;
+  transform: translate(-50%, -50%)
+    translate(calc(var(--x) * var(--fan)), calc(var(--y) * var(--fan)))
+    rotate(calc(var(--r) * var(--fan)));
+  animation: casesDeckIn 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-delay: calc(1.2s + var(--di, 0) * 0.08s);
 }
 
-.heroBefore {
-  white-space: nowrap;
-}
-
-.heroArrow {
-  color: var(--cs-line-strong, #c7c2b8);
-}
-
-.heroAfter {
-  white-space: nowrap;
-  color: var(--cs-ink-2, #3d3c39);
-}
-
-/* カウントダウンの数字。減る向きなので「導入前」の桁ぶんの幅を先に確保しておく
-   （途中で行が動かない。着地の「8分」はその中央に置かれる） */
-.heroNum {
-  display: inline-block;
-  min-width: 3.9em;
-  /* 数字は Barlow・単位（時間／分）は和文へ落とす。var(--font-heading) をそのまま
-     使うと末尾の sans-serif で解決が打ち切られて和文フォントに到達しないため、
-     スタックを展開して書く（Header.module.css と同じ理由） */
-  font-family: var(--font-barlow), var(--font-noto-sans-jp), "Helvetica Neue",
-    "Hiragino Kaku Gothic ProN", sans-serif;
-  font-size: 1.85rem;
-  font-weight: 600;
-  line-height: 1.1;
-  letter-spacing: 0.01em;
-  text-align: center;
-  font-variant-numeric: tabular-nums;
-  color: var(--cs-ink, #171717);
-}
-
-.heroSub {
-  color: var(--cs-ink-3, #6a6862);
-}
-
-.heroCase {
-  display: flex;
-  align-items: baseline;
-  justify-content: center;
-  gap: 0.6rem;
-  margin: 0.45rem 0 0;
-  font-size: 0.72rem;
-  line-height: 1.7;
-  letter-spacing: 0.04em;
-  color: var(--cs-ink-3, #6a6862);
-
-  opacity: 0;
-  animation: casesRise 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.82s forwards;
-}
-
-.heroCaseNo {
-  font-family: var(--font-mono);
-  font-size: 0.66rem;
-  letter-spacing: 0.16em;
-  font-variant-numeric: tabular-nums;
-  color: var(--cs-lamp-ink, #7d6229);
-}
-
-/* ---- 12本の帯＝12件の事例 ---- */
-.bars {
-  list-style: none;
-  margin: 1.05rem 0 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-
-  opacity: 0;
-  animation: casesRise 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.72s forwards;
-}
-
-.bar {
-  margin: 0;
-}
-
-/* 導入前＝トラック一杯の長さ（薄墨の地が「元の長さ」を残す） */
-.barTrack {
-  display: block;
-  width: 100%;
-  height: 3px;
-  background: rgba(23, 23, 23, 0.1);
-}
-
-/* 導入後＝縮んだ先。--case-ratio は (AI＋人)÷導入前（CasesFV.tsx が渡す） */
-.barFill {
-  display: block;
-  width: 100%;
-  height: 100%;
-  background: var(--case-accent, #171717);
-  transform-origin: left center;
-  transform: scaleX(1);
-  animation: casesBarShrink 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  animation-delay: calc(0.8s + var(--case-i, 0) * 0.035s);
-}
-
-@keyframes casesBarShrink {
+@keyframes casesDeckIn {
   from {
-    transform: scaleX(1);
+    opacity: 0;
+    transform: translate(-50%, -50%)
+      translate(
+        calc(var(--x) * var(--fan) * 0.25),
+        calc(var(--y) * var(--fan) * 0.25 + 54px)
+      )
+      rotate(calc(var(--r) * var(--fan) * 0.25));
   }
   to {
-    transform: scaleX(var(--case-ratio, 1));
+    opacity: 1;
+    transform: translate(-50%, -50%)
+      translate(calc(var(--x) * var(--fan)), calc(var(--y) * var(--fan)))
+      rotate(calc(var(--r) * var(--fan)));
   }
 }
 
-/* ---- 凡例 ---- */
-.legend {
-  margin: 0.7rem 0 0;
-  font-size: 0.66rem;
-  line-height: 1.8;
-  letter-spacing: 0.02em;
-  color: var(--cs-ink-3, #6a6862);
-
-  opacity: 0;
-  animation: casesRise 0.6s cubic-bezier(0.16, 1, 0.3, 1) 1.5s forwards;
+/* 紙に貼った写真＝白い縁と実影。持ち上がりはこの内側が持つ
+   （外側は入場アニメが transform を握っているので、ホバーで書けない） */
+.deckSheet {
+  position: absolute;
+  inset: 0;
+  display: block;
+  box-sizing: border-box;
+  overflow: hidden;
+  overflow: clip;
+  border: 3px solid var(--cs-paper, #fbfaf7);
+  background-color: var(--cs-paper, #fbfaf7);
+  box-shadow:
+    0 1px 1px rgba(23, 23, 23, 0.12),
+    0 6px 14px -6px rgba(23, 23, 23, 0.2),
+    0 22px 40px -18px rgba(23, 23, 23, 0.34);
+  transition:
+    transform 420ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 420ms ease;
 }
 
-.legendItem {
-  white-space: nowrap;
+.deckShot {
+  object-fit: cover;
 }
 
-.legendSep {
-  padding: 0 0.35em;
-  color: var(--cs-line-strong, #c7c2b8);
+.deckCard:hover,
+.deckCard:focus-visible {
+  z-index: 20;
+}
+
+.deckCard:hover .deckSheet,
+.deckCard:focus-visible .deckSheet {
+  transform: translateY(-10px) scale(1.025);
+  box-shadow:
+    0 2px 2px rgba(23, 23, 23, 0.1),
+    0 12px 22px -8px rgba(23, 23, 23, 0.22),
+    0 34px 56px -20px rgba(23, 23, 23, 0.4);
+}
+
+.deckCard:focus-visible {
+  outline: 2px solid var(--cs-ink, #171717);
+  outline-offset: 4px;
 }
 
 /* ========================================
    幅
    ======================================== */
+@media (max-width: 1279px) {
+  .title {
+    font-size: 4.6rem;
+  }
+
+  .heroBefore {
+    font-size: 1.6rem;
+  }
+
+  .heroAfter {
+    font-size: 2.4rem;
+  }
+
+  .glow {
+    width: 520px;
+    height: 520px;
+    margin: -260px 0 0 -260px;
+  }
+}
+
 @media (max-width: 1023px) {
-  .fvInner {
-    padding: 100px 32px 0;
+  .layout {
+    padding: 0 32px;
+    gap: 24px;
+  }
+
+  .textCol {
+    padding-top: 92px;
+  }
+
+  .textBlock::before {
+    inset: -34px -44px -24px;
   }
 
   .title {
     font-size: 4rem;
   }
 
-  .chart {
-    max-width: 460px;
+  .tagline {
+    font-size: 0.96rem;
+  }
+
+  .hero {
+    margin-top: 1.2rem;
+    gap: 0.1rem 0.6rem;
+  }
+
+  .heroBefore {
+    font-size: 1.4rem;
+  }
+
+  .heroAfter {
+    font-size: 2.1rem;
+  }
+
+  .deckCard {
+    width: min(56%, 260px);
+    --fan: 0.85;
   }
 }
 
+/* ---- SP：題字ブロックの下に束（横幅いっぱい・重なりを深く） ---- */
 @media (max-width: 767px) {
-  .fvInner {
-    padding: 82px 20px 0;
+  .layout {
+    padding: 0 20px;
+    gap: 0;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  .textCol {
+    padding-top: 78px;
+  }
+
+  .textBlock {
+    text-align: center;
+  }
+
+  .textBlock::before {
+    inset: -28px -24px -20px;
+  }
+
+  .eyebrow {
+    justify-content: center;
+    gap: 0.7rem;
   }
 
   .title {
-    font-size: 2.75rem;
+    font-size: 3rem;
     letter-spacing: 0.1em;
-    padding-left: 0.1em;
+    padding-left: 0.1em; /* 末尾の字間ぶんを相殺して視覚中央へ */
   }
 
   .titleEn {
@@ -413,34 +676,60 @@
     font-size: 0.92rem;
   }
 
-  .count {
-    margin-top: 0.75rem;
-  }
-
-  .chart {
-    margin-top: 0.9rem;
-    max-width: 100%;
-  }
-
   .hero {
-    gap: 0.2rem 0.55rem;
+    justify-content: center;
+    margin-top: 1rem;
+    gap: 0.1rem 0.5rem;
+  }
+
+  .heroLabel {
     font-size: 0.74rem;
   }
 
-  .heroNum {
-    min-width: 3.8em;
-    font-size: 1.5rem;
+  .heroBefore {
+    font-size: 1.3rem;
   }
 
-  .bars {
-    margin-top: 0.85rem;
-    gap: 3px;
+  .heroAfter {
+    font-size: 2rem;
+  }
+
+  .note {
+    margin-top: 0.5rem;
+    font-size: 0.66rem;
+  }
+
+  .count {
+    margin-top: 0.8rem;
+  }
+
+  /* 束の置き場の下限。題字ブロック（最大 376px 前後）＋ここ＋余白で、
+     FV の下限 560px（app/cases/page.module.css）に収まる値にしてある */
+  .deckCol {
+    min-height: 160px;
+  }
+
+  .deckCard {
+    width: min(56%, 190px);
+    --fan: 0.5;
+  }
+
+  .deckSheet {
+    border-width: 2px;
   }
 
   .lamp {
     width: 560px;
     height: 560px;
     margin-top: -280px;
+  }
+
+  .glow {
+    left: 50%;
+    top: 74%;
+    width: 440px;
+    height: 440px;
+    margin: -220px 0 0 -220px;
   }
 }
 
@@ -458,22 +747,55 @@
     animation: none;
   }
 
+  .bg,
+  .deckParallax {
+    transform: none;
+    transition: none;
+  }
+
+  .glow {
+    opacity: 1;
+    animation: none;
+  }
+
+  .glowCore {
+    animation: none;
+  }
+
+  .textBlock::before,
   .eyebrow,
-  .title,
+  .titleChar,
   .titleEn,
   .tagline,
-  .count,
   .hero,
-  .heroCase,
-  .bars,
-  .legend {
+  .note,
+  .count {
     opacity: 1;
     transform: none;
     animation: none;
   }
 
-  .barFill {
+  .heroAfter {
+    transform: none;
+    animation: none;
+  }
+
+  .rowTrack {
+    animation: none;
+    transform: scaleX(1);
+  }
+
+  .rowFill {
     animation: none;
     transform: scaleX(var(--case-ratio, 1));
+  }
+
+  .deckCard {
+    opacity: 1;
+    animation: none;
+  }
+
+  .deckSheet {
+    transition: none;
   }
 }

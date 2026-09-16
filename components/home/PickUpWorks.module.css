@@ -196,6 +196,37 @@
   color: var(--muted);
 }
 
+/* 結びの1文＝「仕事の完了は、私が必要なくなることです。」
+   本文より一段大きく・墨の明るい色・先頭に灯色の短い罫を置いて、ここだけ目に留まるようにする。
+   演出は既存のリード（data-pickup-heading の入場）に乗るだけ＝追加の動きなし */
+.catLeadClose {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.85rem;
+  font-family: var(--font-display-washi, serif);
+  font-weight: 600;
+  font-size: 0.98rem;
+  letter-spacing: 0.08em;
+  line-height: 1.7;
+  color: var(--ink);
+}
+
+.catLeadCloseRule {
+  flex: 0 0 auto;
+  width: 1.6rem;
+  height: 1px;
+  background: var(--color-accent);
+  opacity: 0.9;
+}
+
+@media (max-width: 767px) {
+  .catLeadClose {
+    font-size: 0.92rem;
+    letter-spacing: 0.06em;
+  }
+}
+
 /* ★ 枠の並び＝01 FDE事業 → 02 ツール制作 → 03 Web制作（2026-09-16 あおきさん指示）。
    枠と枠のあいだは 6rem で通す。03 だけは直上のリード（.pickupTitle）と
    ひと続きに見せたいので詰める（リード側が 6rem を持っている）。 */

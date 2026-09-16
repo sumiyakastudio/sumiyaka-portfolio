@@ -1553,6 +1553,11 @@ export default function PickUpWorks({ works, tools, cases }: PickUpWorksProps) {
             <div className={styles.catLead} data-pickup-heading>
               <p className={styles.catLeadTag}>{fdeIntro.tagline}</p>
               <p className={styles.catLeadText}>{fdeIntro.explain}</p>
+              {/* 結びの1文＝少し目立たせる（2026-09-16 あおきさん指示） */}
+              <p className={styles.catLeadClose}>
+                <span className={styles.catLeadCloseRule} aria-hidden="true" />
+                {fdeIntro.closing}
+              </p>
             </div>
 
             <div
