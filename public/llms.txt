@@ -58,6 +58,7 @@
 - Service: https://akashiki.com/service
 - Tools: https://akashiki.com/tools
 - Web: https://akashiki.com/works
+- Cases (FDE事業の導入事例・実測): https://akashiki.com/cases
 - Contact: https://akashiki.com/contact
 
 ## Tools

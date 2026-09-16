@@ -1,0 +1,346 @@
+/* ==========================================================================
+   /cases — FDE事業（導入事例）
+   「墨の館に置かれた白い紙」（/tools の各ツールページと同じ型）。
+   地＝紙より半段暗い #ece8e2／面＝紙 #fbfaf7／墨 #171717／罫 #dcd8d0。
+   テーマ色は1件1色（data/cases.ts の accent）で、点と線だけに使う。
+   金（--color-accent #c8a96e）は使わない。
+
+   互換：filter/backdrop-filter のアニメ・mix-blend-mode・3D transform・
+   複雑な clip-path・vw フォント・100vh 単独指定は使わない。
+   動きは transform / opacity のみ。prefers-reduced-motion で切る。
+   ========================================================================== */
+
+.page {
+  /* 紙・墨・罫（値は app/tools/tools-paper.css と同じ系列） */
+  --cs-ground: #ece8e2;
+  --cs-paper: #fbfaf7;
+  --cs-paper-2: #f3f1ec;
+  --cs-ink: #171717;
+  --cs-ink-2: #3d3c39;
+  --cs-ink-3: #6a6862;
+  --cs-line: #dcd8d0;
+  --cs-line-soft: #e9e6df;
+  --cs-line-strong: #c7c2b8;
+
+  position: relative;
+  background: var(--cs-ground);
+  color: var(--cs-ink);
+  color-scheme: light;
+  overflow-x: clip; /* 横あふれをスクロールにしない（sticky は壊さない） */
+}
+
+/* ========================================
+   FV — 100vh（100svh）→ 50vh へ収縮。中身は components/cases/CasesFV
+   ======================================== */
+.fv {
+  position: relative;
+  height: 100vh;
+  height: 100svh;
+  /* 収縮後（SubPageFVAnim が height:50vh をインラインで当てる）でも、帯と凡例まで
+     入る高さを下限として確保する。min-height は height より強いので切られない。
+     画面が低い端末では 100svh を超えないよう min() で抑える（min() 非対応の
+     古い環境は 1行目の固定値が効く＝どちらでも FV は成立する） */
+  min-height: 560px;
+  min-height: min(560px, 100svh);
+  overflow: hidden;
+  background-color: var(--cs-ground);
+  background-image: radial-gradient(
+    120% 90% at 50% 38%,
+    rgba(255, 255, 255, 0.5) 0%,
+    rgba(255, 255, 255, 0) 62%
+  );
+}
+
+/* ========================================
+   FDEの説明＋測り方の帯
+   ======================================== */
+.lead {
+  padding: 5.5rem 0 3.5rem;
+}
+
+.leadInner {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 0 40px;
+}
+
+.leadBody {
+  margin: 0;
+  font-size: 1.02rem;
+  font-weight: 400;
+  line-height: 2.1;
+  letter-spacing: 0.02em;
+  color: var(--cs-ink);
+}
+
+/* 測り方＝小さく、しかし必ず出す（目安である旨と「導入前は見積」を落とさない） */
+.measured {
+  margin-top: 2.2rem;
+  padding: 1.15rem 1.3rem 1.25rem;
+  background: var(--cs-paper);
+  border: 1px solid var(--cs-line);
+  border-left: 3px solid var(--cs-ink-3);
+}
+
+.measuredLabel {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  line-height: 1.7;
+  letter-spacing: 0.18em;
+  color: var(--cs-ink-3);
+}
+
+.measuredText {
+  margin: 0.6rem 0 0;
+  font-size: 0.78rem;
+  line-height: 2;
+  color: var(--cs-ink-2);
+}
+
+/* ========================================
+   事例の一覧
+   ======================================== */
+.list {
+  padding: 1rem 0 6rem;
+}
+
+.listInner {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 0 40px;
+}
+
+.listHead {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  padding-top: 1.6rem;
+  border-top: 1px solid var(--cs-line-strong);
+}
+
+.listTitle {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  color: var(--cs-ink);
+}
+
+.listCount {
+  display: inline-block;
+  padding: 2px 10px;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  line-height: 1.7;
+  letter-spacing: 0.2em;
+  font-variant-numeric: tabular-nums;
+  color: var(--cs-ink-2);
+  background: var(--cs-paper);
+  border: 1px solid var(--cs-line-strong);
+}
+
+.cards {
+  list-style: none;
+  margin: 2.2rem 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  align-items: start;
+  gap: 2rem;
+}
+
+/* ScrollReveal（GSAP）が opacity / transform を持つ。ここには動きを置かない */
+.cardItem {
+  min-width: 0;
+}
+
+@media (min-width: 768px) {
+  .cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1400px) {
+  .cards {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* ========================================
+   末尾＝測り方の再掲と導線
+   ======================================== */
+.closing {
+  padding: 0 0 7rem;
+}
+
+.closingInner {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 3rem 40px 0;
+  border-top: 1px solid var(--cs-line-strong);
+}
+
+.closingNote {
+  margin: 0;
+  font-size: 0.74rem;
+  line-height: 2;
+  color: var(--cs-ink-3);
+}
+
+.closingLead {
+  margin: 2.4rem 0 0;
+  font-size: 1.02rem;
+  font-weight: 500;
+  line-height: 2;
+  letter-spacing: 0.02em;
+  color: var(--cs-ink);
+}
+
+.ctas {
+  margin-top: 1.6rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9rem;
+}
+
+.ctaPrimary,
+.ctaSecondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  min-height: 52px;
+  padding: 0 1.5rem;
+  font-size: 0.86rem;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  transition:
+    background-color var(--duration-normal, 300ms) ease,
+    color var(--duration-normal, 300ms) ease,
+    transform var(--duration-normal, 300ms) var(--ease-out-expo, cubic-bezier(0.16, 1, 0.3, 1));
+}
+
+.ctaPrimary {
+  color: var(--cs-paper);
+  background: var(--cs-ink);
+  border: 1px solid var(--cs-ink);
+}
+
+.ctaPrimary:hover {
+  transform: translateY(-2px);
+}
+
+.ctaSecondary {
+  color: var(--cs-ink);
+  background: var(--cs-paper);
+  border: 1px solid var(--cs-line-strong);
+}
+
+.ctaSecondary:hover {
+  transform: translateY(-2px);
+  border-color: var(--cs-ink-3);
+}
+
+.ctaPrimary:focus-visible,
+.ctaSecondary:focus-visible {
+  outline: 2px solid var(--cs-ink);
+  outline-offset: 3px;
+}
+
+.ctaArrow {
+  display: inline-block;
+  transition: transform var(--duration-normal, 300ms) var(--ease-out-expo, cubic-bezier(0.16, 1, 0.3, 1));
+}
+
+.ctaPrimary:hover .ctaArrow,
+.ctaSecondary:hover .ctaArrow {
+  transform: translateX(4px);
+}
+
+/* ========================================
+   幅
+   ======================================== */
+@media (max-width: 1023px) {
+  .fv {
+    min-height: 530px;
+    min-height: min(530px, 100svh);
+  }
+
+  .leadInner,
+  .listInner {
+    padding-left: 32px;
+    padding-right: 32px;
+  }
+
+  .closingInner {
+    padding-left: 32px;
+    padding-right: 32px;
+  }
+}
+
+@media (max-width: 767px) {
+  .fv {
+    min-height: 480px;
+    min-height: min(480px, 100svh);
+  }
+
+  .lead {
+    padding: 3.5rem 0 2.5rem;
+  }
+
+  .leadInner,
+  .listInner {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .leadBody {
+    font-size: 0.95rem;
+    line-height: 2;
+  }
+
+  .list {
+    padding-bottom: 4rem;
+  }
+
+  .cards {
+    gap: 1.6rem;
+  }
+
+  .closing {
+    padding-bottom: 5rem;
+  }
+
+  .closingInner {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .closingLead {
+    font-size: 0.95rem;
+  }
+
+  .ctaPrimary,
+  .ctaSecondary {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ctaPrimary,
+  .ctaSecondary,
+  .ctaArrow {
+    transition: none;
+  }
+
+  .ctaPrimary:hover,
+  .ctaSecondary:hover {
+    transform: none;
+  }
+
+  .ctaPrimary:hover .ctaArrow,
+  .ctaSecondary:hover .ctaArrow {
+    transform: none;
+  }
+}

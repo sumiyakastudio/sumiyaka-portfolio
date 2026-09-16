@@ -14,7 +14,9 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import type { Work } from "@/types/work";
 import type { Tool } from "@/types/tool";
+import type { CaseStudy } from "@/types/case";
 import { measurePan, RETURN_DURATION, type PanSpec } from "@/lib/hoverScroll";
+import { getFdeIntro } from "@/lib/caseCatalog";
 import { useLenis } from "@/components/animation/SmoothScroll";
 import SectionMark from "@/components/fv/top-body/SectionMark";
 import styles from "./PickUpWorks.module.css";
@@ -38,11 +40,22 @@ const EASE = "cubic-bezier(0.16, 1, 0.3, 1)";
 const CYCLE = 3200;
 
 /**
- * ★ ツール枠の送りは、Web制作の送りから半周ずらす。
- *   2つの束が同時に跳ねると画面がうるさいため（2026-08-23 あおきさん指示）。
- *   ⚠ CSS 側の走査点も同じだけずらしてある（.isLive.deckWrapTools .tracer）。
+ * ★ 束が同時に跳ねると画面がうるさいので、枠ごとに送りの位相をずらす
+ *   （2026-08-23 あおきさん指示）。2026-09-16 に枠が3つ（01 FDE事業／
+ *   02 ツール制作／03 Web制作）へ増えたので、半周ではなく
+ *   **周期の3分の1ずつ** に組み直した。
+ *     ・03 Web制作 ＝ 0（基準。startCycle で即座に回りはじめる）
+ *     ・01 FDE事業 ＝ CYCLE の 1/3 遅れ
+ *     ・02 ツール制作 ＝ CYCLE の 2/3 遅れ
+ *   ⚠ 周期の長さ（CYCLE）は不変。動かしているのは位相だけ。
+ *   ⚠ CSS 側の走査点も同じだけずらしてある
+ *      （.isLive.deckWrapCases / .isLive.deckWrapTools の .tracer）。
  */
-const TOOLS_PHASE = CYCLE / 2;
+const CASES_PHASE = Math.round(CYCLE / 3);
+const TOOLS_PHASE = Math.round((CYCLE * 2) / 3);
+
+/** 01 FDE事業の枠の見出し・リード（契約＝lib/caseCatalog.ts。文言はここで作らない） */
+const fdeIntro = getFdeIntro();
 
 /**
  * ★ 3列2段。SP（767px以下）は1カラムの縦積み。
@@ -117,6 +130,8 @@ interface PickUpWorksProps {
   works: Work[];
   /** 02 ツール制作の枠に出す自社開発ツール。空なら従来の「準備中」プレートに戻る */
   tools: Tool[];
+  /** 01 FDE事業の枠に出す導入事例の6選。0件なら枠ごと出さない（プレートは作らない） */
+  cases: CaseStudy[];
 }
 
 function mq(query: string) {
@@ -217,7 +232,7 @@ function progressFrac(node: HTMLElement | null): number {
   return -y / h;
 }
 
-export default function PickUpWorks({ works, tools }: PickUpWorksProps) {
+export default function PickUpWorks({ works, tools, cases }: PickUpWorksProps) {
   const lenis = useLenis();
 
   /* ---- DOM ---- */
@@ -227,14 +242,20 @@ export default function PickUpWorks({ works, tools }: PickUpWorksProps) {
   const worksDeckRef = useRef<HTMLUListElement>(null);
   const toolsWrapRef = useRef<HTMLDivElement>(null);
   const toolsDeckRef = useRef<HTMLUListElement>(null);
+  /* ★ 01 FDE事業の枠。02 ツール制作の枠と同じ作りを写している */
+  const casesWrapRef = useRef<HTMLDivElement>(null);
+  const casesDeckRef = useRef<HTMLUListElement>(null);
   const tickRef = useRef<HTMLSpanElement>(null);
   const tickGhostRef = useRef<HTMLSpanElement>(null);
   const toolsTickRef = useRef<HTMLSpanElement>(null);
   const toolsTickGhostRef = useRef<HTMLSpanElement>(null);
+  const casesTickRef = useRef<HTMLSpanElement>(null);
+  const casesTickGhostRef = useRef<HTMLSpanElement>(null);
   const cardRefs = useRef<(HTMLLIElement | null)[]>([]);
   const thumbRefs = useRef<(HTMLDivElement | null)[]>([]);
   const panRefs = useRef<(HTMLDivElement | null)[]>([]);
   const toolRefs = useRef<(HTMLLIElement | null)[]>([]);
+  const caseRefs = useRef<(HTMLLIElement | null)[]>([]);
   const stageRef = useRef<HTMLDivElement>(null);
   const stageInnerRef = useRef<HTMLDivElement>(null);
   const stageThumbRef = useRef<HTMLDivElement>(null);
@@ -245,13 +266,18 @@ export default function PickUpWorks({ works, tools }: PickUpWorksProps) {
   /* ---- 状態（再描画を起こさないものは全て ref に持つ） ---- */
   const raisedRef = useRef(0);
   const timerRef = useRef<number | null>(null);
-  /** ★ ツール枠の送り。works と同じ周期・半周ずらし（TOOLS_PHASE） */
+  /** ★ ツール枠の送り。works と同じ周期・2/3 ずらし（TOOLS_PHASE） */
   const toolRaisedRef = useRef(0);
   const toolsTimerRef = useRef<number | null>(null);
   const toolsDelayRef = useRef<number | null>(null);
+  /** ★ FDE枠の送り。works と同じ周期・1/3 ずらし（CASES_PHASE） */
+  const caseRaisedRef = useRef(0);
+  const casesTimerRef = useRef<number | null>(null);
+  const casesDelayRef = useRef<number | null>(null);
   /** 栞がいまどの段に居るか（段をまたぐときは滑らせず灯し直す） */
   const tickRowRef = useRef(-1);
   const toolsTickRowRef = useRef(-1);
+  const casesTickRowRef = useRef(-1);
   const visibleRef = useRef(false);
   const hoveringRef = useRef(false);
   const enteringRef = useRef(false);
@@ -274,6 +300,10 @@ export default function PickUpWorks({ works, tools }: PickUpWorksProps) {
 
   /* ---- 02 ツール枠。0本なら従来の「準備中」プレートへ戻る ---- */
   const hasTools = tools.length > 0;
+
+  /* ---- 01 FDE枠。0件なら枠ごと出さない（「準備中」プレートは作らない
+         ＝2026-08-23 あおきさん判断の踏襲） ---- */
+  const hasCases = cases.length > 0;
 
   /* =========================================================
      タイマーの世代管理
@@ -372,6 +402,20 @@ export default function PickUpWorks({ works, tools }: PickUpWorksProps) {
     [placeTickOn],
   );
 
+  const placeCasesTick = useCallback(
+    (i: number) => {
+      placeTickOn(
+        casesWrapRef.current,
+        casesTickRef.current,
+        casesTickGhostRef.current,
+        casesTickRowRef,
+        caseRefs.current,
+        i,
+      );
+    },
+    [placeTickOn],
+  );
+
   const setRaisedWorks = useCallback(
     (i: number, moveTick: boolean) => {
       cardRefs.current.forEach((c, k) => {
@@ -392,12 +436,23 @@ export default function PickUpWorks({ works, tools }: PickUpWorksProps) {
     [placeToolsTick],
   );
 
+  const setRaisedCases = useCallback(
+    (i: number, moveTick: boolean) => {
+      caseRefs.current.forEach((c, k) => {
+        if (c) c.classList.toggle(styles.isRaised, k === i);
+      });
+      if (moveTick) placeCasesTick(i);
+    },
+    [placeCasesTick],
+  );
+
   /** 走査点の走る距離＝束の実幅。CSS変数で渡す（幅そのものは動かさない）。
-      ⚠ 2026-08-23 以降はツール枠にも走査点があるので、2つとも測る */
+      ⚠ 2026-08-23 以降はツール枠にも、2026-09-16 以降は FDE枠にも走査点がある＝3つとも測る */
   const measureTrace = useCallback(() => {
     const pairs: [HTMLDivElement | null, HTMLUListElement | null][] = [
       [worksWrapRef.current, worksDeckRef.current],
       [toolsWrapRef.current, toolsDeckRef.current],
+      [casesWrapRef.current, casesDeckRef.current],
     ];
     pairs.forEach(([wrap, deck]) => {
       if (!wrap || !deck) return;
@@ -437,8 +492,16 @@ export default function PickUpWorks({ works, tools }: PickUpWorksProps) {
     setRaisedTools(toolRaisedRef.current, true);
   }, [setRaisedTools, tools.length]);
 
+  /** ★ FDE枠の送り。6件を通しで巡回する（Web制作・ツール制作と同じ作法） */
+  const stepCases = useCallback(() => {
+    const n = cases.length;
+    if (n === 0) return;
+    caseRaisedRef.current = (caseRaisedRef.current + 1) % n;
+    setRaisedCases(caseRaisedRef.current, true);
+  }, [cases.length, setRaisedCases]);
+
   const startCycle = useCallback(() => {
-    /* works と tools は必ず一緒に回り・一緒に止まる。works 側だけ見れば足りる */
+    /* 3つの枠は必ず一緒に回り・一緒に止まる。works 側だけ見れば足りる */
     if (timerRef.current !== null) return;
     if (!canRun()) return;
     measureTrace();
@@ -446,18 +509,36 @@ export default function PickUpWorks({ works, tools }: PickUpWorksProps) {
     worksWrapRef.current?.classList.add(styles.isLive);
     timerRef.current = window.setInterval(stepDeck, CYCLE);
 
+    /* ★ 位相をずらしてから回しはじめる＝3つの束が同時に跳ねない。
+       ⚠ タイマーが増えるが、停止の契約は works と完全に同じ。
+          stopCycle でこの待ちタイマーも必ず落とす（画面外で発火0を保つ） */
+    const casesWrap = casesWrapRef.current;
+    if (casesWrap && cases.length > 0) {
+      casesWrap.classList.add(styles.isLive);
+      casesDelayRef.current = window.setTimeout(() => {
+        casesDelayRef.current = null;
+        stepCases();
+        casesTimerRef.current = window.setInterval(stepCases, CYCLE);
+      }, CASES_PHASE);
+    }
+
     const toolsWrap = toolsWrapRef.current;
     if (!toolsWrap || tools.length === 0) return;
     toolsWrap.classList.add(styles.isLive);
-    /* ★ 半周（1.6秒）遅らせてから回しはじめる＝2つの束が同時に跳ねない。
-       ⚠ タイマーが1本増えるが、停止の契約は works と完全に同じ。
-          stopCycle でこの待ちタイマーも必ず落とす（画面外で発火0を保つ） */
     toolsDelayRef.current = window.setTimeout(() => {
       toolsDelayRef.current = null;
       stepTools();
       toolsTimerRef.current = window.setInterval(stepTools, CYCLE);
     }, TOOLS_PHASE);
-  }, [canRun, measureTrace, stepDeck, stepTools, tools.length]);
+  }, [
+    canRun,
+    cases.length,
+    measureTrace,
+    stepCases,
+    stepDeck,
+    stepTools,
+    tools.length,
+  ]);
 
   const stopCycle = useCallback(() => {
     if (timerRef.current !== null) {
@@ -472,9 +553,18 @@ export default function PickUpWorks({ works, tools }: PickUpWorksProps) {
       window.clearTimeout(toolsDelayRef.current);
       toolsDelayRef.current = null;
     }
+    if (casesTimerRef.current !== null) {
+      window.clearInterval(casesTimerRef.current);
+      casesTimerRef.current = null;
+    }
+    if (casesDelayRef.current !== null) {
+      window.clearTimeout(casesDelayRef.current);
+      casesDelayRef.current = null;
+    }
     /* animation の指定ごと外す＝ getAnimations から消える */
     worksWrapRef.current?.classList.remove(styles.isLive);
     toolsWrapRef.current?.classList.remove(styles.isLive);
+    casesWrapRef.current?.classList.remove(styles.isLive);
   }, []);
 
   /** 画面外・背面タブでは CSS アニメも本当に止める（paused） */
@@ -594,6 +684,26 @@ export default function PickUpWorks({ works, tools }: PickUpWorksProps) {
     refresh();
     setRaisedTools(toolRaisedRef.current, true);
   }, [refresh, setRaisedTools]);
+
+  /* ★ FDE枠も 02 と同じ作法（枠をまたいで hoveringRef は1つ＝どこかに
+     マウスが載っているあいだはセクション全体の送りを止める） */
+  const hoverCasesOn = useCallback(
+    (i: number) => {
+      if (openRef.current !== null || enteringRef.current) return;
+      if (mq(SP_QUERY)) return;
+      hoveringRef.current = true;
+      stopCycle();
+      caseRaisedRef.current = i;
+      setRaisedCases(i, true);
+    },
+    [setRaisedCases, stopCycle],
+  );
+
+  const hoverCasesOff = useCallback(() => {
+    hoveringRef.current = false;
+    refresh();
+    setRaisedCases(caseRaisedRef.current, true);
+  }, [refresh, setRaisedCases]);
 
   /* =========================================================
      ★★ 紙片が舞う — 選ばれなかった5枚の去りかた
@@ -1130,15 +1240,22 @@ export default function PickUpWorks({ works, tools }: PickUpWorksProps) {
     document.addEventListener("visibilitychange", onVisibility);
 
     /* ---- 入場 ---- */
-    const wraps = [worksWrapRef.current, toolsWrapRef.current].filter(
-      (el): el is HTMLDivElement => el !== null,
-    );
+    const wraps = [
+      casesWrapRef.current,
+      toolsWrapRef.current,
+      worksWrapRef.current,
+    ].filter((el): el is HTMLDivElement => el !== null);
     const timers: number[] = [];
     let enterIo: IntersectionObserver | null = null;
     const armed = wraps.filter((w) => w.classList.contains(styles.enterPending));
 
     if (armed.length > 0) {
       enteringRef.current = true;
+      /* ★ 2026-09-16：枠の並びが 01 FDE → 02 ツール → 03 Web制作 になり、
+         Web制作の束が一番下へ移った。「works が入場し終えたら送りを解禁」の
+         ままだと、画面上の 01・02 が回りはじめるのに一番下までスクロールが
+         要る。**最初に着地した束**で解禁する（どの枠が先頭でも成り立つ）。 */
+      let landed = false;
       enterIo = new IntersectionObserver(
         (entries, obs) => {
           entries.forEach((entry) => {
@@ -1150,17 +1267,23 @@ export default function PickUpWorks({ works, tools }: PickUpWorksProps) {
             timers.push(
               window.setTimeout(() => {
                 el.classList.remove(styles.isEntering);
-                if (el === worksWrapRef.current) {
+                if (!landed) {
+                  landed = true;
                   enteringRef.current = false;
-                  raisedRef.current = 0;
-                  setRaisedWorks(0, true);
-                  refresh();
+                }
+                if (el === casesWrapRef.current) {
+                  caseRaisedRef.current = 0;
+                  setRaisedCases(0, true);
                 }
                 if (el === toolsWrapRef.current) {
                   toolRaisedRef.current = 0;
                   setRaisedTools(0, true);
-                  refresh(); /* ツール枠にも送りが要る */
                 }
+                if (el === worksWrapRef.current) {
+                  raisedRef.current = 0;
+                  setRaisedWorks(0, true);
+                }
+                refresh(); /* どの枠でも送りが要る */
               }, ENTER_MS),
             );
           });
@@ -1173,6 +1296,7 @@ export default function PickUpWorks({ works, tools }: PickUpWorksProps) {
       enteringRef.current = false;
       setRaisedWorks(0, true);
       setRaisedTools(0, true);
+      setRaisedCases(0, true);
     }
 
     return () => {
@@ -1181,7 +1305,7 @@ export default function PickUpWorks({ works, tools }: PickUpWorksProps) {
       timers.forEach((t) => window.clearTimeout(t));
       stopCycle();
     };
-  }, [refresh, setRaisedTools, setRaisedWorks, stopCycle]);
+  }, [refresh, setRaisedCases, setRaisedTools, setRaisedWorks, stopCycle]);
 
   /* =========================================================
      入場の仕込み（初回ペイント前）。
@@ -1191,7 +1315,7 @@ export default function PickUpWorks({ works, tools }: PickUpWorksProps) {
   useLayoutEffect(() => {
     if (mq(REDUCE_QUERY)) return;
     const vh = window.innerHeight || 0;
-    [worksWrapRef.current, toolsWrapRef.current].forEach((wrap) => {
+    [casesWrapRef.current, toolsWrapRef.current, worksWrapRef.current].forEach((wrap) => {
       if (!wrap) return;
       if (wrap.getBoundingClientRect().top < vh * 0.9) return;
       wrap.classList.add(styles.enterPending);
@@ -1221,13 +1345,18 @@ export default function PickUpWorks({ works, tools }: PickUpWorksProps) {
         setRaisedWorks(0, false);
         toolRaisedRef.current = 0;
         setRaisedTools(0, false);
+        caseRaisedRef.current = 0;
+        setRaisedCases(0, false);
         wrap.classList.remove(styles.hasTick);
         toolsWrapRef.current?.classList.remove(styles.hasTick);
+        casesWrapRef.current?.classList.remove(styles.hasTick);
         tickRowRef.current = -1;
         toolsTickRowRef.current = -1;
+        casesTickRowRef.current = -1;
       } else if (!enteringRef.current) {
         setRaisedWorks(raisedRef.current, true);
         setRaisedTools(toolRaisedRef.current, true);
+        setRaisedCases(caseRaisedRef.current, true);
       }
       refresh();
     };
@@ -1239,6 +1368,7 @@ export default function PickUpWorks({ works, tools }: PickUpWorksProps) {
     measureTrace,
     panClear,
     refresh,
+    setRaisedCases,
     setRaisedTools,
     setRaisedWorks,
     stopCycle,
@@ -1355,6 +1485,28 @@ export default function PickUpWorks({ works, tools }: PickUpWorksProps) {
     [hoverToolsOff],
   );
 
+  const handleCaseFocus = useCallback(
+    (e: React.FocusEvent<HTMLAnchorElement>, i: number) => {
+      /* ⚠ :focus-visible のときだけ（マウス操作で束が固まる事故を避ける） */
+      let kb = true;
+      try {
+        kb = e.currentTarget.matches(":focus-visible");
+      } catch {
+        kb = true;
+      }
+      if (kb) hoverCasesOn(i);
+    },
+    [hoverCasesOn],
+  );
+
+  const handleCasesBlur = useCallback(
+    (e: React.FocusEvent<HTMLDivElement>) => {
+      if (e.currentTarget.contains(e.relatedTarget as Node | null)) return;
+      hoverCasesOff();
+    },
+    [hoverCasesOff],
+  );
+
   const openWorkData = openIndex !== null ? works[openIndex] : null;
 
   return (
@@ -1379,114 +1531,108 @@ export default function PickUpWorks({ works, tools }: PickUpWorksProps) {
           <h2 className={styles.heading}>制作実績</h2>
         </div>
 
-        {/* リード（件数は配列から自動集計＝ハードコード禁止） */}
-        <div className={styles.pickupTitle} data-pickup-heading>
-          <span className={styles.pickupJp}>
-            {charSpans(`/works より、${works.length}件。`)}
-          </span>
-        </div>
+        {/* ============ 01 FDE事業 ============
+            ⚠ 2026-09-16 追加。02 ツール制作の枠をそのまま写している
+               （deckWrap / deck / 栞 / 走査点 / hover・focus の扱いまで同じ）。
+               違うのは「リンク先」と「見出し直下のリード（catLead）」だけ。
+            ⚠ 0件のときは枠ごと出さない＝「準備中」プレートは作らない
+               （2026-08-23 あおきさん判断の踏襲）。
+            ⚠ 文言は契約ファイル（data/cases.ts の fdeIntro）から取る。ここで作らない */}
+        {hasCases && (
+          <div className={styles.blockCases}>
+            <div className={styles.catHead} data-pickup-heading>
+              <span className={styles.catIdx}>01</span>
+              <h3 className={styles.catName}>FDE事業</h3>
+              <span className={styles.catEn}>FDE</span>
+              <span className={styles.catCount}>
+                {cases.length} CASE{cases.length > 1 ? "S" : ""}
+              </span>
+            </div>
 
-        {/* ============ 01 Web制作 ============ */}
-        <div className={styles.blockWeb}>
-          <div className={styles.catHead} data-pickup-heading>
-            <span className={styles.catIdx}>01</span>
-            <h3 className={styles.catName}>Web制作</h3>
-            <span className={styles.catEn}>Web</span>
-            <span className={styles.catCount}>{works.length} SITES</span>
-          </div>
+            {/* ★ FDE を知らない人が、トップだけ見ても何の事業か分かるようにする */}
+            <div className={styles.catLead} data-pickup-heading>
+              <p className={styles.catLeadTag}>{fdeIntro.tagline}</p>
+              <p className={styles.catLeadText}>{fdeIntro.explain}</p>
+            </div>
 
-          <div
-            className={`${styles.deckWrap} ${styles.deckWrapWorks}`}
-            ref={worksWrapRef}
-            onMouseLeave={hoverWorksOff}
-            onBlur={handleWorksBlur}
-          >
-            <ul className={styles.deck} ref={worksDeckRef}>
-              {works.map((work, i) => (
-                <li
-                  key={work.slug}
-                  className={styles.card}
-                  style={{ "--i": i } as CSSProperties}
-                  ref={(el) => {
-                    cardRefs.current[i] = el;
-                  }}
-                  onMouseEnter={() => {
-                    if (mq(FINE_QUERY)) hoverWorksOn(i);
-                  }}
-                  data-pickup-card
-                >
-                  {/* a タグのまま（SEO・新規タブ・キーボード操作を保持）、
-                      通常クリックのみ preventDefault して展開フォーカスへ */}
-                  <Link
-                    href={`/works/${work.slug}`}
-                    className={styles.cardLink}
-                    aria-haspopup="dialog"
-                    onClick={(e) => handleCardClick(e, i)}
-                    onKeyDown={(e) => handleCardKeyDown(e, i)}
-                    onFocus={(e) => handleCardFocus(e, i)}
+            <div
+              className={`${styles.deckWrap} ${styles.deckWrapCases}`}
+              ref={casesWrapRef}
+              onMouseLeave={hoverCasesOff}
+              onBlur={handleCasesBlur}
+            >
+              <ul className={`${styles.deck} ${styles.deckCases}`} ref={casesDeckRef}>
+                {cases.map((study, i) => (
+                  <li
+                    key={study.slug}
+                    className={styles.card}
+                    style={{ "--i": i } as CSSProperties}
+                    ref={(el) => {
+                      caseRefs.current[i] = el;
+                    }}
+                    onMouseEnter={() => {
+                      if (mq(FINE_QUERY)) hoverCasesOn(i);
+                    }}
+                    data-pickup-plate
                   >
-                    <div
-                      className={styles.thumb}
-                      ref={(el) => {
-                        thumbRefs.current[i] = el;
-                      }}
+                    <Link
+                      href={`/cases#${study.slug}`}
+                      className={styles.cardLink}
+                      onFocus={(e) => handleCaseFocus(e, i)}
                     >
-                      <div
-                        className={styles.pan}
-                        ref={(el) => {
-                          panRefs.current[i] = el;
-                        }}
-                      >
-                        {/* 墨明け＝静的 grayscale の下地＋カラーの opacity
-                            クロスフェード（filter はアニメしない＝iOS 安全） */}
-                        <Image
-                          src={work.images[0]}
-                          alt=""
-                          aria-hidden="true"
-                          fill
-                          sizes={CARD_SIZES}
-                          className={`${styles.thumbImg} ${styles.thumbMono}`}
-                        />
-                        <Image
-                          src={work.images[0]}
-                          alt={work.title}
-                          fill
-                          sizes={CARD_SIZES}
-                          className={`${styles.thumbImg} ${styles.thumbColor}`}
-                        />
+                      <div className={styles.thumb}>
+                        <div className={styles.pan}>
+                          <Image
+                            src={study.thumbnail}
+                            alt=""
+                            aria-hidden="true"
+                            fill
+                            sizes={CARD_SIZES}
+                            className={`${styles.thumbImg} ${styles.thumbMono}`}
+                          />
+                          <Image
+                            src={study.thumbnail}
+                            alt={`${study.title} の導入前後の比較`}
+                            fill
+                            sizes={CARD_SIZES}
+                            className={`${styles.thumbImg} ${styles.thumbColor}`}
+                          />
+                        </div>
+                        <span className={styles.inkVeil} aria-hidden="true" />
+                        <span className={styles.frameLine} aria-hidden="true" />
+                        {/* ★ 01・02 と揃える：手前へ出た瞬間、上端を光が一度だけ走る */}
+                        <span className={styles.gleam} aria-hidden="true" />
                       </div>
-                      <span className={styles.inkVeil} aria-hidden="true" />
-                      <span className={styles.frameLine} aria-hidden="true" />
-                      {/* ★ 手前へ出た瞬間、上端を光が一度だけ走る */}
-                      <span className={styles.gleam} aria-hidden="true" />
-                    </div>
+                      <div className={styles.cap}>
+                        <span className={styles.capIdx}>{study.no}</span>
+                        <span className={styles.capText}>
+                          <span className={styles.capTitle}>{study.title}</span>
+                          <span className={styles.capMeta}>{study.headline}</span>
+                        </span>
+                      </div>
+                    </Link>
+                    <span className={styles.hint} aria-hidden="true" />
+                  </li>
+                ))}
+              </ul>
+              {/* 金① 栞（＋その余韻）／金② 走査点。02 と同じものを 01 にも付ける */}
+              <span
+                className={styles.tickGhost}
+                ref={casesTickGhostRef}
+                aria-hidden="true"
+              />
+              <span className={styles.tick} ref={casesTickRef} aria-hidden="true" />
+              <span className={styles.tracer} aria-hidden="true" />
+            </div>
 
-                    <div className={styles.cap}>
-                      <span className={styles.capIdx}>{workIdx(i)}</span>
-                      <span className={styles.capText}>
-                        <span className={styles.capTitle}>{work.title}</span>
-                      </span>
-                    </div>
-                  </Link>
-                  {/* 金③ 予告罫 */}
-                  <span className={styles.hint} aria-hidden="true" />
-                </li>
-              ))}
-            </ul>
-            {/* 金① 栞（＋その余韻） */}
-            <span className={styles.tickGhost} ref={tickGhostRef} aria-hidden="true" />
-            <span className={styles.tick} ref={tickRef} aria-hidden="true" />
-            {/* 金② 走査点 */}
-            <span className={styles.tracer} aria-hidden="true" />
+            {/* ★ 02・03 と完全に同じ見た目・同じ位置（右下） */}
+            <p className={styles.more}>
+              <Link href="/cases" className={styles.moreLink}>
+                VIEW ALL CASES →
+              </Link>
+            </p>
           </div>
-
-          {/* ★ セクション右下の導線（02 と完全に同じ見た目・同じ位置） */}
-          <p className={styles.more}>
-            <Link href="/works" className={styles.moreLink}>
-              VIEW ALL SITES →
-            </Link>
-          </p>
-        </div>
+        )}
 
         {/* ============ 02 ツール制作 ============
             ⚠ 03 SNS の「準備中」プレートは 2026-08-23 に撤去した（あおきさん指示）。
@@ -1597,6 +1743,120 @@ export default function PickUpWorks({ works, tools }: PickUpWorksProps) {
               </Link>
             </p>
           )}
+        </div>
+
+        {/* リード（件数は配列から自動集計＝ハードコード禁止） */}
+        <div className={styles.pickupTitle} data-pickup-heading>
+          <span className={styles.pickupJp}>
+            {charSpans(`/works より、${works.length}件。`)}
+          </span>
+        </div>
+
+        {/* ============ 03 Web制作 ============
+            ⚠ 2026-09-16：並びを 01 FDE事業 → 02 ツール制作 → 03 Web制作 に
+               組み替えた（一つ上のセクション「業務を、仕組みに変える」との整合＝
+               あおきさん指示）。番号と位置だけの変更で、動き・文言は不変。
+            ⚠ 直上のリード「/works より、N件。」は works の件数を指しているので、
+               この枠と一緒に動かしてある（見出し直下からここへ移設）。 */}
+        <div className={styles.blockWeb}>
+          <div className={styles.catHead} data-pickup-heading>
+            <span className={styles.catIdx}>03</span>
+            <h3 className={styles.catName}>Web制作</h3>
+            <span className={styles.catEn}>Web</span>
+            <span className={styles.catCount}>{works.length} SITES</span>
+          </div>
+
+          <div
+            className={`${styles.deckWrap} ${styles.deckWrapWorks}`}
+            ref={worksWrapRef}
+            onMouseLeave={hoverWorksOff}
+            onBlur={handleWorksBlur}
+          >
+            <ul className={styles.deck} ref={worksDeckRef}>
+              {works.map((work, i) => (
+                <li
+                  key={work.slug}
+                  className={styles.card}
+                  style={{ "--i": i } as CSSProperties}
+                  ref={(el) => {
+                    cardRefs.current[i] = el;
+                  }}
+                  onMouseEnter={() => {
+                    if (mq(FINE_QUERY)) hoverWorksOn(i);
+                  }}
+                  data-pickup-card
+                >
+                  {/* a タグのまま（SEO・新規タブ・キーボード操作を保持）、
+                      通常クリックのみ preventDefault して展開フォーカスへ */}
+                  <Link
+                    href={`/works/${work.slug}`}
+                    className={styles.cardLink}
+                    aria-haspopup="dialog"
+                    onClick={(e) => handleCardClick(e, i)}
+                    onKeyDown={(e) => handleCardKeyDown(e, i)}
+                    onFocus={(e) => handleCardFocus(e, i)}
+                  >
+                    <div
+                      className={styles.thumb}
+                      ref={(el) => {
+                        thumbRefs.current[i] = el;
+                      }}
+                    >
+                      <div
+                        className={styles.pan}
+                        ref={(el) => {
+                          panRefs.current[i] = el;
+                        }}
+                      >
+                        {/* 墨明け＝静的 grayscale の下地＋カラーの opacity
+                            クロスフェード（filter はアニメしない＝iOS 安全） */}
+                        <Image
+                          src={work.images[0]}
+                          alt=""
+                          aria-hidden="true"
+                          fill
+                          sizes={CARD_SIZES}
+                          className={`${styles.thumbImg} ${styles.thumbMono}`}
+                        />
+                        <Image
+                          src={work.images[0]}
+                          alt={work.title}
+                          fill
+                          sizes={CARD_SIZES}
+                          className={`${styles.thumbImg} ${styles.thumbColor}`}
+                        />
+                      </div>
+                      <span className={styles.inkVeil} aria-hidden="true" />
+                      <span className={styles.frameLine} aria-hidden="true" />
+                      {/* ★ 手前へ出た瞬間、上端を光が一度だけ走る */}
+                      <span className={styles.gleam} aria-hidden="true" />
+                    </div>
+
+                    <div className={styles.cap}>
+                      <span className={styles.capIdx}>{workIdx(i)}</span>
+                      <span className={styles.capText}>
+                        <span className={styles.capTitle}>{work.title}</span>
+                      </span>
+                    </div>
+                  </Link>
+                  {/* 金③ 予告罫 */}
+                  <span className={styles.hint} aria-hidden="true" />
+                </li>
+              ))}
+            </ul>
+            {/* 金① 栞（＋その余韻） */}
+            <span className={styles.tickGhost} ref={tickGhostRef} aria-hidden="true" />
+            <span className={styles.tick} ref={tickRef} aria-hidden="true" />
+            {/* 金② 走査点 */}
+            <span className={styles.tracer} aria-hidden="true" />
+          </div>
+
+          {/* ★ セクション右下の導線（02 と完全に同じ見た目・同じ位置） */}
+          <p className={styles.more}>
+            <Link href="/works" className={styles.moreLink}>
+              VIEW ALL SITES →
+            </Link>
+          </p>
         </div>
 
         {/* ⚠ 2026-08-23：ここにあったセクション末尾の全体CTA

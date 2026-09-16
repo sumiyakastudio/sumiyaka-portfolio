@@ -99,9 +99,12 @@
   line-height: 1.6;
 }
 
-/* ---- リード（/works より、N件。） ---- */
+/* ---- リード（/works より、N件。）
+   ⚠ 2026-09-16：works の件数だけを指す一文なので、セクション見出しの直下から
+     「03 Web制作」の枠の直上へ移した（あおきさん指示）。上（02 の枠）へは他の枠と
+     同じ間隔を空け、下（03 の見出し罫）へは詰める＝どちらに属する一文かが読んで分かる。 ---- */
 .pickupTitle {
-  margin-top: 0.5rem;
+  margin-top: 6rem;
   cursor: default;
 }
 
@@ -167,7 +170,36 @@
   white-space: nowrap;
 }
 
-.blockWeb {
+/* ---- 枠の見出し直下の短いリード（01 FDE事業だけ）
+   FDE を知らない人が、トップだけ見ても何の事業か分かるようにするための2行。
+   ⚠ 長文は入れない（測り方の但し書きは /cases 側で扱う）。
+   ⚠ 本文サイズより一段小さく＝札の題字（0.86rem）より前へ出ない。 ---- */
+.catLead {
+  margin-top: 1rem;
+  max-width: 44em;
+}
+
+.catLeadTag {
+  font-family: var(--font-display-washi, serif);
+  font-weight: 500;
+  font-size: 0.95rem;
+  letter-spacing: 0.06em;
+  line-height: 1.8;
+  color: var(--ink);
+}
+
+.catLeadText {
+  margin-top: 0.35rem;
+  font-size: 0.82rem;
+  letter-spacing: 0.04em;
+  line-height: 1.95;
+  color: var(--muted);
+}
+
+/* ★ 枠の並び＝01 FDE事業 → 02 ツール制作 → 03 Web制作（2026-09-16 あおきさん指示）。
+   枠と枠のあいだは 6rem で通す。03 だけは直上のリード（.pickupTitle）と
+   ひと続きに見せたいので詰める（リード側が 6rem を持っている）。 */
+.blockCases {
   position: relative;
   margin-top: 4rem;
 }
@@ -175,6 +207,11 @@
 .blockTools {
   position: relative;
   margin-top: 6rem;
+}
+
+.blockWeb {
+  position: relative;
+  margin-top: 0.9rem;
 }
 
 /* =============================================================
@@ -277,12 +314,18 @@
   animation: pwTrace var(--pw-cycle, 3200ms) var(--pw-ease-io) infinite;
 }
 
-/* ⚠ 2つの束の走査点が同時に走ると画面がうるさい。ツール側は半周ずらす。
-   送りのタイマーも同じく半周（CYCLE / 2 ＝ 1.6秒）ずらしてある（TSX 側）。
+/* ⚠ 束の走査点が同時に走ると画面がうるさいので、枠ごとに位相をずらす。
+   2026-09-16 に枠が3つ（01 FDE／02 ツール／03 Web制作）になったので、半周ではなく
+   周期の3分の1ずつにした（01＝1/3・02＝2/3・03＝0）。送りのタイマーも同じ値で
+   ずらしてある（TSX 側の CASES_PHASE / TOOLS_PHASE）。周期の長さは不変。
    ⚠ 特異度を .isLive .tracer より1つ上げてある。同点だと animation ショートハンドが
      animation-delay を 0 に戻してしまい、ずれが効かない。 */
+.isLive.deckWrapCases .tracer {
+  animation-delay: calc(var(--pw-cycle, 3200ms) * -0.3333);
+}
+
 .isLive.deckWrapTools .tracer {
-  animation-delay: calc(var(--pw-cycle, 3200ms) * -0.5);
+  animation-delay: calc(var(--pw-cycle, 3200ms) * -0.6667);
 }
 
 @keyframes pwTrace {
@@ -602,6 +645,11 @@
   display: block;
 }
 
+/* 導入事例の札にも副題（一言）を置く。開く台が無いのはツールと同じ */
+.deckCases .capMeta {
+  display: block;
+}
+
 /* =============================================================
    ★ 追加エフェクト①「入場＝束が集まる」
    6枚が少し離れた位置から、時間差で滑り込んで束に収まる。一度きり。
@@ -743,7 +791,8 @@
   }
 
   .deckWrapWorks .tracer,
-  .deckWrapTools .tracer {
+  .deckWrapTools .tracer,
+  .deckWrapCases .tracer {
     display: block;
   }
 
@@ -1349,12 +1398,34 @@
     padding-block: 5rem 4rem;
   }
 
-  .blockWeb {
+  .blockCases {
     margin-top: 3rem;
   }
 
   .blockTools {
     margin-top: 4rem;
+  }
+
+  /* リードと 03 の枠はひと続き（PC と同じ扱い・値だけ SP 用に詰める） */
+  .pickupTitle {
+    margin-top: 4rem;
+  }
+
+  .blockWeb {
+    margin-top: 0.7rem;
+  }
+
+  .catLead {
+    margin-top: 0.85rem;
+  }
+
+  .catLeadTag {
+    font-size: 0.92rem;
+  }
+
+  .catLeadText {
+    font-size: 0.8rem;
+    line-height: 1.9;
   }
 
   .ghostType {

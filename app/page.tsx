@@ -15,6 +15,7 @@ import Person from "@/components/home/Person";
 import CtaSection from "@/components/home/CtaSection";
 import { getPickUpWorks } from "@/lib/works";
 import { getPickUpTools } from "@/lib/toolCatalog";
+import { getPickUpCases } from "@/lib/caseCatalog";
 import styles from "./page.module.css";
 
 export default function Home() {
@@ -22,6 +23,8 @@ export default function Home() {
   const pickupWorks = getPickUpWorks();
   // 02 ツール制作の枠。0件なら PickUpWorks 側が「準備中」プレートに戻る
   const pickupTools = getPickUpTools();
+  // 01 FDE事業（導入事例）の枠。0件なら PickUpWorks 側が枠ごと出さない
+  const pickupCases = getPickUpCases();
 
   const websiteJsonLd = {
     "@context": "https://schema.org",
@@ -70,7 +73,7 @@ export default function Home() {
       <Deguchi />
 
       {/* 5. 制作実績（06 WORKS）＝不変 */}
-      <PickUpWorks works={pickupWorks} tools={pickupTools} />
+      <PickUpWorks works={pickupWorks} tools={pickupTools} cases={pickupCases} />
 
       {/* 6. いくら浮くか（07 VALUE・#value）＝地に「紙が挟まる」白転調（トップで唯一の紙）
           - id="value" は PriceAnim が section を描画する都合上、ラッパー div に付与（PriceAnim は変更禁止）
@@ -117,9 +120,12 @@ export default function Home() {
               </div>
             </div>
 
-            {/* 3. 注記（P12＝1文）＋小さな2リンク */}
+            {/* 3. 注記（P12＝1文）＋小さな3リンク（2026-09-16 実測の導入事例 /cases を追加＝逆算の根拠） */}
             <p className={styles.priceNote}>価格は、削減額から逆算してご提案します。</p>
             <p className={styles.priceLinks}>
+              <Link href="/cases" className={styles.priceLink}>
+                削減の実測（導入事例） → /cases
+              </Link>
               <Link href="/service" className={styles.priceLink}>
                 進め方と料金の考え方 → /service
               </Link>
