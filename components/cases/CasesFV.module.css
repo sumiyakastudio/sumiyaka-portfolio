@@ -1,39 +1,141 @@
 /* ==========================================================================
-   CasesFV — /cases の FV（白い紙）
-   「導入前の長い帯が、導入後の短い帯へ縮む」。動きは transform: scaleX と
-   opacity だけ（CSS アニメーション・JS なし）。1回きりで止まるので
-   InViewGate は使わない。prefers-reduced-motion では終端値を即置きする。
-   互換：filter/backdrop-filter・blend・3D transform・clip-path・vw フォントは不使用。
+   CasesFV — /cases の FV「現場に入って、AIが回るまで」
+
+   ① 暖黒の現場に、左の外から灯（金）が入って横切る
+   ② 灯が通ったところから机の横罫が引かれる
+   ③ 地が紙色へ転調する（暖黒の層が引く）
+   ④ 導入前の帯が導入後の長さへ縮み、数字がカウントダウンする
+   ⑤ 題字 FDE が立ち上がる
+
+   動きは transform / opacity / background の位置だけ。
+   filter・backdrop-filter のアニメ・mix-blend-mode・3D transform・
+   複雑な clip-path・vw フォント・100vh 単独指定は使わない。
+   prefers-reduced-motion では終端値を即置きする。
+
+   ⚠ 金（--color-accent）はサブページの新規要素では使わない規則（contract.ts §6）だが、
+     この FV の「灯」だけは 2026-09-16 の指示で例外として使う（灯敷＝現場に灯をともす）。
+     紙の上に置く文字には彩度を落とした --cs-lamp-ink を使う（可読性のため）。
    ========================================================================== */
 
+.stage {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+/* ========================================
+   ① 現場（暖黒）＋灯＋机の横罫
+   ======================================== */
+.scene {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+  background: var(--sumi-noh, #1f1c1c);
+  opacity: 1;
+  animation: casesSceneClear 0.62s cubic-bezier(0.16, 1, 0.3, 1) 0.55s forwards;
+}
+
+@keyframes casesSceneClear {
+  to {
+    opacity: 0;
+  }
+}
+
+/* 灯＝左の外から入り、現場を横切っていく小さな光 */
+.lamp {
+  position: absolute;
+  top: 44%;
+  left: 0;
+  width: 760px;
+  height: 760px;
+  margin: -380px 0 0;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 50% 50%,
+    rgba(200, 169, 110, 0.5) 0%,
+    rgba(200, 169, 110, 0.26) 26%,
+    rgba(200, 169, 110, 0.08) 52%,
+    rgba(200, 169, 110, 0) 72%
+  );
+  opacity: 0;
+  transform: translateX(-85%);
+  animation: casesLamp 1.05s cubic-bezier(0.33, 0, 0.3, 1) forwards;
+}
+
+@keyframes casesLamp {
+  0% {
+    opacity: 0;
+    transform: translateX(-85%);
+  }
+  16% {
+    opacity: 1;
+  }
+  72% {
+    opacity: 0.86;
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(85%);
+  }
+}
+
+/* 机の横罫＝灯が通った順に引かれる */
+.deskRule {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--sumi-rule, rgba(241, 234, 236, 0.16));
+  transform: scaleX(0);
+  transform-origin: left center;
+  animation: casesRuleDraw 0.42s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-delay: calc(0.06s + var(--rule-i, 0) * 0.045s);
+}
+
+@keyframes casesRuleDraw {
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* ========================================
+   ⑤ 題字（紙の上）
+   ======================================== */
 .fvInner {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
+  z-index: 2;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 150px 40px 0;
+  padding: 104px 40px 0;
   text-align: center;
 }
 
-/* ---- 入場（上から順に立ち上がる） ---- */
 .eyebrow,
 .title,
+.titleEn,
 .tagline,
-.count,
-.chart {
+.count {
   opacity: 0;
-  transform: translateY(10px);
-  animation: casesRise 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transform: translateY(12px);
+  animation: casesRise 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-.eyebrow { animation-delay: 0.15s; }
-.title { animation-delay: 0.25s; }
-.tagline { animation-delay: 0.4s; }
-.count { animation-delay: 0.5s; }
-.chart { animation-delay: 0.55s; }
+.eyebrow { animation-delay: 1.02s; }
+.title { animation-delay: 1.1s; }
+.titleEn { animation-delay: 1.24s; }
+.tagline { animation-delay: 1.32s; }
+.count { animation-delay: 1.4s; }
 
 @keyframes casesRise {
   to {
@@ -50,6 +152,7 @@
   margin: 0;
   font-family: var(--font-mono);
   font-size: 0.72rem;
+  line-height: 1.6;
   letter-spacing: 0.22em;
   color: var(--cs-ink-3, #6a6862);
 }
@@ -62,39 +165,51 @@
   display: inline-block;
   width: 34px;
   height: 1px;
-  background: var(--cs-line-strong, #c7c2b8);
+  background: var(--cs-lamp-ink, #7d6229);
 }
 
-.eyebrowEn {
-  font-family: var(--font-heading);
-  letter-spacing: 0.3em;
+.eyebrowName {
+  letter-spacing: 0.2em;
 }
 
-/* ---- 題字 ---- */
+/* ---- 題字＝FDE（Anton） ---- */
 .title {
-  margin: 1.1rem 0 0;
-  font-size: 4rem;
-  font-weight: 700;
-  line-height: 1.2;
-  letter-spacing: 0.14em;
-  padding-left: 0.14em; /* 末尾の字間ぶんを相殺して視覚中央へ */
+  margin: 0.85rem 0 0;
+  font-family: var(--font-display);
+  font-size: 5.2rem;
+  font-weight: 400;
+  line-height: 1.02;
+  letter-spacing: 0.12em;
+  padding-left: 0.12em; /* 末尾の字間ぶんを相殺して視覚中央へ */
   color: var(--cs-ink, #171717);
   text-shadow:
     -1px -1px 0 rgba(255, 255, 255, 0.9),
-    1px 1px 0 rgba(23, 23, 23, 0.16);
+    2px 2px 0 rgba(23, 23, 23, 0.1);
+}
+
+.titleEn {
+  margin: 0.5rem 0 0;
+  font-family: var(--font-heading);
+  font-size: 0.7rem;
+  font-weight: 400;
+  line-height: 1.6;
+  letter-spacing: 0.34em;
+  padding-left: 0.34em;
+  text-transform: uppercase;
+  color: var(--cs-ink-3, #6a6862);
 }
 
 .tagline {
-  margin: 1.1rem 0 0;
+  margin: 0.8rem 0 0;
   font-size: 1.02rem;
   font-weight: 500;
-  line-height: 1.9;
+  line-height: 1.8;
   letter-spacing: 0.06em;
   color: var(--cs-ink-2, #3d3c39);
 }
 
 .count {
-  margin: 1.2rem 0 0;
+  margin: 0.9rem 0 0;
   padding: 3px 12px;
   font-family: var(--font-mono);
   font-size: 0.68rem;
@@ -105,39 +220,104 @@
   border: 1px solid var(--cs-line-strong, #c7c2b8);
 }
 
-/* ---- 帯（導入前 → 導入後） ---- */
+/* ========================================
+   ④ 導入前 → 導入後（数字と帯）
+   ======================================== */
 .chart {
   width: 100%;
-  max-width: 430px;
-  margin-top: 1.6rem;
+  max-width: 520px;
+  margin-top: 1.1rem;
   text-align: left;
 }
 
-/* 凡例＝帯の直下。常に見える1行（折り返しても読める） */
-.legend {
-  margin: 0.7rem 0 0;
-  font-size: 0.66rem;
-  line-height: 1.8;
+/* ---- 代表1件の数字（導入前は静止・導入後がカウントダウン） ---- */
+.hero {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.35rem 0.7rem;
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.7;
   letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
   color: var(--cs-ink-3, #6a6862);
+
+  opacity: 0;
+  animation: casesRise 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.72s forwards;
 }
 
-.legendItem {
+.heroBefore {
   white-space: nowrap;
 }
 
-.legendSep {
-  padding: 0 0.35em;
+.heroArrow {
   color: var(--cs-line-strong, #c7c2b8);
 }
 
+.heroAfter {
+  white-space: nowrap;
+  color: var(--cs-ink-2, #3d3c39);
+}
+
+/* カウントダウンの数字。減る向きなので「導入前」の桁ぶんの幅を先に確保しておく
+   （途中で行が動かない。着地の「8分」はその中央に置かれる） */
+.heroNum {
+  display: inline-block;
+  min-width: 3.9em;
+  /* 数字は Barlow・単位（時間／分）は和文へ落とす。var(--font-heading) をそのまま
+     使うと末尾の sans-serif で解決が打ち切られて和文フォントに到達しないため、
+     スタックを展開して書く（Header.module.css と同じ理由） */
+  font-family: var(--font-barlow), var(--font-noto-sans-jp), "Helvetica Neue",
+    "Hiragino Kaku Gothic ProN", sans-serif;
+  font-size: 1.85rem;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: 0.01em;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  color: var(--cs-ink, #171717);
+}
+
+.heroSub {
+  color: var(--cs-ink-3, #6a6862);
+}
+
+.heroCase {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.6rem;
+  margin: 0.45rem 0 0;
+  font-size: 0.72rem;
+  line-height: 1.7;
+  letter-spacing: 0.04em;
+  color: var(--cs-ink-3, #6a6862);
+
+  opacity: 0;
+  animation: casesRise 0.7s cubic-bezier(0.16, 1, 0.3, 1) 0.82s forwards;
+}
+
+.heroCaseNo {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.16em;
+  font-variant-numeric: tabular-nums;
+  color: var(--cs-lamp-ink, #7d6229);
+}
+
+/* ---- 12本の帯＝12件の事例 ---- */
 .bars {
   list-style: none;
-  margin: 0;
+  margin: 1.05rem 0 0;
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 4px;
+
+  opacity: 0;
+  animation: casesRise 0.6s cubic-bezier(0.16, 1, 0.3, 1) 0.72s forwards;
 }
 
 .bar {
@@ -148,8 +328,8 @@
 .barTrack {
   display: block;
   width: 100%;
-  height: 4px;
-  background: rgba(23, 23, 23, 0.08);
+  height: 3px;
+  background: rgba(23, 23, 23, 0.1);
 }
 
 /* 導入後＝縮んだ先。--case-ratio は (AI＋人)÷導入前（CasesFV.tsx が渡す） */
@@ -157,11 +337,11 @@
   display: block;
   width: 100%;
   height: 100%;
-  background: var(--cs-ink, #171717);
+  background: var(--case-accent, #171717);
   transform-origin: left center;
   transform: scaleX(1);
-  animation: casesBarShrink 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  animation-delay: calc(0.75s + var(--case-i, 0) * 0.06s);
+  animation: casesBarShrink 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation-delay: calc(0.8s + var(--case-i, 0) * 0.035s);
 }
 
 @keyframes casesBarShrink {
@@ -173,49 +353,120 @@
   }
 }
 
-/* ---- 幅 ---- */
+/* ---- 凡例 ---- */
+.legend {
+  margin: 0.7rem 0 0;
+  font-size: 0.66rem;
+  line-height: 1.8;
+  letter-spacing: 0.02em;
+  color: var(--cs-ink-3, #6a6862);
+
+  opacity: 0;
+  animation: casesRise 0.6s cubic-bezier(0.16, 1, 0.3, 1) 1.5s forwards;
+}
+
+.legendItem {
+  white-space: nowrap;
+}
+
+.legendSep {
+  padding: 0 0.35em;
+  color: var(--cs-line-strong, #c7c2b8);
+}
+
+/* ========================================
+   幅
+   ======================================== */
 @media (max-width: 1023px) {
   .fvInner {
-    padding: 130px 32px 0;
+    padding: 100px 32px 0;
   }
 
   .title {
-    font-size: 3rem;
+    font-size: 4rem;
+  }
+
+  .chart {
+    max-width: 460px;
   }
 }
 
 @media (max-width: 767px) {
   .fvInner {
-    padding: 100px 20px 0;
+    padding: 82px 20px 0;
   }
 
   .title {
-    font-size: 2.2rem;
+    font-size: 2.75rem;
     letter-spacing: 0.1em;
     padding-left: 0.1em;
   }
 
+  .titleEn {
+    font-size: 0.62rem;
+    letter-spacing: 0.26em;
+    padding-left: 0.26em;
+  }
+
   .tagline {
+    margin-top: 0.7rem;
     font-size: 0.92rem;
   }
 
+  .count {
+    margin-top: 0.75rem;
+  }
+
   .chart {
-    margin-top: 1.2rem;
+    margin-top: 0.9rem;
     max-width: 100%;
   }
 
+  .hero {
+    gap: 0.2rem 0.55rem;
+    font-size: 0.74rem;
+  }
+
+  .heroNum {
+    min-width: 3.8em;
+    font-size: 1.5rem;
+  }
+
   .bars {
-    gap: 4px;
+    margin-top: 0.85rem;
+    gap: 3px;
+  }
+
+  .lamp {
+    width: 560px;
+    height: 560px;
+    margin-top: -280px;
   }
 }
 
-/* ---- 動きを減らす設定：終端値を即置き ---- */
+/* ========================================
+   動きを減らす設定：終端値を即置き
+   ======================================== */
 @media (prefers-reduced-motion: reduce) {
+  .scene {
+    opacity: 0;
+    animation: none;
+  }
+
+  .lamp,
+  .deskRule {
+    animation: none;
+  }
+
   .eyebrow,
   .title,
+  .titleEn,
   .tagline,
   .count,
-  .chart {
+  .hero,
+  .heroCase,
+  .bars,
+  .legend {
     opacity: 1;
     transform: none;
     animation: none;

@@ -18,6 +18,25 @@ export const fdeIntro: FdeIntro = {
   eyebrow: "01",
   title: "FDE事業",
   titleEn: "FDE",
+  pageTitle: "FDE",
+  pageTitleEn: "Forward Deployed Engineer",
+  steps: [
+    {
+      no: "01",
+      title: "現場に入る",
+      body: "資料ではなく、実際の仕事の流れを見ます。誰が、何を、どの順で、どこで止まっているか。",
+    },
+    {
+      no: "02",
+      title: "仕事のやり方を教え込む",
+      body: "御社のやり方のまま、AIに手順と判断の基準を覚えさせます。汎用ツールを当てはめるのではなく、現場に合わせて作ります。",
+    },
+    {
+      no: "03",
+      title: "社員の方が回せる状態にする",
+      body: "人が見るところと任せるところを分け、社内で運用できるまで伴走します。数字はそのあとに測ります。",
+    },
+  ],
   tagline: "現場に入って、AIが回るまで。",
   explain:
     "FDE（Forward Deployed Engineer）は、ツールを納めて終わりにしない技術者です。御社の現場に入り、仕事のやり方をAIに教え込み、社員の方が自分で回せる状態まで仕上げます。",
@@ -50,7 +69,7 @@ export const cases: CaseStudy[] = [
     humanKeeps: "抽出結果の検品。抽出そのものは機械でも、その結果を使うかどうかは人が決めます。",
     caveat:
       "人の検品時間は分離して計測できていません。削減率は機械が動いた時間だけの比較です。前処理（不要な部分を機械的に削る工程）とセットの速さです。",
-    thumbnail: "/cases/data-extraction/thumbnail.webp",
+    thumbnail: "/cases/data-extraction/thumbnail-2.webp",
     accent: "#26365a",
     accentName: "鉄紺",
     order: 1,
@@ -77,7 +96,7 @@ export const cases: CaseStudy[] = [
     humanKeeps: "決定事項と宿題の切り分け。「言った」と「決めた」は違うので、そこは人が決めます。",
     caveat:
       "音声からの文字起こし（音声認識）は計測していません。テキストからの作成での実測です。実務では音声認識の誤りを直す工程が乗ります。実測1本のため、他の事例より数字の確からしさは低めです。",
-    thumbnail: "/cases/minutes/thumbnail.webp",
+    thumbnail: "/cases/minutes/thumbnail-2.webp",
     accent: "#2f6b4f",
     accentName: "松葉",
     order: 2,
@@ -104,7 +123,7 @@ export const cases: CaseStudy[] = [
     humanKeeps: "業務の正しいやり方を決めること。AIが引き受けるのは「決まったことを漏れなく文章にする」「矛盾を全数照合する」までです。",
     caveat:
       "導入前は見積です。法令・監査要件が絡む規程（労務・経理・情報セキュリティ）での実測はありません。",
-    thumbnail: "/cases/manual/thumbnail.webp",
+    thumbnail: "/cases/manual/thumbnail-2.webp",
     accent: "#8a6a2b",
     accentName: "黄土",
     order: 3,
@@ -131,7 +150,7 @@ export const cases: CaseStudy[] = [
     humanKeeps: "出すか出さないかの採否と金額。要相談の案件は人が決めます。",
     caveat:
       "導入前は見積です。取得先が社内システムやメール受信箱になる場合、取得の部分は作り直しになります。",
-    thumbnail: "/cases/proposal/thumbnail.webp",
+    thumbnail: "/cases/proposal/thumbnail-2.webp",
     accent: "#7e2b3a",
     accentName: "蘇芳",
     order: 4,
@@ -158,7 +177,7 @@ export const cases: CaseStudy[] = [
     humanKeeps: "公開前の内容の正否。実測でも発注者視点の審査で修正5件を人が確定しています。",
     caveat:
       "導入前は見積です。題材は自分で用意したものです。実案件では既存の問い合わせ履歴を棚卸しする工程が別途乗ります。",
-    thumbnail: "/cases/faq/thumbnail.webp",
+    thumbnail: "/cases/faq/thumbnail-2.webp",
     accent: "#2b6b6b",
     accentName: "青磁",
     order: 5,
@@ -185,7 +204,7 @@ export const cases: CaseStudy[] = [
     humanKeeps: "相手に何を約束するか。スコープ・納期・金額の線引きは人が決めます。",
     caveat:
       "導入前は見積です。1日数百件のような大量の定型問い合わせでの実測はありません。内容の違う、調査を伴う回答での数字です。",
-    thumbnail: "/cases/reply/thumbnail.webp",
+    thumbnail: "/cases/reply/thumbnail-2.webp",
     accent: "#5a2b6e",
     accentName: "葡萄",
     order: 6,
@@ -212,7 +231,7 @@ export const cases: CaseStudy[] = [
     humanKeeps: "候補の採否と優先順位。集めて並べ、重複を除き、根拠を添えるところまでが機械です。",
     caveat:
       "導入前は見積です。この105件は設計・整形・検証の実測であり、実在企業を一次調査した「集める」部分の実測としては弱めです。",
-    thumbnail: "/cases/research/thumbnail.webp",
+    thumbnail: "/cases/research/thumbnail-2.webp",
     accent: "#5c6b2f",
     accentName: "海松",
     order: 7,
@@ -239,7 +258,7 @@ export const cases: CaseStudy[] = [
     humanKeeps: "仕上がりの合否。初版1本が作り直しになったのは、人がそう判断したからです。",
     caveat:
       "導入前は見積です。原稿・素材待ちや社内承認の待ち時間は含みません。デザインの良し悪しは数字では示せません。",
-    thumbnail: "/cases/website/thumbnail.webp",
+    thumbnail: "/cases/website/thumbnail-2.webp",
     accent: "#2b4c7e",
     accentName: "藍",
     order: 8,
@@ -267,7 +286,7 @@ export const cases: CaseStudy[] = [
     humanKeeps: "指摘の採否と、検収するかどうか。校正では69件の指摘のうち採用45件を人が決めました。",
     caveat:
       "導入前は見積です。自分の成果物を自分で点検した記録であり、第三者による検収の実測ではありません。原稿の校正は68.2%と最も低く、すべてが9割減るわけではありません。",
-    thumbnail: "/cases/inspection/thumbnail.webp",
+    thumbnail: "/cases/inspection/thumbnail-2.webp",
     accent: "#4b5e6b",
     accentName: "藍鼠",
     order: 9,
@@ -294,7 +313,7 @@ export const cases: CaseStudy[] = [
     humanKeeps: "何を作るか、どの運用に合わせるか。仕様の決定は人です。",
     caveat:
       "導入前は見積です。これは「開発にかかった時間」であり、「そのツールで業務が何分減るか」ではありません。",
-    thumbnail: "/cases/internal-tool/thumbnail.webp",
+    thumbnail: "/cases/internal-tool/thumbnail-2.webp",
     accent: "#8a4b2b",
     accentName: "煉瓦",
     order: 10,
@@ -321,7 +340,7 @@ export const cases: CaseStudy[] = [
     humanKeeps: "書いてよい事実かどうか。経歴・実績・数字は人が正本と突き合わせます。",
     caveat:
       "導入前は見積です。対外文書は「何を言うか」を人が決める割合が高く、往復が増えます。「ほぼ自動」ではありません。",
-    thumbnail: "/cases/documents/thumbnail.webp",
+    thumbnail: "/cases/documents/thumbnail-2.webp",
     accent: "#8a2b2b",
     accentName: "深緋",
     order: 11,
@@ -348,7 +367,7 @@ export const cases: CaseStudy[] = [
     humanKeeps: "何を残し何を捨てるか。消す判断は人に残ります（消す前に確認する、が原則）。",
     caveat:
       "導入前は見積です。要約の品質（落としてはいけない情報を落としていないか）を第三者が検証したことはありません。",
-    thumbnail: "/cases/digest/thumbnail.webp",
+    thumbnail: "/cases/digest/thumbnail-2.webp",
     accent: "#3a3536",
     accentName: "墨",
     order: 12,

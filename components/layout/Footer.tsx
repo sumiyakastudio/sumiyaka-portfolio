@@ -4,6 +4,8 @@ import styles from "./Footer.module.css";
 const FOOTER_NAV = [
   { href: "/about", label: "ABOUT" },
   { href: "/service", label: "SERVICE" },
+  // 2026-09-16 あおきさん指示＝FDE（導入事例 /cases）をナビに追加。トップ06の並び（FDE→TOOLS→WEB）と同じ順
+  { href: "/cases", label: "FDE" },
   { href: "/tools", label: "TOOLS" },
   // ナビは英字で統一する（2026-08-23 あおきさん指示）。
   // ⚠ 設計計画書 §14 C1 の「WEB制作」はこの指示で撤回済み。戻さないこと

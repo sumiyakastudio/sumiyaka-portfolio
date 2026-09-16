@@ -12,6 +12,8 @@ const NAV_LINKS = [
   { href: "/", label: "HOME" },
   { href: "/about", label: "ABOUT" },
   { href: "/service", label: "SERVICE" },
+  // 2026-09-16 あおきさん指示＝FDE（導入事例 /cases）をナビに追加。トップ06の並び（FDE→TOOLS→WEB）と同じ順
+  { href: "/cases", label: "FDE" },
   // 出口の順（①業務の自動化・ツール開発 → ②Web制作）に合わせて TOOLS を先に置く
   { href: "/tools", label: "TOOLS" },
   // ナビは英字で統一する（2026-08-23 あおきさん指示＝1つだけ日本語が混ざると統一感が壊れる）。

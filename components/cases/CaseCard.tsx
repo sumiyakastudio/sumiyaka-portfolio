@@ -1,7 +1,8 @@
 import Image from "next/image";
 import type { CSSProperties } from "react";
 import type { CaseStudy } from "@/types/case";
-import { formatAfter, formatDuration, formatReduction } from "@/lib/caseCatalog";
+import { formatDuration } from "@/lib/caseCatalog";
+import CountUp from "./CountUp";
 import styles from "./CaseCard.module.css";
 
 /**
@@ -11,15 +12,17 @@ import styles from "./CaseCard.module.css";
  * 数字・文言は data/cases.ts と lib/caseCatalog.ts の整形関数だけを通す
  * （新しい数字・新しい主張をここで作らない）。
  *
- * 数字は「導入前 → 導入後 ｜ 削減率」の1行だけを文字で出す。
- * 帯グラフはサムネイル画像が持っているので、本文では描かない
+ * 数字は「導入前／導入後／削減率」の3行。導入後と削減率は、画面に入った時に
+ * 一度だけ立ち上がる（CountUp＝終わりは正本の整形関数と一字一句同じ）。
+ * 帯グラフはサムネイル画像と FV が持っているので、本文では描かない
  * （同じ図を2つ並べると同じ情報が二重に出る＝2026-09-16 撮影QCの指摘）。
- * 動きは付けない（iOS/WebKit で確実に読めることを優先）。
+ *
+ * サムネはホバーでゆっくりパンする（transform のみ・マウスのある端末だけ）。
+ * 互換：filter・backdrop-filter のアニメ・mix-blend-mode・3D transform は使わない。
  */
 
 export default function CaseCard({ item }: { item: CaseStudy }) {
-  const beforeLabel = `導入前 ${formatDuration(item.before)}（見積）`;
-  const afterLabel = `導入後 ${formatAfter(item)}`;
+  const human = item.after.human;
 
   return (
     <article
@@ -40,6 +43,7 @@ export default function CaseCard({ item }: { item: CaseStudy }) {
       <div className={styles.body}>
         <p className={styles.head}>
           <span className={styles.no}>{item.no}</span>
+          {item.isPickUp ? <span className={styles.pickUp}>PICK UP</span> : null}
           <span className={styles.rule} aria-hidden="true" />
         </p>
 
@@ -47,22 +51,54 @@ export default function CaseCard({ item }: { item: CaseStudy }) {
         <p className={styles.titleEn}>{item.titleEn}</p>
         <p className={styles.headline}>{item.headline}</p>
 
-        {/* 導入前→導入後→削減率。図（帯）はサムネが持っているので、ここは数字の1行だけ
-            （同じ図を本文でもう一度描くと、同じ情報が二重に出る） */}
-        <p className={styles.metrics}>
-          <span className={styles.metricPart}>{beforeLabel}</span>
-          <span className={styles.metricArrow} aria-hidden="true">
-            {" → "}
-          </span>
-          <span className={styles.metricPart}>{afterLabel}</span>
-          <span className={styles.metricSep} aria-hidden="true">
-            {" ｜ "}
-          </span>
-          <span className={`${styles.metricPart} ${styles.metricReduction}`}>
-            削減率{" "}
-            <strong className={styles.metricValue}>−{formatReduction(item.reduction)}</strong>
-          </span>
-        </p>
+        {/* 導入前／導入後／削減率。図（帯）はサムネと FV が持っているので、ここは数字だけ */}
+        <div className={styles.metrics}>
+          <p className={styles.metricRow}>
+            <span className={styles.metricLabel}>導入前</span>
+            <span className={styles.metricBefore}>
+              {formatDuration(item.before)}（見積）
+            </span>
+          </p>
+
+          <p className={styles.metricRow}>
+            <span className={styles.metricLabel}>導入後</span>
+            <span className={styles.metricAfter}>
+              {human ? (
+                <>
+                  人 <CountUp kind="minutes" value={human.minutes} display={human.display} />
+                  （AI{" "}
+                  <CountUp
+                    kind="minutes"
+                    value={item.after.ai.minutes}
+                    display={item.after.ai.display}
+                  />
+                  ）
+                </>
+              ) : (
+                <>
+                  <CountUp
+                    kind="minutes"
+                    value={item.after.ai.minutes}
+                    display={item.after.ai.display}
+                  />
+                  （AIが動いた時間）
+                </>
+              )}
+            </span>
+          </p>
+
+          <p className={`${styles.metricRow} ${styles.metricRowBig}`}>
+            <span className={styles.metricLabel}>削減率</span>
+            <strong className={styles.metricValue}>
+              <span className={styles.metricMinus}>−</span>
+              <CountUp
+                kind="percent"
+                value={item.reduction}
+                className={styles.metricNumber}
+              />
+            </strong>
+          </p>
+        </div>
 
         {item.reductionNote ? (
           <p className={styles.reductionNote}>※ {item.reductionNote}</p>

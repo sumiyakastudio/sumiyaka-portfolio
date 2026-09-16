@@ -1,9 +1,12 @@
 /* ==========================================================================
-   /cases — FDE事業（導入事例）
+   /cases — FDE（Forward Deployed Engineer）の導入事例
    「墨の館に置かれた白い紙」（/tools の各ツールページと同じ型）。
    地＝紙より半段暗い #ece8e2／面＝紙 #fbfaf7／墨 #171717／罫 #dcd8d0。
    テーマ色は1件1色（data/cases.ts の accent）で、点と線だけに使う。
-   金（--color-accent #c8a96e）は使わない。
+
+   灯（金）は FV の光と、段の番号・添え字にだけ使う（2026-09-16 の指示。
+   contract.ts §6「金はサブページの新規要素で使わない」の唯一の例外で、
+   紙の上に置く文字は彩度を落とした --cs-lamp-ink で可読性を確保する）。
 
    互換：filter/backdrop-filter のアニメ・mix-blend-mode・3D transform・
    複雑な clip-path・vw フォント・100vh 単独指定は使わない。
@@ -21,6 +24,11 @@
   --cs-line: #dcd8d0;
   --cs-line-soft: #e9e6df;
   --cs-line-strong: #c7c2b8;
+  /* 灯。紙の上の文字には暗く落とした ink 側を使う（#c8a96e は紙に沈んで読めない。
+     この値で地 #ece8e2 に対して 4.7:1・紙 #fbfaf7 に対して 5.5:1） */
+  --cs-lamp-ink: #7d6229;
+  /* 朱＝「実測」の印 */
+  --cs-seal: #b3382b;
 
   position: relative;
   background: var(--cs-ground);
@@ -36,7 +44,7 @@
   position: relative;
   height: 100vh;
   height: 100svh;
-  /* 収縮後（SubPageFVAnim が height:50vh をインラインで当てる）でも、帯と凡例まで
+  /* 収縮後（SubPageFVAnim が height:50vh をインラインで当てる）でも、数字・帯・凡例まで
      入る高さを下限として確保する。min-height は height より強いので切られない。
      画面が低い端末では 100svh を超えないよう min() で抑える（min() 非対応の
      古い環境は 1行目の固定値が効く＝どちらでも FV は成立する） */
@@ -52,20 +60,41 @@
 }
 
 /* ========================================
-   FDEの説明＋測り方の帯
+   FDEとは＝説明＋仕事の3段
    ======================================== */
 .lead {
-  padding: 5.5rem 0 3.5rem;
+  padding: 5.5rem 0 0;
 }
 
 .leadInner {
-  max-width: 900px;
+  max-width: 1080px;
   margin: 0 auto;
   padding: 0 40px;
 }
 
-.leadBody {
+.leadEyebrow {
   margin: 0;
+  font-family: var(--font-heading);
+  font-size: 0.68rem;
+  font-weight: 400;
+  line-height: 1.6;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--cs-lamp-ink);
+}
+
+.leadTitle {
+  margin: 0.75rem 0 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.6;
+  letter-spacing: 0.08em;
+  color: var(--cs-ink);
+}
+
+.leadBody {
+  max-width: 820px;
+  margin: 1.5rem 0 0;
   font-size: 1.02rem;
   font-weight: 400;
   line-height: 2.1;
@@ -73,17 +102,126 @@
   color: var(--cs-ink);
 }
 
-/* 測り方＝小さく、しかし必ず出す（目安である旨と「導入前は見積」を落とさない） */
+/* ---- 3段（01 現場に入る → 02 教え込む → 03 回せる状態にする） ---- */
+.steps {
+  list-style: none;
+  margin: 3rem 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 2.6rem;
+  align-items: start;
+}
+
+.step {
+  position: relative;
+  min-width: 0;
+  padding: 1.5rem 1.5rem 1.7rem;
+  background: var(--cs-paper);
+  border: 1px solid var(--cs-line);
+}
+
+/* 段と段を細い線でつなぐ（横並びのときは間、縦並びのときは上） */
+.step + .step::before {
+  content: "";
+  position: absolute;
+  top: 2.2rem;
+  left: -2.6rem;
+  width: 2.6rem;
+  height: 1px;
+  background: var(--cs-line-strong);
+}
+
+.stepNo {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.86rem;
+  line-height: 1.6;
+  letter-spacing: 0.22em;
+  font-variant-numeric: tabular-nums;
+  color: var(--cs-lamp-ink);
+}
+
+.stepTitle {
+  margin: 0.7rem 0 0;
+  font-size: 1.04rem;
+  font-weight: 700;
+  line-height: 1.7;
+  letter-spacing: 0.03em;
+  color: var(--cs-ink);
+}
+
+.stepBody {
+  margin: 0.75rem 0 0;
+  font-size: 0.84rem;
+  line-height: 2.05;
+  color: var(--cs-ink-2);
+}
+
+/* ========================================
+   数字の測り方（朱の「実測」印）
+   ======================================== */
+.measure {
+  padding: 3.5rem 0 3rem;
+}
+
+.measureInner {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 40px;
+}
+
 .measured {
-  margin-top: 2.2rem;
-  padding: 1.15rem 1.3rem 1.25rem;
+  position: relative;
+  max-width: 820px;
+  padding: 1.3rem 1.4rem 1.35rem;
   background: var(--cs-paper);
   border: 1px solid var(--cs-line);
   border-left: 3px solid var(--cs-ink-3);
 }
 
+/* 朱の落款。わずかに傾け、少し掠れて見えるよう不透明度を落とす */
+.seal {
+  position: absolute;
+  top: -17px;
+  right: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border: 2px solid var(--cs-seal);
+  border-radius: 9px;
+  background: var(--cs-paper);
+  color: var(--cs-seal);
+  opacity: 0.88;
+  transform: rotate(-7deg);
+}
+
+/* 二重枠（落款の見え方）。内側の細い枠 */
+.seal::before {
+  content: "";
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  right: 4px;
+  bottom: 4px;
+  border: 1px solid var(--cs-seal);
+  border-radius: 5px;
+  opacity: 0.55;
+}
+
+.sealText {
+  position: relative;
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+}
+
 .measuredLabel {
   margin: 0;
+  padding-right: 68px;
   font-family: var(--font-mono);
   font-size: 0.66rem;
   line-height: 1.7;
@@ -164,6 +302,99 @@
 @media (min-width: 1400px) {
   .cards {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* ========================================
+   人が決めるところ（12件ぶん）
+   ======================================== */
+.keeps {
+  padding: 0 0 6rem;
+}
+
+.keepsInner {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 0 40px;
+}
+
+.keepsHead {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  padding-top: 1.6rem;
+  border-top: 1px solid var(--cs-line-strong);
+}
+
+.keepsTitle {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  color: var(--cs-ink);
+}
+
+.keepsCount {
+  display: inline-block;
+  padding: 2px 10px;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  line-height: 1.7;
+  letter-spacing: 0.2em;
+  font-variant-numeric: tabular-nums;
+  color: var(--cs-ink-2);
+  background: var(--cs-paper);
+  border: 1px solid var(--cs-line-strong);
+}
+
+.keepsList {
+  list-style: none;
+  margin: 1.8rem 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+}
+
+.keepItem {
+  min-width: 0;
+  padding: 1.05rem 0;
+  border-top: 1px solid var(--cs-line);
+}
+
+.keepName {
+  display: flex;
+  align-items: baseline;
+  gap: 0.7rem;
+  margin: 0;
+  font-size: 0.88rem;
+  font-weight: 700;
+  line-height: 1.7;
+  letter-spacing: 0.02em;
+  color: var(--cs-ink);
+}
+
+.keepNo {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  font-weight: 400;
+  letter-spacing: 0.16em;
+  font-variant-numeric: tabular-nums;
+  color: var(--cs-lamp-ink);
+}
+
+.keepText {
+  margin: 0.35rem 0 0;
+  font-size: 0.82rem;
+  line-height: 1.95;
+  color: var(--cs-ink-2);
+}
+
+@media (min-width: 1024px) {
+  .keepsList {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 3rem;
   }
 }
 
@@ -267,36 +498,78 @@
   }
 
   .leadInner,
-  .listInner {
+  .measureInner,
+  .listInner,
+  .keepsInner,
+  .closingInner {
     padding-left: 32px;
     padding-right: 32px;
   }
 
-  .closingInner {
-    padding-left: 32px;
-    padding-right: 32px;
+  .steps {
+    gap: 1.8rem;
+  }
+
+  .step {
+    padding: 1.3rem 1.2rem 1.4rem;
+  }
+
+  .step + .step::before {
+    top: 2rem;
+    left: -1.8rem;
+    width: 1.8rem;
   }
 }
 
 @media (max-width: 767px) {
   .fv {
-    min-height: 480px;
-    min-height: min(480px, 100svh);
+    min-height: 500px;
+    min-height: min(500px, 100svh);
   }
 
   .lead {
-    padding: 3.5rem 0 2.5rem;
+    padding-top: 3.5rem;
   }
 
   .leadInner,
-  .listInner {
+  .measureInner,
+  .listInner,
+  .keepsInner,
+  .closingInner {
     padding-left: 20px;
     padding-right: 20px;
   }
 
+  .leadTitle {
+    font-size: 1.28rem;
+  }
+
   .leadBody {
+    margin-top: 1.2rem;
     font-size: 0.95rem;
     line-height: 2;
+  }
+
+  .steps {
+    grid-template-columns: 1fr;
+    margin-top: 2.4rem;
+    gap: 2rem;
+  }
+
+  /* 縦並びでは、段と段を上下につなぐ */
+  .step + .step::before {
+    top: -2rem;
+    left: 1.7rem;
+    width: 1px;
+    height: 2rem;
+  }
+
+  .measure {
+    padding: 2.6rem 0 2.2rem;
+  }
+
+  .measured {
+    padding: 1.2rem 1.1rem 1.25rem;
   }
 
   .list {
@@ -307,13 +580,12 @@
     gap: 1.6rem;
   }
 
-  .closing {
-    padding-bottom: 5rem;
+  .keeps {
+    padding-bottom: 4rem;
   }
 
-  .closingInner {
-    padding-left: 20px;
-    padding-right: 20px;
+  .closing {
+    padding-bottom: 5rem;
   }
 
   .closingLead {

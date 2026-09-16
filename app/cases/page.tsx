@@ -10,10 +10,11 @@ import { SITE_ORIGIN } from "@/lib/site";
 import styles from "./page.module.css";
 
 /**
- * /cases — FDE事業（導入事例）の一覧。
+ * /cases — FDE（Forward Deployed Engineer）の導入事例。
  *
+ * ページ名は「FDE」（2026-09-16 あおきさん指示。ナビにも FDE で並ぶ）。
  * 地＝「墨の館に置かれた白い紙」（/tools の各ツールページと同じ型）。
- * 数字が読めることが第一なので、演出は FV の帯だけに留める。
+ * FV だけ「暖黒の現場に灯が入り、紙色へ転調する」＝ページ名の意味そのものを見せる。
  *
  * ⚠ 文言・数字は data/cases.ts と lib/caseCatalog.ts だけを通す。
  *   件数もここでハードコードしない（事例を足せば自動で追従する）。
@@ -24,14 +25,13 @@ const intro = getFdeIntro();
 const caseCount = getAllCases().length;
 
 export const metadata: Metadata = {
-  title: "FDE事業 導入事例 ｜ 墨家 / SUMIYAKA — 灯敷（AKASHIKI）",
-  description:
-    "FDE（Forward Deployed Engineer）は、ツールを納めて終わりにしない技術者です。御社の現場に入り、仕事のやり方をAIに教え込みます。実際の業務で計測した導入事例" +
-    `${caseCount}件。`,
+  // 型は /tools・/works・/about と同じ「{ページ名} — AKASHIKI | {日本語}」
+  title: `${intro.pageTitle} — AKASHIKI | ${intro.title} 導入事例`,
+  description: `${intro.explain}実際の業務で計測した導入事例${caseCount}件。`,
   alternates: { canonical: "/cases" },
   openGraph: {
     // 1200×630。数字カードの型（紙色の地に業務名と削減率）
-    images: [{ url: "/cases/og.jpg", width: 1200, height: 630 }],
+    images: [{ url: "/cases/og-2.jpg", width: 1200, height: 630 }],
   },
 };
 
@@ -70,15 +70,43 @@ export default function CasesPage() {
         <CasesFV intro={intro} cases={all} />
       </SubPageFVAnim>
 
-      {/* ============ FDE の説明＋測り方の帯 ============ */}
-      <section className={styles.lead} aria-label="FDE事業について">
+      {/* ============ FDEとは＝説明＋仕事の3段 ============ */}
+      <section className={styles.lead} aria-label="FDEとは">
         <div className={styles.leadInner}>
           <ScrollReveal>
+            <p className={styles.leadEyebrow}>{intro.pageTitleEn}</p>
+            <h2 className={styles.leadTitle}>FDEとは</h2>
+          </ScrollReveal>
+
+          <ScrollReveal delay={0.06}>
             <p className={styles.leadBody}>{intro.explain}</p>
           </ScrollReveal>
 
-          <ScrollReveal delay={0.1}>
+          <ol className={styles.steps}>
+            {intro.steps.map((s, i) => (
+              <ScrollReveal
+                as="li"
+                key={s.no}
+                className={styles.step}
+                delay={0.12 + i * 0.08}
+              >
+                <p className={styles.stepNo}>{s.no}</p>
+                <h3 className={styles.stepTitle}>{s.title}</h3>
+                <p className={styles.stepBody}>{s.body}</p>
+              </ScrollReveal>
+            ))}
+          </ol>
+        </div>
+      </section>
+
+      {/* ============ 数字の測り方（朱の「実測」印） ============ */}
+      <section className={styles.measure} aria-label="数字の測り方">
+        <div className={styles.measureInner}>
+          <ScrollReveal>
             <div className={styles.measured}>
+              <span className={styles.seal} aria-hidden="true">
+                <span className={styles.sealText}>実測</span>
+              </span>
               <p className={styles.measuredLabel}>数字の測り方</p>
               <p className={styles.measuredText}>{intro.measured}</p>
               <p className={styles.measuredText}>{intro.deployedIn}</p>
@@ -106,6 +134,35 @@ export default function CasesPage() {
                 delay={(i % 3) * 0.08}
               >
                 <CaseCard item={c} />
+              </ScrollReveal>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      {/* ============ 人が決めるところ（12件ぶん・正直さの根拠） ============ */}
+      <section className={styles.keeps} aria-label="人が決めるところ">
+        <div className={styles.keepsInner}>
+          <div className={styles.keepsHead}>
+            <h2 className={styles.keepsTitle}>人が決めるところ</h2>
+            <span className={styles.keepsCount}>
+              {caseCount} CASE{caseCount > 1 ? "S" : ""}
+            </span>
+          </div>
+
+          <ul className={styles.keepsList}>
+            {ordered.map((c, i) => (
+              <ScrollReveal
+                as="li"
+                key={c.slug}
+                className={styles.keepItem}
+                delay={(i % 2) * 0.06}
+              >
+                <p className={styles.keepName}>
+                  <span className={styles.keepNo}>{c.no}</span>
+                  {c.title}
+                </p>
+                <p className={styles.keepText}>{c.humanKeeps}</p>
               </ScrollReveal>
             ))}
           </ul>

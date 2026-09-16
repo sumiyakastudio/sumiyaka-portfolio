@@ -66,10 +66,16 @@ export interface CaseStudy {
 export interface FdeIntro {
   /** 章の添え字 */
   eyebrow: string;
-  /** 見出し */
+  /** トップの枠の見出し（03 の枠名＝「FDE事業」） */
   title: string;
   /** 英字の添え字 */
   titleEn: string;
+  /** ページ名（ナビ・/cases の FV・タイトル＝「FDE」。2026-09-16 あおき指示） */
+  pageTitle: string;
+  /** ページ名の正式名称（FV の添え字＝「Forward Deployed Engineer」） */
+  pageTitleEn: string;
+  /** FDEの仕事の3段（現場に入る→教え込む→回る）。/cases の説明ブロック用 */
+  steps: { no: string; title: string; body: string }[];
   /** 一言（キャッチ） */
   tagline: string;
   /** FDEを知らない人向けの説明（2〜3文） */

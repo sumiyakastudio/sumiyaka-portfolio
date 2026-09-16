@@ -1,10 +1,10 @@
 /* ==========================================================================
    CaseCard — 導入事例カード（/cases）
    「墨の館に置かれた白い紙」。紙＝#fbfaf7／墨＝#171717／罫＝#dcd8d0。
-   テーマ色（data/cases.ts の accent）は 点と線だけ に使い、面で塗るのは
-   数字の枠の薄い色地ひとつだけ。
+   テーマ色（data/cases.ts の accent）は 点と線と数字 に使い、面で塗るのは
+   PICK UP の小さな帯だけ。
    互換：filter/backdrop-filter のアニメ・mix-blend-mode・3D transform・
-   clip-path・vw フォントは使わない。動きは transition のみで、
+   clip-path・vw フォントは使わない。動きは transform / opacity の transition だけで、
    prefers-reduced-motion で切る。
    ========================================================================== */
 
@@ -21,6 +21,10 @@
   /* 固定ヘッダーの下へ潜らせない（/cases#slug で飛んだとき） */
   scroll-margin-top: 92px;
   overflow-wrap: anywhere;
+  transition:
+    transform 500ms var(--ease-out-expo, cubic-bezier(0.16, 1, 0.3, 1)),
+    box-shadow 500ms var(--ease-out-expo, cubic-bezier(0.16, 1, 0.3, 1)),
+    border-color 500ms ease;
 }
 
 /* 上端の1本＝テーマ色の線（面では塗らない） */
@@ -49,6 +53,30 @@
   object-position: center;
 }
 
+/* ホバーでゆっくりパン（マウスのある端末だけ）。
+   ⚠ 拡大は 7.5% までで、外周の余白ぶんしか切り取らない（文字は切れない）。
+   ⚠ CSS keyframes の縦流しは使わない（サムネは 16:10 ちょうどで流す余地が無い）。 */
+@media (hover: hover) and (pointer: fine) {
+  .thumbImg {
+    transform: scale(1);
+    transition: transform 700ms var(--ease-out-expo, cubic-bezier(0.16, 1, 0.3, 1));
+  }
+
+  .card:hover {
+    transform: translateY(-3px);
+    border-color: var(--cs-line-strong, #c7c2b8);
+    box-shadow:
+      0 1px 1px rgba(23, 23, 23, 0.08),
+      0 6px 12px -4px rgba(23, 23, 23, 0.1),
+      0 26px 46px -20px rgba(23, 23, 23, 0.28);
+  }
+
+  .card:hover .thumbImg {
+    transform: scale(1.075) translate(-1.6%, -1.3%);
+    transition: transform 7s cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+}
+
 /* ---- 本文 ---- */
 .body {
   display: flex;
@@ -59,17 +87,30 @@
 .head {
   display: flex;
   align-items: center;
-  gap: 0.8rem;
+  gap: 0.7rem;
   margin: 0;
 }
 
 .no {
+  flex: none;
   font-family: var(--font-mono);
   font-size: 0.7rem;
   line-height: 1.6;
   letter-spacing: 0.18em;
   font-variant-numeric: tabular-nums;
   color: var(--case-accent, #171717);
+}
+
+/* 6選＝トップの実績枠にも出している事例 */
+.pickUp {
+  flex: none;
+  padding: 2px 8px;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  line-height: 1.7;
+  letter-spacing: 0.18em;
+  color: var(--cs-paper, #fbfaf7);
+  background: var(--case-accent, #171717);
 }
 
 .rule {
@@ -105,44 +146,77 @@
   color: var(--cs-ink-2, #3d3c39);
 }
 
-/* ---- 導入前 → 導入後 ｜ 削減率（1行の数字。図はサムネが持つ） ---- */
+/* ---- 導入前／導入後／削減率 ---- */
 .metrics {
   margin: 1.1rem 0 0;
-  padding: 0.9rem 0 0;
+  padding: 0.95rem 0 0;
   border-top: 1px solid var(--cs-line, #dcd8d0);
+  font-variant-numeric: tabular-nums;
+}
+
+.metricRow {
+  display: flex;
+  align-items: baseline;
+  gap: 0.85rem;
+  margin: 0;
   font-size: 0.82rem;
   line-height: 1.95;
   letter-spacing: 0.01em;
-  font-variant-numeric: tabular-nums;
   color: var(--cs-ink-2, #3d3c39);
 }
 
-/* 折り返しは区切り（空白）で起きる。各部品の途中では切らない */
-.metricPart {
-  white-space: nowrap;
+.metricRow + .metricRow {
+  margin-top: 0.2rem;
 }
 
-.metricArrow {
+.metricLabel {
+  flex: none;
+  width: 3.6em;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  line-height: 1.6;
+  letter-spacing: 0.14em;
   color: var(--cs-ink-3, #6a6862);
 }
 
-.metricSep {
-  color: var(--cs-line-strong, #c7c2b8);
+.metricBefore {
+  color: var(--cs-ink-3, #6a6862);
 }
 
-.metricReduction {
+.metricAfter {
   color: var(--cs-ink, #171717);
 }
 
+/* 削減率＝カードの主役 */
+.metricRowBig {
+  align-items: center;
+  margin-top: 0.55rem;
+  padding-top: 0.55rem;
+  border-top: 1px dotted var(--cs-line, #dcd8d0);
+}
+
 .metricValue {
+  display: inline-flex;
+  align-items: baseline;
+  font-family: var(--font-heading);
+  font-size: 2.15rem;
   font-weight: 700;
-  font-size: 1.02rem;
-  letter-spacing: 0.01em;
+  line-height: 1.1;
+  letter-spacing: 0.005em;
   color: var(--case-accent, #171717);
 }
 
+.metricMinus {
+  margin-right: 0.04em;
+}
+
+/* 立ち上がりで桁が増えても行が動かないよう、幅は CountUp が最終値ぶん確保する */
+.metricNumber {
+  font-variant-numeric: tabular-nums;
+}
+
 .reductionNote {
-  margin: 0.55rem 0 0;
+  margin: 0.6rem 0 0;
   font-size: 0.72rem;
   line-height: 1.85;
   color: var(--cs-ink-3, #6a6862);
@@ -297,21 +371,29 @@
     font-size: 1.16rem;
   }
 
-  /* 狭幅は「削減率」を次の行へ落とす（区切りの「｜」が行頭に残らないように） */
-  .metricSep {
-    display: none;
+  .metricRow {
+    font-size: 0.8rem;
   }
 
-  .metricReduction {
-    display: block;
-    margin-top: 0.3rem;
+  .metricValue {
+    font-size: 1.95rem;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .card,
+  .thumbImg,
   .summaryLine,
   .summaryMarkH,
   .summaryMarkV {
     transition: none;
+  }
+
+  .card:hover {
+    transform: none;
+  }
+
+  .card:hover .thumbImg {
+    transform: none;
   }
 }
