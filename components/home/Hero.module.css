@@ -150,7 +150,23 @@
   text-shadow: 0 0 26px var(--accent-halo, rgba(241, 234, 236, 0.3));
 }
 
-/* ボタン「その意味を、見る」→ #value */
+/* 宣言3「現場に入って、AIが回るまで。」— 何をする人かの一言（P17）。
+   宣言2より一段沈める（主役は宣言2のまま）。細い罫を1本、上に引く */
+.declNote {
+  margin-top: clamp(14px, 1.4vw, 20px);
+  padding-top: clamp(12px, 1.2vw, 16px);
+  border-top: 1px solid var(--rule, var(--color-border-light));
+  font-family: var(--font-display-washi, var(--font-heading));
+  font-weight: 500;
+  font-size: clamp(0.95rem, 0.7rem + 0.6vw, 1.2rem);
+  letter-spacing: 0.14em;
+  line-height: 1.8;
+  font-feature-settings: "palt" 1;
+  color: var(--ink, var(--color-foreground));
+  text-align: center;
+}
+
+/* ボタン「その意味を、見る」→ #who（P17＝旧 #way） */
 .declBtn {
   display: inline-flex;
   align-items: center;

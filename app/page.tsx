@@ -2,30 +2,17 @@ import Link from "next/link";
 import HomeIntro from "@/components/home/HomeIntro";
 import TopProgress from "@/components/fv/top-body/TopProgress";
 import SectionMark from "@/components/fv/top-body/SectionMark";
-import Way from "@/components/home/Way";
-import Trust from "@/components/home/Trust";
-import Steps from "@/components/home/Steps";
-import Atari from "@/components/home/Atari";
-import Deguchi from "@/components/home/Deguchi";
-import PickUpWorks from "@/components/home/PickUpWorks";
+import Who from "@/components/home/Who";
+import Measured from "@/components/home/Measured";
 import PriceAnim from "@/components/home/PriceAnim";
 import PriceRunner from "@/components/home/PriceRunner";
 import BoundaryFigure from "@/components/home/BoundaryFigure";
 import Person from "@/components/home/Person";
 import CtaSection from "@/components/home/CtaSection";
-import { getPickUpWorks } from "@/lib/works";
-import { getPickUpTools } from "@/lib/toolCatalog";
-import { getPickUpCases } from "@/lib/caseCatalog";
+import { budgetLine } from "@/data/pillars";
 import styles from "./page.module.css";
 
 export default function Home() {
-  // 件数はハードコードせず、作品データから毎回集計する（作品追加で自動追従）
-  const pickupWorks = getPickUpWorks();
-  // 02 ツール制作の枠。0件なら PickUpWorks 側が「準備中」プレートに戻る
-  const pickupTools = getPickUpTools();
-  // 01 FDE事業（導入事例）の枠。0件なら PickUpWorks 側が枠ごと出さない
-  const pickupCases = getPickUpCases();
-
   const websiteJsonLd = {
     "@context": "https://schema.org",
     "@type": "WebSite",
@@ -50,39 +37,33 @@ export default function Home() {
       {/* 1. Hero（OP→Hero の配線は HomeIntro＝子CC-E提供） */}
       <HomeIntro />
 
-      {/* P12「1画面1メッセージ」(2026-09-06)：
-          - 進捗線＝画面左端の細い縦線。[data-top-section] を持つセクションの並びが目盛（01…09）。
+      {/* P17「トップのハブ化」(2026-09-20)：
+          トップは活動を簡潔に伝え、興味のある部分へリンクで飛ばす役。詳細は各ページに置く。
+          - 節は 5 つ（01 何をする人か → 02 実測 → 03 VALUE → 04 人 → 05 CONTACT）。
+            THE WAY／TRUST／STEPS／INSIGHT／EXITS と制作実績の3デッキは /service・/cases・
+            /tools・/works へ移した（部品ファイルは残してある）。
+          - 進捗線＝画面左端の細い縦線。[data-top-section] を持つセクションの並びが目盛（01…05）。
             PC（1280px 以上・マウス）だけ。FV のあいだは出ない。
-          - 各セクション＝章番号 → 要約（大きく）→ 根拠1つ → 詳細は Disclose。
-          - 地は暖黒 × 灯 × 墨で通し、白転調（紙）は「いくら浮くか」(#value) だけ */}
+          - 地は暖黒 × 灯 × 墨で通し、白転調（紙）は「いくら浮くか」(#value) だけ。
+            **色は 02 実測の朱の印1点だけ**（P17 計画書§3）。 */}
       <TopProgress />
 
-      {/* 2. 働き方（01 THE WAY・#way）＝FV「その意味を、見る」の飛び先 */}
-      <Way />
+      {/* 2. 何をする人か（01 WHAT I DO・#who）＝FV の宣言ボタンの飛び先。
+          FDEの説明・仕事の3段・しないこと・結論の大キャッチ・3本柱のタイル */}
+      <Who />
 
-      {/* 2b. 安心（02 TRUST・#trust-top）＝Way から独立させた短いブロック */}
-      <Trust />
+      {/* 3. 実測（02 MEASURED・#measured）＝数字2行と朱の「実測」印。飛び先は /cases */}
+      <Measured />
 
-      {/* 2c. 三段（03 THREE STEPS・#steps）＝梯子 */}
-      <Steps />
-
-      {/* 3. 言い当て（04 INSIGHT）＝不変 */}
-      <Atari />
-
-      {/* 4. できること（05 EXITS）＝不変 */}
-      <Deguchi />
-
-      {/* 5. 制作実績（06 WORKS）＝不変 */}
-      <PickUpWorks works={pickupWorks} tools={pickupTools} cases={pickupCases} />
-
-      {/* 6. いくら浮くか（07 VALUE・#value）＝地に「紙が挟まる」白転調（トップで唯一の紙）
+      {/* 4. いくら浮くか（03 VALUE・#value）＝地に「紙が挟まる」白転調（トップで唯一の紙）
           - id="value" は PriceAnim が section を描画する都合上、ラッパー div に付与（PriceAnim は変更禁止）
           - PriceRunner の動き・発火・[data-price-header]/[data-price-card]/[data-price-amount] 契約は不変
-          - P12＝注記を1文に短縮し、導線は小さな2リンクへ */}
+          - P12＝注記を1文に短縮し、導線は小さな2リンクへ
+          - P17＝章番号を 07 → 03 に振り直し、予算が先に決まっている場合の一文を注記に足した */}
       <div
         id="value"
         className={styles.valueAnchor}
-        data-top-section="07"
+        data-top-section="03"
         data-top-label="VALUE"
         data-top-tone="paper"
       >
@@ -91,7 +72,7 @@ export default function Home() {
           <div className={styles.priceInner}>
             {/* 1. 中見出し（既存・[data-price-header] 契約維持） */}
             <div data-price-header className={styles.priceHead}>
-              <SectionMark no="07" label="VALUE" onPaper className={styles.priceMark} />
+              <SectionMark no="03" label="VALUE" onPaper className={styles.priceMark} />
               <h2 className={styles.priceTitle}>
                 <span className={styles.phrase}>いくらかかるかより先に、</span>
                 <span className={styles.phrase}>いくら浮くか。</span>
@@ -120,8 +101,10 @@ export default function Home() {
               </div>
             </div>
 
-            {/* 3. 注記（P12＝1文）＋小さな3リンク（2026-09-16 実測の導入事例 /cases を追加＝逆算の根拠） */}
+            {/* 3. 注記（P12＝1文）＋小さな3リンク（2026-09-16 実測の導入事例 /cases を追加＝逆算の根拠）
+                   P17＝予算が先に決まっている場合の一文を1行足す（文言は data/pillars.ts の budgetLine） */}
             <p className={styles.priceNote}>価格は、削減額から逆算してご提案します。</p>
+            <p className={`${styles.priceNote} ${styles.priceNoteSub}`}>{budgetLine}</p>
             <p className={styles.priceLinks}>
               <Link href="/cases" className={styles.priceLink}>
                 削減の実測（導入事例） → /cases
@@ -137,16 +120,16 @@ export default function Home() {
         </PriceAnim>
       </div>
 
-      {/* 7. Boundary Easter Egg（位置・動き不変） */}
+      {/* 5. Boundary Easter Egg（位置・動き不変） */}
       <BoundaryFigure />
 
-      {/* 8. マーキー帯B＝削除（2026-08-17 あおきさん決定「帯は全廃」） */}
+      {/* 6. マーキー帯B＝削除（2026-08-17 あおきさん決定「帯は全廃」） */}
 
-      {/* 9. どんな人か（08 PERSON） */}
+      {/* 7. どんな人か（04 PERSON）＝P17 で章番号を 08 → 04。姿勢の宣言ブロックを足した */}
       <Person />
 
-      {/* 10. CTA（09 CONTACT）＝共通部品（/about /service と共用）。進捗線の目盛のためだけに包む */}
-      <div data-top-section="09" data-top-label="CONTACT">
+      {/* 8. CTA（05 CONTACT）＝共通部品（/about /service と共用）。進捗線の目盛のためだけに包む */}
+      <div data-top-section="05" data-top-label="CONTACT">
         <CtaSection />
       </div>
     </main>

@@ -1,48 +1,33 @@
 /* =============================================
    言い当て — an-a.html .sec-insight の構成を踏襲（黒地×白系）
-   色はトークン（theme-top.css）のみ参照
+   色はトークン（theme-top.css / globals.css）のみ参照
+   P17（2026-09-20）＝/service（FIG. 01 INSIGHT）へ移設。
+     ・地と版面（section / wrap）は app/service/page.module.css が持つ＝ここからは外した
+     ・書体を /service（--font-body）へ。大きな数字だけは /service の .statNum と同じ明朝系
+     ・構成（問い→答え→2つの統計→出典）と動きは不変
    ============================================= */
-/* P12（2026-09-06）＝一段沈めた層（焦へ寄せる静的グラデ）。Steps の暖黒から層を変える */
-.section {
-  position: relative;
-  scroll-margin-top: 60px;
-  background:
-    radial-gradient(80% 50% at 50% 0%, var(--washi-radial-tint), transparent 60%),
-    linear-gradient(180deg, #1a1717 0%, var(--paper) 100%);
-  color: var(--ink);
-  font-family: var(--font-body-washi, sans-serif);
-  line-height: 2;
-  border-top: 1px solid var(--rule-soft);
-}
-
-.wrap {
-  max-width: 1120px;
-  margin-inline: auto;
-  padding-inline: clamp(1.5rem, 5vw, 5rem);
-  padding-block: clamp(5rem, 9vw, 8rem) 4rem;
-}
 
 .q {
-  font-family: var(--font-display-washi, serif);
-  font-weight: 500;
-  font-size: clamp(1.15rem, 1rem + 1vw, 1.65rem);
-  line-height: 2.1;
-  letter-spacing: 0.05em;
-  font-feature-settings: "palt" 1;
-  color: var(--ink);
+  margin: 0;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: clamp(20px, 2.1rem, 28px);
+  line-height: 1.85;
+  letter-spacing: 0.02em;
+  color: var(--color-foreground);
   max-width: 34em;
+  text-wrap: pretty;
 }
 
 .answer {
-  margin-top: 2.5rem;
+  margin: 2.5rem 0 0;
   margin-left: clamp(0rem, 8vw, 6rem);
-  font-family: var(--font-display-washi, serif);
-  font-weight: 600;
-  font-size: clamp(1.35rem, 1.05rem + 1.6vw, 2.1rem);
-  line-height: 1.9;
-  letter-spacing: 0.05em;
-  font-feature-settings: "palt" 1;
-  color: var(--ink-deep);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: clamp(22px, 2.4rem, 34px);
+  line-height: 1.8;
+  letter-spacing: 0.02em;
+  color: var(--color-foreground);
   max-width: 26em;
 }
 
@@ -68,7 +53,7 @@
   display: block;
   width: 100%;
   height: 1px;
-  background: var(--rule);
+  background: var(--sumi-rule);
   margin-bottom: 1.5rem;
 }
 
@@ -81,29 +66,34 @@
   margin-top: 4rem;
 }
 
+/* 大きな数字＝/service の計測プレート（.statNum）と同じ明朝系・800 */
 .statNum {
-  font-family: var(--font-display-washi, serif);
+  margin: 0;
+  font-family: var(--font-display-washi, var(--font-heading));
   font-weight: 800;
-  font-size: clamp(3rem, 2rem + 3vw, 4.6rem);
+  font-size: clamp(3rem, 2rem + 3vw, 4.4rem);
   line-height: 1.1;
   letter-spacing: 0.02em;
   font-variant-numeric: tabular-nums;
-  color: var(--ink-deep);
+  color: var(--color-foreground);
 }
 
 .statLabel {
-  margin-top: 0.75rem;
-  font-size: 0.9rem;
+  margin: 0.75rem 0 0;
+  font-family: var(--font-body);
+  font-size: 14px;
   line-height: 1.9;
-  color: var(--muted);
+  color: var(--color-foreground-muted);
   max-width: 24em;
 }
 
 .statSrc {
-  margin-top: 2.5rem;
-  font-size: 0.78rem;
-  letter-spacing: 0.06em;
-  color: var(--neutral);
+  margin: 2.5rem 0 0;
+  font-family: var(--font-body);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  line-height: 1.8;
+  color: var(--color-foreground-muted);
 }
 
 @media (max-width: 860px) {
@@ -119,5 +109,36 @@
 
   .stat:nth-child(2) {
     margin-left: clamp(0rem, 10vw, 6rem);
+  }
+}
+
+@media (max-width: 767px) {
+  /* clamp の中央値は rem＝画面幅では変わらないので、SP は実測で落とす（/service の .title と同じ作法） */
+  .q {
+    font-size: 18px;
+    line-height: 1.95;
+  }
+
+  .answer {
+    font-size: 20px;
+    line-height: 1.85;
+    margin-top: 2rem;
+  }
+
+  .stats {
+    margin-top: 3rem;
+  }
+
+  .statNum {
+    font-size: 3rem;
+  }
+
+  .statLabel {
+    font-size: 13px;
+  }
+
+  .statSrc {
+    font-size: 11.5px;
+    margin-top: 2rem;
   }
 }

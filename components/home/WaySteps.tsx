@@ -7,7 +7,7 @@ import Disclose from "@/components/animation/Disclose";
 import ScrollReveal from "@/components/animation/ScrollReveal";
 import { prefersLightVisuals } from "@/lib/device";
 import { useFullMotion } from "@/lib/useLightVisuals";
-import tb from "@/components/fv/top-body/top-body.module.css";
+import sv from "@/components/service/service-body.module.css";
 import styles from "./WaySteps.module.css";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -21,6 +21,9 @@ gsap.registerPlugin(ScrollTrigger);
  *  - タッチ端末・狭幅・reduced-motion（lib/device の prefersLightVisuals）は静的＝
  *    3工程すべてが灯った状態で置く。
  *  - 各工程の詳細は Disclose（既定は閉・本文は DOM に残る）。
+ *
+ * P17（2026-09-20）＝THE WAY ごと /service へ移設。共通語彙は
+ * components/service/service-body.module.css（本文・詳細）。文言と動きは不変。
  */
 const STEPS = [
   {
@@ -118,10 +121,10 @@ export default function WaySteps() {
             </span>
             <div className={styles.body}>
               <h4 className={styles.title}>{s.title}</h4>
-              <p className={`${tb.body} ${styles.line}`}>{s.line}</p>
+              <p className={`${sv.body} ${styles.line}`}>{s.line}</p>
               <Disclose className={styles.detail}>
                 {s.detail.map((t) => (
-                  <p key={t} className={tb.detail}>
+                  <p key={t} className={sv.detail}>
                     {t}
                   </p>
                 ))}

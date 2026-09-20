@@ -1,23 +1,10 @@
 /* =============================================================
    安心（TRUST・#trust-top）— P12「1画面1メッセージ」(2026-09-06)
-   Way の直後に置く短いブロック。左に問いと約束、右に経歴票の板。
-   地は一段沈めた層（下へ暗く）＝Way との層差を作る。
-   共通語彙は top-body.module.css。動きは transform/opacity/background-size のみ。
+   → P17（2026-09-20）で /service（FIG. 06 ASSURANCE）へ移設。
+   左に問いと約束、右に経歴票の板。節の枠は app/service/page.module.css、
+   板・要約・詳細は components/service/service-body.module.css。
+   書体は /service に揃えて --font-body（在籍の数字だけ明朝系）。構成・動きは不変。
    ============================================================= */
-/* ⚠ このセクションは top-body.module.css の .section と併用する。
-   2つの CSS モジュールでどちらが後に置かれるかはバンドルの順序に依存するので、
-   クラスを二重に書いて特異度で確実に勝たせる（地色が暖黒に戻る事故の防止） */
-.section.section {
-  background:
-    radial-gradient(70% 45% at 100% 0%, var(--washi-radial-tint), transparent 62%),
-    linear-gradient(180deg, var(--paper) 0%, #1b1818 100%);
-}
-
-/* 短いブロック＝上下の余白は本文セクションより詰める（同上・特異度で勝たせる） */
-.inner.inner {
-  padding-block: clamp(4rem, 7vw, 6rem);
-}
-
 .grid {
   display: grid;
   gap: 2.8rem 4.5rem;
@@ -36,26 +23,31 @@
 
 .title {
   margin: 0;
-  font-family: var(--font-display-washi, serif);
-  font-weight: 600;
-  font-size: clamp(1.5rem, 1.1rem + 1.8vw, 2.4rem);
-  letter-spacing: 0.06em;
-  font-feature-settings: "palt" 1;
-  color: var(--ink-deep);
-  line-height: 1.7;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: clamp(22px, 2.4rem, 34px);
+  letter-spacing: 0.02em;
+  color: var(--color-foreground);
+  line-height: 1.6;
+  text-wrap: balance;
 }
 
-/* 同上（top-body の .summary と併用） */
+/* 句単位の折返し（語の途中で折れない） */
+.phrase {
+  display: inline-block;
+}
+
+/* 同上（service-body の .summary と併用＝特異度で勝たせる） */
 .summary.summary {
-  margin-top: clamp(1.4rem, 2.5vw, 2rem);
-  font-size: clamp(1.05rem, 0.98rem + 0.5vw, 1.3rem);
+  margin-top: clamp(1.2rem, 2.2vw, 1.8rem);
+  font-size: 17px;
   max-width: 30em;
 }
 
 /* 不安の3つ＝1行ずつ落として薄く */
 .ask {
   display: block;
-  color: var(--muted);
+  color: var(--color-foreground-muted);
   font-weight: 500;
 }
 
@@ -63,16 +55,15 @@
   margin-top: 0.5rem;
 }
 
-/* キーフレーズ（墨のマーカー） */
+/* キーフレーズ（墨のマーカー・/service の一句 .keyLine と同じ骨格） */
 .key {
   margin: clamp(1.6rem, 3vw, 2.4rem) 0 0;
-  font-family: var(--font-display-washi, serif);
-  font-weight: 600;
-  font-size: clamp(1.4rem, 1rem + 1.6vw, 2.2rem);
-  letter-spacing: 0.06em;
-  font-feature-settings: "palt" 1;
-  line-height: 1.7;
-  color: var(--ink-deep);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: clamp(22px, 2.2rem, 30px);
+  letter-spacing: 0.04em;
+  line-height: 1.6;
+  color: var(--color-foreground);
 }
 
 /* 約束3行 */
@@ -80,26 +71,25 @@
   list-style: none;
   margin: clamp(1.6rem, 3vw, 2.2rem) 0 0;
   padding: 1.2rem 0 0;
-  border-top: 1px solid var(--rule-soft);
+  border-top: 1px solid var(--sumi-rule-soft);
   display: grid;
   gap: 1.2rem;
 }
 
 .item {
-  font-family: var(--font-display-washi, serif);
+  font-family: var(--font-body);
   font-weight: 500;
-  font-size: clamp(0.98rem, 0.95rem + 0.25vw, 1.1rem);
-  letter-spacing: 0.04em;
-  font-feature-settings: "palt" 1;
+  font-size: 15px;
+  letter-spacing: 0.02em;
   line-height: 1.9;
-  color: var(--ink);
+  color: var(--color-foreground);
 }
 
 .itemRule {
   display: block;
   width: 1.6rem;
   height: 2px;
-  background: var(--ink);
+  background: var(--color-foreground);
   margin-bottom: 0.6rem;
 }
 
@@ -123,7 +113,7 @@
   display: block;
   width: 100%;
   height: 2px;
-  background: var(--ink);
+  background: var(--color-foreground);
   margin-bottom: 1rem;
 }
 
@@ -136,31 +126,31 @@
 }
 
 .row + .row {
-  border-top: 1px solid var(--rule-soft);
+  border-top: 1px solid var(--sumi-rule-soft);
 }
 
-/* 板（#2b2325）の上では --neutral だと 4.5:1 を割るので --muted（AA） */
+/* 板（#2b2325）の上では最弱ラベル色だと 4.5:1 を割るので muted（AA） */
 .k {
   margin: 0;
-  font-size: 0.7rem;
+  font-size: 11px;
   letter-spacing: 0.18em;
   line-height: 2;
-  color: var(--muted);
+  color: var(--color-foreground-muted);
 }
 
 .v {
   margin: 0;
-  font-family: var(--font-display-washi, serif);
+  font-family: var(--font-body);
   font-weight: 500;
-  font-size: clamp(0.98rem, 0.95rem + 0.3vw, 1.12rem);
+  font-size: 15px;
   line-height: 1.85;
-  letter-spacing: 0.04em;
-  font-feature-settings: "palt" 1;
-  color: var(--ink-deep);
+  letter-spacing: 0.02em;
+  color: var(--color-foreground);
 }
 
-/* 在籍＝数字が根拠。一段大きく */
+/* 在籍＝数字が根拠。一段大きく（/service の計測プレートと同じ明朝系） */
 .term {
+  font-family: var(--font-display-washi, var(--font-heading));
   font-weight: 600;
   font-size: clamp(1.7rem, 1.3rem + 1.6vw, 2.6rem);
   line-height: 1.3;
@@ -170,16 +160,39 @@
 .since {
   margin: 1.4rem 0 0;
   padding-top: 1rem;
-  border-top: 1px solid var(--rule-soft);
-  font-family: var(--font-display-washi, serif);
+  border-top: 1px solid var(--sumi-rule-soft);
+  font-family: var(--font-body);
   font-weight: 500;
-  font-size: clamp(0.98rem, 0.95rem + 0.3vw, 1.1rem);
+  font-size: 15px;
   line-height: 1.9;
-  font-feature-settings: "palt" 1;
-  color: var(--ink);
+  color: var(--color-foreground);
 }
 
 .detail {
+  --disclose-ink: var(--color-foreground);
   --disclose-dim: 0.55;
+  --disclose-gap: 4px;
   margin-top: 0.2rem;
+}
+
+@media (max-width: 767px) {
+  /* clamp の中央値は rem＝画面幅では変わらないので、SP は実測で落とす（/service の .title と同じ作法） */
+  .title {
+    font-size: 20px;
+    line-height: 1.7;
+  }
+
+  .summary.summary {
+    font-size: 15.5px;
+  }
+
+  .key {
+    font-size: 20px;
+  }
+
+  .item,
+  .v,
+  .since {
+    font-size: 14px;
+  }
 }

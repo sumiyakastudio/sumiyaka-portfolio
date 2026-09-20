@@ -11,7 +11,11 @@ import FigRail from "@/components/fv/service/FigRail";
 import ServiceFV from "@/components/fv/service/ServiceFV";
 import StageSteps, { type Stage } from "@/components/fv/service/StageSteps";
 import WireSteps from "@/components/fv/service/WireSteps";
+import Atari from "@/components/home/Atari";
 import CtaSection from "@/components/home/CtaSection";
+import Steps from "@/components/home/Steps";
+import Trust from "@/components/home/Trust";
+import Way from "@/components/home/Way";
 import styles from "./page.module.css";
 
 /**
@@ -22,8 +26,16 @@ import styles from "./page.module.css";
  *      の型に組み直した。詳細は DOM に残る（SEO・読み上げは全文）。削除＝①「パソコンの中だけで動き…」／
  *      ②「御社の仕事のやり方を教え込みます。」／TRUST 03「自分の仕事で…」／04「仕事は、人と人との間に…」／
  *      PROCESS の締め帯。⚠ TRUST 02 見出し「専門知識で防ぎます」→「設計で防ぎます」は言い換え（あおきさん確認事項）。
- * 構成：FV → できること（第1の柱＝AI導入の設計・教育／第2の柱＝業務の自動化・ツール開発）
- *       → できないこと → AIへの不安（TRUST） → データの扱い → 進め方 → 料金の考え方 → FAQ → CTA
+ * 構成：FV → 言い当て（INSIGHT）→ 働き方（THE WAY）
+ *       → できること（第1の柱＝AI導入の設計・教育／第2の柱＝業務の自動化・ツール開発）
+ *       → 三段の梯子（THREE STEPS）→ できないこと → 安心（ASSURANCE）
+ *       → AIへの不安（TRUST） → データの扱い → 進め方 → 料金の考え方 → FAQ → CTA
+ *
+ * P17（2026-09-20・トップのハブ化）＝トップにあった4節を、文言を一言一句変えずに移設した。
+ *   INSIGHT＝components/home/Atari／THE WAY＝同 Way（+WaySteps）／
+ *   THREE STEPS＝同 Steps（+StepsLadder）／ASSURANCE＝同 Trust。
+ *   節の枠（section の id・図番見出し・版面）はこのページが持ち、部品は中身だけを返す。
+ *   移設した部品の共通語彙は components/service/service-body.module.css（板・要約・本文・詳細）。
  *
  * 2026-09-05 五彩改修＝重（じゅう）「線・図面」：
  *   ページ全体を「製図台の上の一枚の図面」として組み直した。FV は components/fv/service/ServiceFV
@@ -45,10 +57,19 @@ export const metadata: Metadata = {
   },
 };
 
-/* ---------- 図番（FIG.）＝本文セクションの並び。FV のティック数・見出しの番号・進捗線はここから作る ---------- */
+/* ---------- 図番（FIG.）＝本文セクションの並び。FV のティック数・見出しの番号・進捗線はここから作る
+   P17（2026-09-20）＝トップから移した4節（INSIGHT／THE WAY／THREE STEPS／ASSURANCE）を
+   この並びに差し込んだ。読む順＝問題提起 → 働き方 → できること（現在地①②③）→ 提供の三段 →
+   できないこと → 安心（問い）→ AIへの不安（答え）→ データ → 進め方 → 料金 → FAQ。
+   ⚠ ASSURANCE（#trust-top）は既存の TRUST（#trust）と対になる節。図番ナビで同名が並ばないよう
+     英字ラベルだけ分けている（可視の日本語は移設前と一言一句同じ）。 ---------- */
 const FIGURES = [
+  { id: "insight", label: "INSIGHT" },
+  { id: "way", label: "THE WAY" },
   { id: "what-i-do", label: "WHAT I DO" },
+  { id: "steps", label: "THREE STEPS" },
   { id: "what-i-dont", label: "WHAT I DON'T" },
+  { id: "trust-top", label: "ASSURANCE" },
   { id: "trust", label: "TRUST" },
   { id: "data", label: "DATA" },
   { id: "process", label: "PROCESS" },
@@ -352,10 +373,36 @@ export default function ServicePage() {
       {/* 図番の進捗線（左端・PC のみ・fixed） */}
       <FigRail figures={RAIL_FIGURES} />
 
+      {/* ========== P17-1 言い当て（INSIGHT）— トップから移設。中身は components/home/Atari ========== */}
+      <section
+        id="insight"
+        className={`${styles.section} ${styles.sectionFirst}`}
+        aria-labelledby="service-insight-title"
+      >
+        <div className={styles.inner}>
+          <ScrollReveal className={styles.reveal}>
+            <FigHead figure="insight" />
+          </ScrollReveal>
+
+          <Atari titleId="service-insight-title" />
+        </div>
+      </section>
+
+      {/* ========== P17-2 働き方（THE WAY）— トップから移設。中身は components/home/Way ========== */}
+      <section id="way" className={styles.section} aria-labelledby="service-way-title">
+        <div className={styles.inner}>
+          <ScrollReveal className={styles.reveal}>
+            <FigHead figure="way" />
+          </ScrollReveal>
+
+          <Way titleId="service-way-title" />
+        </div>
+      </section>
+
       {/* ========== A-2 できること（WHAT I DO） ========== */}
       <section
         id="what-i-do"
-        className={`${styles.section} ${styles.sectionFirst}`}
+        className={styles.section}
         aria-labelledby="service-do-title"
       >
         <div className={styles.inner}>
@@ -503,6 +550,19 @@ export default function ServicePage() {
         </div>
       </section>
 
+      {/* ========== P17-3 三段の梯子（THREE STEPS）— トップから移設。中身は components/home/Steps。
+           直前の「御社は、いまどの段階ですか。」（現在地①②③）を受けて、提供の三段へ続く ========== */}
+      <section id="steps" className={styles.section} aria-labelledby="service-steps-title">
+        <div className={styles.inner}>
+          <ScrollReveal className={styles.reveal}>
+            <FigHead figure="steps" />
+          </ScrollReveal>
+
+          {/* 締めの導線は /service 上では自己リンクになるため出さない（文言は書き換えない） */}
+          <Steps titleId="service-steps-title" />
+        </div>
+      </section>
+
       {/* ========== A-3 できないこと（WHAT I DON'T）— 破線の枠＝不採用部品 ========== */}
       <section id="what-i-dont" className={styles.section} aria-labelledby="service-dont-title">
         <div className={styles.inner}>
@@ -541,6 +601,18 @@ export default function ServicePage() {
               できる・できないは、最初のヒアリングで正直に切り分けて、理由とともにお伝えします。
             </p>
           </ScrollReveal>
+        </div>
+      </section>
+
+      {/* ========== P17-4 安心（ASSURANCE）— トップから移設。中身は components/home/Trust。
+           「安心して、任せられますか。」の問いを置き、直後の TRUST が答えになる ========== */}
+      <section id="trust-top" className={styles.section} aria-labelledby="service-assurance-title">
+        <div className={styles.inner}>
+          <ScrollReveal className={styles.reveal}>
+            <FigHead figure="trust-top" />
+          </ScrollReveal>
+
+          <Trust titleId="service-assurance-title" />
         </div>
       </section>
 

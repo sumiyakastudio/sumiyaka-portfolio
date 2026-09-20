@@ -9,7 +9,7 @@ import DrawRule from "@/components/animation/DrawRule";
 import ScrollReveal from "@/components/animation/ScrollReveal";
 import { prefersLightVisuals } from "@/lib/device";
 import { useFullMotion } from "@/lib/useLightVisuals";
-import tb from "@/components/fv/top-body/top-body.module.css";
+import sv from "@/components/service/service-body.module.css";
 import styles from "./StepsLadder.module.css";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -23,6 +23,9 @@ gsap.registerPlugin(ScrollTrigger);
  *  - 数字（約8割・20時間 → 4時間）は1段目だけ＝実測があるのはここだけ。CountUp で書き入れる。
  *  - 各段の詳細（現行の本文そのまま）は Disclose に畳む（既定は閉・本文は DOM に残る）。
  *  - タッチ端末・狭幅・reduced-motion（prefersLightVisuals）では桟は伸びきった静的な状態。
+ *
+ * P17（2026-09-20）＝THREE STEPS ごと /service へ移設。共通語彙は
+ * components/service/service-body.module.css（本文・詳細）。文言と動きは不変。
  */
 type Step = {
   no: string;
@@ -114,10 +117,10 @@ export default function StepsLadder() {
             <div className={styles.body}>
               <p className={styles.tag}>{s.tag}</p>
               <h3 className={styles.name}>{s.title}</h3>
-              <p className={`${tb.body} ${styles.line}`}>{s.line}</p>
+              <p className={`${sv.body} ${styles.line}`}>{s.line}</p>
               <Disclose className={styles.detail}>
                 {s.detail.map((t) => (
-                  <p key={t} className={tb.detail}>
+                  <p key={t} className={sv.detail}>
                     {t}
                   </p>
                 ))}

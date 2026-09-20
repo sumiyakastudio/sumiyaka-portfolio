@@ -1,0 +1,253 @@
+/* =============================================================
+   02 実測（MEASURED・#measured）— P17「トップのハブ化」(2026-09-20)
+
+   1画面1メッセージ。数字は2行だけ、注記は必ず出す。
+   地＝暖黒（tb.section）＋下へ沈む暈（tb.washDown）。次の 03 VALUE で紙へ転調する。
+
+   ★ 朱（--ms-seal #b3382b）について
+     app/theme-top.css は「純モノトーン・金なし維持」。P17 計画書§3 で
+     **トップで色を使うのはこの「実測」の印1点だけ**と決めたので、この
+     モジュール内の派生トークンとしてだけ朱を持つ。
+     ・朱を面で塗り、文字は暖色白で抜く（白文印）。#b3382b に対して 暖色白は 5.2:1。
+       朱の文字を暖黒の地に置くと 2.9:1 で読めないため、地と文字を入れ替えてある。
+     ・/cases の落款（app/cases/page.module.css の .seal）と同じ寸法・同じ傾き。
+     後任へ：「金なし維持」を根拠にこの変数を消さないこと。色を増やすのも禁止。
+
+   互換：filter・backdrop-filter のアニメ／blend／3D／素の vw フォントは使わない。
+   動くのは transform と opacity だけ。prefers-reduced-motion で終端値に置く。
+   ============================================================= */
+.section {
+  --ms-seal: #b3382b;
+}
+
+/* ---- 見出し＋朱の印 ---- */
+/* 印は版面の右端へ飛ばさず、見出しの直後に捺す（文の終わりに落款を置く作法）。
+   h2 は flex 基準が max-content なので、flex-start だけで題字の幅に寄る */
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: clamp(1rem, 0.6rem + 1.6vw, 2.2rem);
+}
+
+.title {
+  margin: 0;
+  min-width: 0;
+}
+
+.sealWrap {
+  flex: 0 0 auto;
+  /* 傾けたぶん角が版面の右端を越えるので、その逃げを取る */
+  margin: 0.3rem 0.4rem 0 0;
+}
+
+/* 落款。わずかに傾け、地から少しだけ浮かせる。
+   ⚠ 影に朱を混ぜない（赤い暈が出て「光る」＝和の品が壊れる・実測 2026-09-20） */
+.seal {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  /* 角はほぼ立てる（丸めるとシールに見える・実測 2026-09-20） */
+  border-radius: 3px;
+  background: var(--ms-seal);
+  color: var(--ink);
+  transform: rotate(-7deg);
+  box-shadow: 0 8px 18px -14px rgba(0, 0, 0, 0.8);
+}
+
+/* 二重枠（落款の見え方）。内側の細い枠 */
+.seal::before {
+  content: "";
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  right: 6px;
+  bottom: 6px;
+  border: 1px solid rgba(241, 234, 236, 0.42);
+  border-radius: 1px;
+}
+
+.sealText {
+  position: relative;
+  font-family: var(--font-display-washi, serif);
+  font-weight: 600;
+  font-size: 1.05rem;
+  line-height: 1.2;
+  letter-spacing: 0.06em;
+}
+
+/* ---- 数字2行 ---- */
+.figures {
+  margin-top: clamp(2.2rem, 1.6rem + 2.2vw, 3.4rem);
+  max-width: 54rem;
+}
+
+.row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: clamp(1rem, 0.6rem + 1.4vw, 2.2rem);
+  padding-block: clamp(1.2rem, 0.9rem + 1.2vw, 1.9rem);
+  border-bottom: 1px solid var(--rule-soft);
+}
+
+.row:first-child {
+  border-top: 1px solid var(--rule-soft);
+}
+
+.rowText {
+  display: block;
+  min-width: 0;
+}
+
+.rowLabel {
+  display: block;
+  font-family: var(--font-display-washi, serif);
+  font-weight: 500;
+  font-size: clamp(1rem, 0.94rem + 0.5vw, 1.3rem);
+  line-height: 1.7;
+  letter-spacing: 0.05em;
+  font-feature-settings: "palt" 1;
+  color: var(--ink-deep);
+}
+
+.rowNote {
+  display: block;
+  margin-top: 0.3rem;
+  font-size: 0.78rem;
+  line-height: 1.85;
+  letter-spacing: 0.04em;
+  font-feature-settings: "palt" 1;
+  color: var(--neutral);
+}
+
+.rowFigure {
+  display: block;
+  flex: 0 0 auto;
+  text-align: right;
+}
+
+.rowValue {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 0.1rem;
+  font-family: var(--font-display-washi, serif);
+  font-weight: 600;
+  font-size: clamp(2rem, 1.35rem + 2.1vw, 3.3rem);
+  line-height: 1.15;
+  letter-spacing: 0.02em;
+  /* 桁が動いても行が暴れない（CountUp の立ち上がり対策） */
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-deep);
+}
+
+.rowUnit {
+  font-weight: 500;
+  font-size: clamp(0.95rem, 0.88rem + 0.32vw, 1.25rem);
+  letter-spacing: 0.04em;
+  color: var(--ink);
+}
+
+.rowRange {
+  margin-inline: 0.12em;
+  font-weight: 500;
+  font-size: clamp(1rem, 0.85rem + 0.6vw, 1.6rem);
+  color: var(--muted);
+}
+
+.rowCount {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.76rem;
+  line-height: 1.8;
+  letter-spacing: 0.06em;
+  font-variant-numeric: tabular-nums;
+  color: var(--neutral);
+}
+
+/* ---- 注記（小さく・必ず出す） ---- */
+.caveat {
+  margin: clamp(1.4rem, 1.1rem + 1vw, 2rem) 0 0;
+  max-width: 44em;
+  font-size: 0.8rem;
+  line-height: 2;
+  letter-spacing: 0.02em;
+  font-feature-settings: "palt" 1;
+  color: var(--muted);
+}
+
+.more {
+  margin-top: clamp(1.6rem, 1.2rem + 1.2vw, 2.2rem);
+}
+
+/* ---- 狭幅 ---- */
+@media (max-width: 767px) {
+  .seal {
+    width: 52px;
+    height: 52px;
+  }
+
+  /* 見出しの横に印を置くと版面が 52px 削られ、390 幅で
+     「実測だけを出します。」が折れて「す。」が行に残る（実測 2026-09-20）。
+     狭幅では印を見出しの上へ移し、見出しに版面の全幅を渡す。 */
+  .head {
+    flex-direction: column-reverse;
+    align-items: flex-start;
+    gap: 0.9rem;
+  }
+
+  .sealWrap {
+    margin: 0 0 0.2rem 0.3rem;
+  }
+
+  .sealText {
+    font-size: 0.88rem;
+  }
+
+  /* 390 幅では「76.0 〜 98.5%」が見出しの横に入らない＝上下に組み替える */
+  .row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.7rem;
+  }
+
+  .rowFigure {
+    text-align: left;
+  }
+
+  .rowValue {
+    justify-content: flex-start;
+  }
+
+  .rowCount {
+    margin-top: 0.2rem;
+  }
+}
+
+@media (max-width: 430px) {
+  .rowValue {
+    font-size: 1.85rem;
+  }
+}
+
+/* 極小幅（320〜360）。見出しの第2句「実測だけを出します。」が1行に収まる寸法へ落とす */
+@media (max-width: 360px) {
+  .title {
+    font-size: 1.6rem;
+    letter-spacing: 0.03em;
+  }
+
+  .rowValue {
+    font-size: 1.7rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .seal {
+    box-shadow: none;
+  }
+}

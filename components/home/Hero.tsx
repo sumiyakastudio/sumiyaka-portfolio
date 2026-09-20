@@ -118,11 +118,12 @@ export default function Hero({ openingDone }: HeroProps) {
     setSettled(true);
   }, []);
 
-  // FV右の宣言ボタン →「働き方」#way へページ内スムーススクロール（P9・2026-08-27＝旧 #value）
+  // FV右の宣言ボタン →「何をする人か」#who へページ内スムーススクロール
+  // （P17・2026-09-20＝旧 #way。働き方の節は /service#way へ移した）
   // （既存実装の踏襲＝Header と同じ Lenis scrollTo。Lenis 不在時はネイティブへ委譲）
   const handleValueClick = useCallback(
     (e: React.MouseEvent<HTMLAnchorElement>) => {
-      const target = document.getElementById("way");
+      const target = document.getElementById("who");
       if (!target) return; // 飛び先が無い場合はネイティブ挙動に任せる
       e.preventDefault();
       if (lenis) {
@@ -511,7 +512,14 @@ export default function Hero({ openingDone }: HeroProps) {
                 <span className={styles.declNo}>ありません。</span>
               </p>
               <p className={styles.declMain}>AIスペシャリストです。</p>
-              <a href="#way" className={styles.declBtn} onClick={handleValueClick}>
+              {/* P17（2026-09-20）＝何をする人かを初回表示で一言。文言は data/cases.ts の
+                  fdeIntro.tagline と同じ（/cases と共通の一言）。Hero はクライアント部品なので
+                  事例データごと束ねないよう、ここには文字列で持つ。直すときは両方を揃える */}
+              <p className={styles.declNote}>
+                現場に入って、
+                <span style={{ whiteSpace: "nowrap" }}>AIが回るまで。</span>
+              </p>
+              <a href="#who" className={styles.declBtn} onClick={handleValueClick}>
                 <span className={styles.declBtnLabel}>その意味を、見る</span>
                 <svg className={styles.declBtnArrow} viewBox="0 0 12 15" aria-hidden="true">
                   <path

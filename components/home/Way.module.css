@@ -1,20 +1,33 @@
 /* =============================================================
    働き方（THE WAY・#way）— P12「1画面1メッセージ」(2026-09-06)
-   共通語彙（地・章番号・見出し・要約・板・本文・詳細）は
-   components/fv/top-body/top-body.module.css。ここは配置だけ。
-   暖黒 × 灯 × 墨。白転調はしない（紙は #value だけ）。
+   → P17（2026-09-20）で /service（FIG. 02 THE WAY）へ移設。
+   節の枠（section / inner / 図番見出し）は app/service/page.module.css、
+   共通語彙（板・要約・本文）は components/service/service-body.module.css。
+   ここは配置と、この節だけの意匠（社長の2声・写真の額・3工程の頭）を持つ。
+   書体は /service に揃えて --font-body。色トークンは移設前と同値。
    filter / backdrop-filter / blend / 3D / vw フォントは不使用。
    ============================================================= */
 
-/* FV との境＝細い罫（FV 側の地は問わない）。
-   top-body の .section と併用するので、特異度を上げて確実に効かせる */
-.section.section {
-  border-top: 1px solid var(--rule-soft);
+/* ---- 見出し（/service の .title と同じ骨格） ---- */
+.title {
+  margin: 0;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: clamp(22px, 2.4rem, 34px);
+  line-height: 1.6;
+  letter-spacing: 0.02em;
+  color: var(--color-foreground);
+  text-wrap: balance;
+}
+
+/* 句単位の折返し（語の途中で折れない）＝Atari の作法 */
+.phrase {
+  display: inline-block;
 }
 
 /* ---- 社長の2声（引用体・PC は横並び） ---- */
 .voices {
-  margin-top: clamp(2.2rem, 4vw, 3.2rem);
+  margin-top: clamp(2rem, 3.5vw, 2.8rem);
   display: grid;
   gap: 1.2rem 3rem;
 }
@@ -27,14 +40,13 @@
 
 .voice {
   margin: 0;
-  border-left: 2px solid var(--rule);
+  border-left: 2px solid var(--sumi-rule);
   padding-left: 1.2rem;
-  font-family: var(--font-display-washi, serif);
+  font-family: var(--font-body);
   font-weight: 500;
-  font-size: clamp(0.98rem, 0.94rem + 0.3vw, 1.12rem);
-  line-height: 2.05;
-  font-feature-settings: "palt" 1;
-  color: var(--muted);
+  font-size: 15.5px;
+  line-height: 2;
+  color: var(--color-foreground-muted);
   max-width: 30em;
 }
 
@@ -56,21 +68,21 @@
   max-width: 40em;
 }
 
-/* 対比＝墨のマーカーで引かれる一行 */
+/* 対比＝墨のマーカーで引かれる一行（/service の一句 .keyLine と同じ骨格）。
+   ⚠ 板の中で1行に収める＝27px より大きくすると「ありませ／ん。」と1字落ちる（1920 実測） */
 .kicker {
   margin: 1.5rem 0 0;
-  font-family: var(--font-display-washi, serif);
-  font-weight: 600;
-  font-size: clamp(1.3rem, 1rem + 1.3vw, 2rem);
-  line-height: 1.7;
-  letter-spacing: 0.05em;
-  font-feature-settings: "palt" 1;
-  color: var(--ink-deep);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: clamp(20px, 2.1rem, 27px);
+  line-height: 1.6;
+  letter-spacing: 0.04em;
+  color: var(--color-foreground);
+  text-wrap: balance;
 }
 
 .sub {
   margin-top: 0.9rem;
-  color: var(--muted);
   max-width: 34em;
 }
 
@@ -89,7 +101,7 @@
   position: relative;
 }
 
-/* 後ろへずらした罫の額（Person と同寸） */
+/* 後ろへずらした罫の額 */
 .frame::before {
   content: "";
   position: absolute;
@@ -105,34 +117,62 @@
 }
 
 .caption {
-  margin-top: 1.2rem;
-  font-size: 0.72rem;
+  margin: 1.2rem 0 0;
+  font-family: var(--font-body);
+  font-size: 11.5px;
   letter-spacing: 0.22em;
-  color: var(--neutral);
+  line-height: 1.8;
+  color: var(--color-foreground-muted);
   text-align: right;
 }
 
 /* ---- 中見出し（3工程の頭）。短い罫で転を示す ---- */
 .head {
-  margin: clamp(4rem, 8vw, 6rem) 0 0;
+  margin: clamp(3.4rem, 6vw, 5rem) 0 0;
 }
 
 .headRule {
   display: block;
   width: 2.5rem;
   height: 2px;
-  background: var(--ink);
-  margin-bottom: 1.6rem;
+  background: var(--color-foreground);
+  margin-bottom: 1.4rem;
 }
 
 .headTitle {
   margin: 0;
-  font-family: var(--font-display-washi, serif);
-  font-weight: 600;
-  font-size: clamp(1.4rem, 1.1rem + 1.4vw, 2.05rem);
-  letter-spacing: 0.06em;
-  font-feature-settings: "palt" 1;
-  color: var(--ink-deep);
-  line-height: 1.8;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: clamp(18px, 1.35rem, 21px);
+  letter-spacing: 0.02em;
+  color: var(--color-foreground);
+  line-height: 1.7;
   max-width: 24em;
+}
+
+@media (max-width: 767px) {
+  /* clamp の中央値は rem＝画面幅では変わらないので、SP は実測で落とす（/service の .title と同じ作法） */
+  .title {
+    font-size: 20px;
+    line-height: 1.7;
+  }
+
+  .voice {
+    font-size: 14.5px;
+    line-height: 1.95;
+  }
+
+  .kicker {
+    font-size: 20px;
+    margin-top: 1.2rem;
+  }
+
+  .caption {
+    font-size: 11px;
+    margin-top: 1rem;
+  }
+
+  .headTitle {
+    font-size: 17px;
+  }
 }

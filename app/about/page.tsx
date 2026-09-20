@@ -15,6 +15,7 @@ import InkMotes from "@/components/fv/about/InkMotes";
 import InkTimeline from "@/components/about/InkTimeline";
 import InkStroke from "@/components/about/InkStroke";
 import AboutProgress from "@/components/about/AboutProgress";
+import { stanceFull, stanceTitle } from "@/data/pillars";
 import styles from "./page.module.css";
 
 /* P12（2026-09-06）＝減量。文言の正本＝`P12_原稿_減量差分.md` About 節。
@@ -302,6 +303,19 @@ export default function AboutPage() {
               </ScrollReveal>
             </div>
           </div>
+
+          {/* 姿勢の全文（P17・2026-09-20）＝文言の正本は data/pillars.ts（stanceTitle / stanceFull）。
+              トップ 04 人 に置く短い宣言の、全文をここに置く。筆の一線の内側（36px）に揃える */}
+          <ScrollReveal className={styles.reveal} delay={0.12}>
+            <div className={styles.stanceFull}>
+              <h3 className={styles.stanceFullTitle}>{stanceTitle}</h3>
+              {stanceFull.map((paragraph) => (
+                <p key={paragraph} className={styles.stanceFullText}>
+                  {paragraph}
+                </p>
+              ))}
+            </div>
+          </ScrollReveal>
 
           <ScrollReveal className={styles.reveal} delay={0.1}>
             <p className={styles.stanceStatement}>

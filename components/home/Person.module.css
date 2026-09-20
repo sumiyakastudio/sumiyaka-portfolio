@@ -159,6 +159,49 @@
   text-align: left; /* 左下配置（2026-08-18 あおきさん指示） */
 }
 
+/* ---- ★ 姿勢の宣言（P17・2026-09-20）＝グリッドの下の帯。
+       本文3行（.lines）と同じ「行の列挙」に見えないよう、版面いっぱいに開き、
+       字は一段大きく、罫は上の1本だけにする。文言は data/pillars.ts の stanceLines。
+       色は使わない（白と細罫だけ）。動きは ScrollReveal と DrawRule に任せる ---- */
+.stance {
+  position: relative;
+  margin-top: clamp(3rem, 6vw, 5rem);
+  padding-top: clamp(1.6rem, 3vw, 2.4rem);
+}
+
+.stanceRule {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: block;
+  width: 100%;
+  height: 1px;
+  background: var(--rule);
+}
+
+.stanceList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  /* 行間は詰め、字間（列の間）だけ大きく空ける。
+     3行が1行に収まらない幅では自然に折り返す（そのとき行が離れすぎないように） */
+  gap: clamp(0.8rem, 0.7rem + 0.4vw, 1.2rem) clamp(1.2rem, 0.8rem + 2vw, 3.2rem);
+}
+
+.stanceLine {
+  margin: 0;
+  font-family: var(--font-display-washi, serif);
+  font-weight: 600;
+  font-size: clamp(1.15rem, 1rem + 0.85vw, 1.75rem);
+  line-height: 1.7;
+  letter-spacing: 0.07em;
+  font-feature-settings: "palt" 1;
+  color: var(--ink-deep);
+}
+
 @media (max-width: 860px) {
   .wrap {
     padding-block: clamp(4rem, 8vw, 6rem) var(--washi-space-2xl, 4rem);
@@ -171,5 +214,11 @@
   .portrait {
     justify-self: start;
     width: min(100%, 360px);
+  }
+
+  /* 狭幅では横に並べず、1行ずつ立てる（宣言が折り返して濁らないように） */
+  .stanceList {
+    flex-direction: column;
+    gap: 0.9rem;
   }
 }

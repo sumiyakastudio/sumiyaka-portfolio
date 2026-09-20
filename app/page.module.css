@@ -125,6 +125,15 @@
   max-width: 38em;
 }
 
+/* P17（2026-09-20）＝予算が先に決まっている場合の一文。
+   注記と同じ様式のまま、主（逆算の一文）より一段だけ小さく・詰めて置く */
+.priceNoteSub {
+  margin-top: 0.7rem;
+  font-weight: 400;
+  font-size: clamp(0.92rem, 0.88rem + 0.28vw, 1.05rem);
+  color: var(--sumi-dim);
+}
+
 .priceLinks {
   margin-top: 1.4rem;
   display: flex;

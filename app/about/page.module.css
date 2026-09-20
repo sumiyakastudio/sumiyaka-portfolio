@@ -621,6 +621,52 @@
   text-shadow: 0 3px 18px rgba(20, 18, 18, 0.85);
 }
 
+/* 姿勢の全文（P17・2026-09-20）＝筆の一線の内側に揃えた一段。
+   頭に「墨が細る」短い罫（/about は border を使わずグラデの一線で引く）。
+   文言の正本は data/pillars.ts（stanceTitle / stanceFull）。 */
+.stanceFull {
+  position: relative;
+  margin: 46px 0 0 36px;
+  padding-top: 30px;
+  max-width: 40em;
+}
+
+.stanceFull::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 88px;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(241, 234, 236, 0.55), rgba(241, 234, 236, 0.06));
+}
+
+.stanceFullTitle {
+  font-family: var(--font-shippori-mincho), "Yu Mincho", "Hiragino Mincho ProN", serif;
+  font-weight: 600;
+  font-size: clamp(20px, 1.8rem, 27px);
+  line-height: 1.6;
+  letter-spacing: 0.06em;
+  font-feature-settings: "palt" 1;
+  color: var(--color-foreground);
+  text-shadow: 0 3px 18px rgba(20, 18, 18, 0.6);
+  margin: 0 0 20px;
+}
+
+.stanceFullText {
+  font-family: var(--font-body);
+  font-weight: 300;
+  font-size: 16px;
+  line-height: 2.2;
+  letter-spacing: 0.02em;
+  color: var(--color-foreground-muted);
+  margin: 0 0 20px;
+}
+
+.stanceFullText:last-child {
+  margin-bottom: 0;
+}
+
 /* STANCE の詳細＝筆の一線の内側（stanceBlock の padding-left）と揃える */
 .discloseStance {
   margin: 26px 0 0 36px;
@@ -1212,6 +1258,7 @@
   .stanceTitle { font-size: 42px; }
   .stanceBlock { padding-left: 28px; }
   .stanceStatement { padding: 30px 36px 30px 28px; }
+  .stanceFull { margin-left: 28px; }
   .discloseStance { margin-left: 28px; }
   .profileLead { font-size: 18px; padding: 16px 22px 16px 20px; }
 
@@ -1315,6 +1362,9 @@
   .stanceBody { font-size: 15px; line-height: 2.05; margin-bottom: 22px; }
   .stanceStatement { margin-top: 36px; padding: 26px 20px 26px 22px; }
   .stanceStatementText { font-size: 21px; line-height: 1.8; letter-spacing: 0.04em; }
+  .stanceFull { margin: 34px 0 0 22px; padding-top: 24px; }
+  .stanceFullTitle { font-size: 20px; line-height: 1.65; margin-bottom: 16px; }
+  .stanceFullText { font-size: 15px; line-height: 2.05; margin-bottom: 18px; }
   .discloseStance { margin: 20px 0 0 22px; }
 
   /* Timeline — 1カラム（左に線と点、年→本文を縦積み） */

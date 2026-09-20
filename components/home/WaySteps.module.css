@@ -3,6 +3,7 @@
    左端に 1px のレール。各工程の頭に灯（点）。PC ではスクロールに合わせて
    灯がレールを下り、「今の工程」だけが灯る。SP・reduced-motion は全部灯る（静的）。
    動かすのは transform / opacity / 色 / text-shadow / box-shadow のみ。
+   P17（2026-09-20）＝/service へ移設。書体を --font-body へ揃えた（構造・動きは不変）。
    ============================================================= */
 .list {
   --rail-x: 4px;
@@ -20,11 +21,11 @@
   top: 0;
   bottom: 0;
   width: 1px;
-  background: var(--rule);
+  background: var(--sumi-rule);
 }
 
 .railFill {
-  background: var(--ink);
+  background: var(--color-foreground);
   opacity: 0.6;
   transform: scaleY(0);
   transform-origin: center top;
@@ -38,13 +39,13 @@
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 12px 3px var(--accent-halo);
+  background: var(--color-foreground);
+  box-shadow: 0 0 12px 3px rgba(241, 234, 236, 0.3);
   transform: translate(-50%, 0);
 }
 
 .static .rail {
-  background: var(--rule);
+  background: var(--sumi-rule);
 }
 
 .static .railFill,
@@ -57,7 +58,7 @@
 }
 
 .step + .step .stepInner {
-  border-top: 1px solid var(--rule-soft);
+  border-top: 1px solid var(--sumi-rule-soft);
 }
 
 .stepInner {
@@ -74,10 +75,10 @@
   display: block;
   padding-left: calc(var(--rail-x) + 1.3rem);
   font-family: var(--font-mono, monospace);
-  font-size: 0.8rem;
+  font-size: 11px;
   letter-spacing: 0.12em;
-  line-height: 1.9;
-  color: var(--neutral);
+  line-height: 2;
+  color: var(--color-foreground-muted);
   transition: color 0.5s ease;
 }
 
@@ -88,8 +89,8 @@
   width: 9px;
   height: 9px;
   border-radius: 50%;
-  background: var(--paper);
-  border: 1px solid var(--neutral);
+  background: var(--sumi-noh);
+  border: 1px solid var(--color-foreground-muted);
   transform: translate(-50%, -50%);
   transition:
     background-color 0.5s ease,
@@ -99,14 +100,14 @@
 
 .lit .no,
 .static .no {
-  color: var(--ink-deep);
+  color: var(--color-foreground);
 }
 
 .lit .dot,
 .static .dot {
-  background: var(--accent);
-  border-color: var(--accent);
-  box-shadow: 0 0 10px 2px var(--accent-halo);
+  background: var(--color-foreground);
+  border-color: var(--color-foreground);
+  box-shadow: 0 0 10px 2px rgba(241, 234, 236, 0.3);
 }
 
 .body {
@@ -115,20 +116,19 @@
 
 .title {
   margin: 0;
-  font-family: var(--font-display-washi, serif);
-  font-weight: 600;
-  font-size: clamp(1.2rem, 1.05rem + 0.8vw, 1.7rem);
-  line-height: 1.6;
-  letter-spacing: 0.05em;
-  font-feature-settings: "palt" 1;
-  color: var(--ink);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: clamp(17px, 1.6rem, 21px);
+  line-height: 1.7;
+  letter-spacing: 0.02em;
+  color: var(--color-foreground);
   transition: color 0.5s ease, text-shadow 0.5s ease;
 }
 
 .lit .title,
 .static .title {
-  color: var(--ink-deep);
-  text-shadow: 0 0 18px var(--accent-halo);
+  color: var(--color-foreground);
+  text-shadow: 0 0 18px rgba(241, 234, 236, 0.3);
 }
 
 .line {
@@ -137,7 +137,9 @@
 }
 
 .detail {
+  --disclose-ink: var(--color-foreground);
   --disclose-dim: 0.55;
+  --disclose-gap: 4px;
   margin-top: 0.3rem;
 }
 
@@ -147,10 +149,20 @@
   }
 }
 
+@media (max-width: 767px) {
+  .title {
+    font-size: 16px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .no,
   .dot,
   .title {
     transition: none;
+  }
+
+  .railFill {
+    transform: none;
   }
 }

@@ -1,16 +1,31 @@
 /* =============================================================
    三段（THREE STEPS・#steps）— P12「1画面1メッセージ」(2026-09-06)
-   共通語彙は components/fv/top-body/top-body.module.css。梯子は StepsLadder.module.css。
-   暖黒 × 灯 × 墨。白転調はしない（紙は #value だけ）。
+   → P17（2026-09-20）で /service（FIG. 04 THREE STEPS）へ移設。
+   節の枠は app/service/page.module.css、共通語彙は
+   components/service/service-body.module.css。梯子は StepsLadder.module.css。
+   書体は /service に揃えて --font-body。構成・動きは不変。
    ============================================================= */
-/* top-body の .section と併用＝特異度で確実に勝たせる */
-.section.section {
-  border-top: 1px solid var(--rule-soft);
+
+/* ---- 見出し（/service の .title と同じ骨格） ---- */
+.title {
+  margin: 0;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: clamp(22px, 2.4rem, 34px);
+  line-height: 1.6;
+  letter-spacing: 0.02em;
+  color: var(--color-foreground);
+  text-wrap: balance;
 }
 
-/* .summary は top-body.module.css と併用＝特異度で確実に勝たせる */
+/* 句単位の折返し（語の途中で折れない） */
+.phrase {
+  display: inline-block;
+}
+
+/* .summary は service-body.module.css と併用＝特異度で確実に勝たせる */
 .summary.summary {
-  margin-top: clamp(1.6rem, 3vw, 2.4rem);
+  margin-top: clamp(1.4rem, 2.6vw, 2rem);
   max-width: 34em;
 }
 
@@ -24,18 +39,30 @@
   display: block;
   width: 100%;
   height: 2px;
-  background: var(--ink);
-  margin-bottom: clamp(1.6rem, 3vw, 2.4rem);
+  background: var(--color-foreground);
+  margin-bottom: clamp(1.4rem, 2.6vw, 2rem);
 }
 
 .close {
   margin: 0;
-  font-family: var(--font-display-washi, serif);
-  font-weight: 600;
-  font-size: clamp(1.2rem, 1rem + 1.1vw, 1.8rem);
-  line-height: 1.95;
-  letter-spacing: 0.04em;
-  font-feature-settings: "palt" 1;
-  color: var(--ink-deep);
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: clamp(20px, 2.1rem, 28px);
+  line-height: 1.75;
+  letter-spacing: 0.02em;
+  color: var(--color-foreground);
   max-width: 26em;
+}
+
+@media (max-width: 767px) {
+  /* clamp の中央値は rem＝画面幅では変わらないので、SP は実測で落とす（/service の .title と同じ作法） */
+  .title {
+    font-size: 20px;
+    line-height: 1.7;
+  }
+
+  .close {
+    font-size: 19px;
+    line-height: 1.8;
+  }
 }

@@ -1,7 +1,6 @@
 import ScrollReveal from "@/components/animation/ScrollReveal";
 import CountUp from "@/components/animation/CountUp";
 import DrawRule from "@/components/animation/DrawRule";
-import SectionMark from "@/components/fv/top-body/SectionMark";
 import styles from "./Atari.module.css";
 
 /**
@@ -13,68 +12,68 @@ import styles from "./Atari.module.css";
  *  - 答えは2拍に割る
  *  - 統計は罫が引かれてから数字が 0 から書き入れられる（CountUp / DrawRule）
  * 文言・数値・出典は一言一句そのまま。動き以外は変えていない。
+ *
+ * P17（2026-09-20・トップのハブ化）＝トップから /service へ移設（FIG. 01 INSIGHT）。
+ *  - 節の枠（section / inner / 図番見出し）は app/service/page.tsx が持つ＝ここは中身だけ。
+ *  - 章番号（SectionMark）と data-top-* は外した（トップ専用の仕組みから切り離し）。
+ *  - 文言・数値・出典・動きはそのまま。書体だけ /service（線と図面）へ揃えた。
  */
-export default function Atari() {
+type Props = {
+  /** 見出しの id（section の aria-labelledby から参照される） */
+  titleId?: string;
+};
+
+export default function Atari({ titleId }: Props) {
   return (
-    <section
-      className={styles.section}
-      data-top-section="04"
-      data-top-label="INSIGHT"
-    >
-      <div className={styles.wrap}>
-        {/* P12（2026-09-06）＝章番号（進捗線と同じ連番）。文言・数値・出典は不変 */}
-        <ScrollReveal>
-          <SectionMark no="04" label="INSIGHT" />
+    <>
+      {/* 句ごとに現れる＝3社のデータが別々に置かれ、最後に問いが立つ */}
+      <h2 id={titleId} className={styles.q}>
+        <ScrollReveal as="span" className={styles.qPhrase}>
+          A社のCSVと、
         </ScrollReveal>
-        {/* 句ごとに現れる＝3社のデータが別々に置かれ、最後に問いが立つ */}
-        <h2 className={styles.q}>
-          <ScrollReveal as="span" className={styles.qPhrase}>
-            A社のCSVと、
-          </ScrollReveal>
-          <ScrollReveal as="span" className={styles.qPhrase} delay={0.14}>
-            B社のExcelと、
-          </ScrollReveal>
-          <ScrollReveal as="span" className={styles.qPhrase} delay={0.28}>
-            C社のPDFを、
-          </ScrollReveal>
-          <ScrollReveal as="span" className={styles.qPhrase} delay={0.5}>
-            人が手で転記していませんか。
-          </ScrollReveal>
-        </h2>
-        <p className={styles.answer}>
-          <ScrollReveal as="span" className={styles.qPhrase} delay={0.1}>
-            システムが無いのではなく、繋がっていない。
-          </ScrollReveal>
-          <ScrollReveal as="span" className={styles.qPhrase} delay={0.32}>
-            だから人が転記している。
-          </ScrollReveal>
-        </p>
-        <div className={styles.stats}>
-          <ScrollReveal className={styles.stat}>
-            <DrawRule className={styles.statRule} delay={0.1} />
-            <p className={styles.statNum}>
-              <CountUp value={60.8} decimals={1} suffix="%" delay={0.35} />
-            </p>
-            <p className={styles.statLabel}>
-              システム化しても負担が減らない理由 第1位「データの二重入力が発生」
-            </p>
-          </ScrollReveal>
-          <ScrollReveal delay={0.15} className={styles.stat}>
-            <DrawRule className={styles.statRule} delay={0.25} />
-            <p className={styles.statNum}>
-              <CountUp value={48.2} decimals={1} suffix="%" delay={0.5} />
-            </p>
-            <p className={styles.statLabel}>
-              負担が大きい業務 第1位「データの入力・集計・照合」
-            </p>
-          </ScrollReveal>
-        </div>
-        <ScrollReveal>
-          <p className={styles.statSrc}>
-            エイトレッド調べ（2023年8月・従業員200人以下の中小企業バックオフィス担当者110名）
+        <ScrollReveal as="span" className={styles.qPhrase} delay={0.14}>
+          B社のExcelと、
+        </ScrollReveal>
+        <ScrollReveal as="span" className={styles.qPhrase} delay={0.28}>
+          C社のPDFを、
+        </ScrollReveal>
+        <ScrollReveal as="span" className={styles.qPhrase} delay={0.5}>
+          人が手で転記していませんか。
+        </ScrollReveal>
+      </h2>
+      <p className={styles.answer}>
+        <ScrollReveal as="span" className={styles.qPhrase} delay={0.1}>
+          システムが無いのではなく、繋がっていない。
+        </ScrollReveal>
+        <ScrollReveal as="span" className={styles.qPhrase} delay={0.32}>
+          だから人が転記している。
+        </ScrollReveal>
+      </p>
+      <div className={styles.stats}>
+        <ScrollReveal className={styles.stat}>
+          <DrawRule className={styles.statRule} delay={0.1} />
+          <p className={styles.statNum}>
+            <CountUp value={60.8} decimals={1} suffix="%" delay={0.35} />
+          </p>
+          <p className={styles.statLabel}>
+            システム化しても負担が減らない理由 第1位「データの二重入力が発生」
+          </p>
+        </ScrollReveal>
+        <ScrollReveal delay={0.15} className={styles.stat}>
+          <DrawRule className={styles.statRule} delay={0.25} />
+          <p className={styles.statNum}>
+            <CountUp value={48.2} decimals={1} suffix="%" delay={0.5} />
+          </p>
+          <p className={styles.statLabel}>
+            負担が大きい業務 第1位「データの入力・集計・照合」
           </p>
         </ScrollReveal>
       </div>
-    </section>
+      <ScrollReveal>
+        <p className={styles.statSrc}>
+          エイトレッド調べ（2023年8月・従業員200人以下の中小企業バックオフィス担当者110名）
+        </p>
+      </ScrollReveal>
+    </>
   );
 }

@@ -1,0 +1,156 @@
+/* ==========================================================================
+   /service へ移した本文ブロックの共通語彙 — P17「トップのハブ化」(2026-09-20)
+   トップ本文の共通語彙（components/fv/top-body/top-body.module.css）の代わりに、
+   移植した4ブロック（INSIGHT／THE WAY／THREE STEPS／ASSURANCE）が使う。
+
+   見た目の正本は app/service/page.module.css（重＝線と図面）。ここはその語彙の
+   写し＝プレート（四隅のトンボ）・要約・本文・詳細・導線だけを持つ。
+   節の枠（.section / .inner / 図番見出し）はページ側が持つ＝ここには置かない。
+
+   色は :root のトークンを直接参照する（globals.css / theme-top.css）。
+     --sumi-juu (#2b2325) == theme-top の --paper-2
+     --sumi-rule            == theme-top の --rule
+   ＝トップから移しても色は一切変わらない。
+   互換：transform(2D)/opacity/box-shadow/background のみ。filter・blend・3D・
+        vw フォント・JS 視差なし。reduced-motion は終端値。
+   ========================================================================== */
+
+/* ---- 机に置いた紙（四隅のトンボ・上左の明るい縁・下右の落ち影） ---- */
+.plate {
+  position: relative;
+  background: var(--sumi-juu);
+  padding: 30px 34px 32px;
+  box-shadow:
+    inset 1px 1px 0 rgba(241, 234, 236, 0.1),
+    0 1px 0 rgba(0, 0, 0, 0.35),
+    2px 3px 0 rgba(20, 18, 18, 0.55),
+    10px 14px 30px rgba(0, 0, 0, 0.4);
+}
+
+.plate::before,
+.plate::after {
+  content: "";
+  position: absolute;
+  width: 11px;
+  height: 11px;
+  background:
+    linear-gradient(rgba(241, 234, 236, 0.35), rgba(241, 234, 236, 0.35)) 50% 0 / 1px 100% no-repeat,
+    linear-gradient(rgba(241, 234, 236, 0.35), rgba(241, 234, 236, 0.35)) 0 50% / 100% 1px no-repeat;
+  pointer-events: none;
+}
+
+.plate::before {
+  top: -6px;
+  left: -6px;
+}
+
+.plate::after {
+  bottom: -6px;
+  right: -6px;
+}
+
+/* ---- 要約（3秒で読める・大きく） ---- */
+.summary {
+  margin: 0;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 1.95;
+  letter-spacing: 0.02em;
+  color: var(--color-foreground);
+  text-wrap: pretty;
+}
+
+/* ---- 本文（一行の根拠） ---- */
+.body {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 2;
+  color: var(--color-foreground-muted);
+}
+
+/* ---- 詳細（Disclose の中身）＝図面の裏面 ---- */
+.detail {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: 14.5px;
+  line-height: 2;
+  color: var(--color-foreground-muted);
+  max-width: 46em;
+}
+
+.detail + .detail {
+  margin-top: 12px;
+}
+
+/* Disclose のボタン色（ページ側の .disclose と同値） */
+.disclose {
+  --disclose-ink: var(--color-foreground);
+  --disclose-dim: 0.7;
+  --disclose-gap: 4px;
+}
+
+/* ---- 導線（1px 罫の枠ボタン） ---- */
+.more {
+  margin: 2.2rem 0 0;
+}
+
+.moreLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6em;
+  padding: 0.55em 1.1em 0.55em 1.2em;
+  border: 1px solid var(--sumi-rule);
+  font-family: var(--font-body);
+  font-size: 0.86rem;
+  letter-spacing: 0.1em;
+  color: var(--color-foreground);
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    border-color var(--duration-normal) var(--ease-default),
+    background-color var(--duration-normal) var(--ease-default);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .moreLink:hover {
+    border-color: var(--color-foreground);
+    background: rgba(241, 234, 236, 0.06);
+  }
+}
+
+.moreLink:focus-visible {
+  outline: 2px solid var(--color-foreground);
+  outline-offset: 3px;
+}
+
+/* ========================================
+   Responsive — SP (–767)
+   ======================================== */
+@media (max-width: 767px) {
+  .plate {
+    padding: 24px 20px 26px;
+  }
+
+  .summary {
+    font-size: 15.5px;
+    line-height: 1.9;
+  }
+
+  .body {
+    font-size: 14px;
+    line-height: 1.95;
+  }
+
+  .detail {
+    font-size: 13.5px;
+    line-height: 1.95;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .moreLink {
+    transition: none;
+  }
+}
