@@ -2,25 +2,41 @@
    01 何をする人か（WHAT I DO・#who）— P17「トップのハブ化」(2026-09-20)
 
    骨格＝2帖ぶん。
-     帖1（.introBand）  … 説明 → 仕事の3段 → しないこと → **結論の大キャッチ**
-     帖2（.pillarsBand）… 前置き → 3本柱のタイル（同じ型）
+     帖1の頭（.headBand）… 左＝章番号・見出し・説明／右＝導入指導の写真（右端へ張り出す）
+     帖1の続き（.introBand）… 仕事の3段 → しないこと → **結論の大キャッチ**
+     帖2（.pillarsBand）… 前置き → 3本柱の**目次**（箱を持たない・罫線だけの3行）
    地は暖黒（--paper）×灯の暈（tb.washTop）。**この章では色を使わない**
    （朱は 02 実測の1点だけ＝P17 計画書§3）。金（--color-accent）も足さない。
 
    互換：filter・backdrop-filter のアニメ／mix-blend-mode／3D transform／
-   複雑な clip-path／素の vw フォント／100vh 単独指定は使わない。
+   複雑な clip-path／素の vw フォント／100vw・100vh 単独指定は使わない。
    動くのは transform と opacity だけ。prefers-reduced-motion で終端値に置く。
-   ⚠ サムネの墨明けは静的 filter の下地 ＋ カラーの opacity クロスフェード
-     （PickUpWorks と同じ作法。filter はアニメさせない）。
+   ⚠ 写真は既にモノクロへ焼き込み済み＝CSS filter は当てない。
    ============================================================= */
 .section {
   /* 帖の切り替えを自前の罫で見せるので、上下の border は持たせない */
   position: relative;
 }
 
-/* ---- 帖1：padding は tb.inner の上書き（下側を詰めて2帖で1画面ずつに収める） ---- */
-.introBand {
-  padding-block: clamp(4.5rem, 3rem + 4vw, 6.5rem) clamp(3rem, 2.2rem + 2.6vw, 4.5rem);
+/* =============================================================
+   帖1の頭＝全幅の帯。中に tb.inner と同じ版面を「計算で」作る。
+   ⚠ 100vw は使わない（縦スクロールバーぶん横あふれするため）。
+     .headBand は section 直下のブロック＝幅は必ずビューポート内に収まるので、
+     % だけで tb.inner（max-width 1120 / padding clamp(1.5rem,5vw,5rem)）を再現できる。
+     左の余白 =（帯の幅 − 版面の幅）/ 2 → 他の帖と1px もずれない。
+   ============================================================= */
+.headBand {
+  --who-pad: clamp(1.5rem, 5vw, 5rem);
+  --who-content: min(100% - var(--who-pad) * 2, 1120px - var(--who-pad) * 2);
+  position: relative;
+  padding-top: clamp(4.5rem, 3rem + 4vw, 6.5rem);
+  padding-bottom: 0;
+  padding-left: calc((100% - var(--who-content)) / 2);
+  padding-right: calc((100% - var(--who-content)) / 2);
+}
+
+.headText {
+  min-width: 0;
 }
 
 /* 説明（FDEとは）＝tb.summary の大きさのまま、行長だけ詰める */
@@ -29,10 +45,117 @@
   max-width: 38em;
 }
 
+/* ---- 写真（原比率 1264×948＝4:3。トリミングしない） ---- */
+.photo {
+  margin-top: clamp(2.2rem, 1.8rem + 1.8vw, 3.2rem);
+}
+
+.photoFigure {
+  margin: 0;
+  margin-left: auto;
+  width: min(100%, 900px);
+}
+
+.photoFrame {
+  position: relative;
+  display: block;
+}
+
+/* オフセットの罫線フレーム（右下へずらした枠）＝Person／Way の額と同じ作法 */
+.photoFrame::before {
+  content: "";
+  position: absolute;
+  inset: 14px -14px -14px 14px;
+  border: 1px solid var(--edge);
+  pointer-events: none;
+}
+
+/* 縁を地色に沈める（通常合成のみ・blend 不使用） */
+.photoFrame::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(to top, var(--paper) 0%, transparent 22%),
+    linear-gradient(to bottom, var(--paper) 0%, transparent 16%),
+    linear-gradient(to right, var(--paper) 0%, transparent 14%),
+    linear-gradient(to left, var(--paper) 0%, transparent 14%);
+  opacity: 0.85;
+}
+
+.photoImg {
+  display: block;
+  width: 100%;
+  height: auto; /* 原比率維持＝object-fit による切り抜きをしない */
+}
+
+.photoCaption {
+  margin-top: 1.4rem;
+  font-family: var(--font-heading, sans-serif);
+  font-size: 0.7rem;
+  letter-spacing: 0.3em;
+  color: var(--neutral);
+  text-align: left; /* 左下配置（Person の額と揃える） */
+}
+
+/* ---- PC＝2カラム。写真は本文カラムの外へ出し、画面の右端の近くまで見せる ---- */
+@media (min-width: 1100px) {
+  .headBand {
+    /* 右だけ版面の外へ開く（＝写真が張り出す）。余白は版面の padding と同値 */
+    padding-right: var(--who-pad);
+  }
+
+  .headGrid {
+    display: grid;
+    grid-template-columns: minmax(0, clamp(18rem, 33%, 25rem)) minmax(0, 1fr);
+    column-gap: clamp(2rem, 4%, 4.5rem);
+    /* 左列を写真と同じ高さまで伸ばし、見出しは上・説明は写真の下端にそろえる
+       （写真より文字が短いぶんの空きを、意図のある配置に変える） */
+    align-items: stretch;
+  }
+
+  .headText {
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* 説明の包み（ScrollReveal）を下端へ送る。キャプションの高さぶんだけ持ち上げて
+     写真の下辺とそろえる */
+  .headText > :last-child {
+    margin-top: auto;
+    padding-bottom: 2.4rem;
+  }
+
+  /* 列が狭くなるぶん、説明は一段落とす（読みやすさ優先・文言は変えない） */
+  .explain {
+    font-size: 1.15rem;
+    line-height: 2.05;
+    max-width: none;
+  }
+
+  .photo {
+    margin-top: 0;
+    /* 見出しの高さぶんだけ下げて、写真の上端を h2 の高さに合わせる */
+    padding-top: 0.4rem;
+  }
+}
+
+@media (min-width: 1500px) {
+  .explain {
+    font-size: 1.28rem;
+  }
+}
+
+/* ---- 帖1の続き：padding は tb.inner の上書き ---- */
+.introBand {
+  padding-block: clamp(2.8rem, 2rem + 2.4vw, 4.2rem) clamp(3rem, 2.2rem + 2.6vw, 4.5rem);
+}
+
 /* ---- 仕事の3段 ---- */
 .steps {
   list-style: none;
-  margin: clamp(2.2rem, 1.7rem + 1.6vw, 3rem) 0 0;
+  margin: 0;
   padding: 0;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -126,10 +249,13 @@
   color: var(--ink-deep);
 }
 
-/* ---- 帖2：3本柱 ---- */
+/* =============================================================
+   帖2：3本柱の目次（箱・塗り・常時表示の画像を持たない）
+   強いのは「和名」と「数字」の2点だけ。他は沈める。
+   ============================================================= */
 .pillarsBand {
   position: relative;
-  padding-block: clamp(3.5rem, 2.4rem + 3.4vw, 5.5rem) clamp(5rem, 3rem + 6vw, 8rem);
+  padding-block: clamp(3.2rem, 2.2rem + 3vw, 5rem) clamp(5rem, 3rem + 6vw, 8rem);
   /* 帖1との境＝地に沈む一線（上の帖から続いていることが分かる細さで） */
   border-top: 1px solid var(--rule-soft);
 }
@@ -160,164 +286,123 @@
   color: var(--ink);
 }
 
-.pillars {
+.index {
   list-style: none;
-  margin: clamp(1.8rem, 1.3rem + 1.8vw, 2.8rem) 0 0;
+  margin: clamp(1.6rem, 1.2rem + 1.4vw, 2.4rem) 0 0;
   padding: 0;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: clamp(1.4rem, 0.9rem + 1.8vw, 2.4rem);
-  align-items: stretch;
+  /* 目次の下端を閉じる一線（上端の3本は DrawRule が引く） */
+  border-bottom: 1px solid var(--rule-soft);
 }
 
-.pillar {
-  min-width: 0;
-  display: flex;
-}
-
-/* タイル全体がリンク。ホバーの動きは <a> 側に当てる
-   （ScrollReveal が transform を書く <li> と分けておく） */
-.tile {
+.row {
   position: relative;
-  display: flex;
-  flex-direction: column;
+  min-width: 0;
+}
+
+/* 各行の頭の一線（DrawRule＝左から引かれる） */
+.rowRule {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: block;
   width: 100%;
-  background: var(--paper-2);
-  border: 1px solid var(--rule);
+  height: 1px;
+  background: var(--rule-soft);
+  transition: background-color 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* 行全体がリンク。ホバーの動きは <a> 側に当てる
+   （ScrollReveal が transform を書く <li> と分けておく） */
+.rowLink {
+  position: relative;
+  display: grid;
+  /* 右2列は固定幅。各行が別々の grid なので、auto にすると導線の字数差で
+     数字の頭が行ごとにずれる（「導入事例を見る」と「ツールを試す」で 13px） */
+  grid-template-columns: 2.6rem minmax(0, 1fr) 15rem 8.5rem;
+  column-gap: 1.6rem;
+  align-items: baseline;
+  padding-block: 1.45rem;
   color: inherit;
   text-decoration: none;
-  transition:
-    transform 0.45s cubic-bezier(0.16, 1, 0.3, 1),
-    border-color 0.45s cubic-bezier(0.16, 1, 0.3, 1),
-    box-shadow 0.45s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* ⚠ タッチ端末では :hover が張り付くので、ホバー由来の演出はこの中へ */
-@media (hover: hover) and (pointer: fine) {
-  .tile:hover {
-    transform: translateY(-4px);
-    border-color: var(--edge);
-    box-shadow: 0 18px 34px -18px rgba(0, 0, 0, 0.62);
-  }
-
-  .tile:hover .thumbColor {
-    opacity: 1;
-  }
-
-  .tile:hover .cta {
-    border-bottom-color: var(--ink-deep);
-    color: var(--ink-deep);
-  }
-}
-
-.tile:focus-visible {
+.rowLink:focus-visible {
   outline: 2px solid var(--ink-deep);
-  outline-offset: 3px;
+  outline-offset: 4px;
 }
 
-.tile:focus-visible .thumbColor {
-  opacity: 1;
-}
-
-.tile:active {
-  transform: translateY(1px);
-}
-
-/* ---- サムネ（16:10 の枠に cover・上端から見せる） ---- */
-.thumb {
+/* 文字は必ず画像より前（ホバー画像は行の地として後ろに出る） */
+.no,
+.main,
+.stat,
+.go {
   position: relative;
-  display: block;
-  aspect-ratio: 16 / 10;
-  overflow: hidden;
-  overflow: clip;
-  background: var(--paper-deep);
-}
-
-.thumbImg {
-  object-fit: cover;
-  /* Web制作の札は縦長のフルスクショ＝上端（FV）を見せる */
-  object-position: 50% 0%;
-}
-
-/* 墨の下地。値は固定でアニメさせない（iOS/WebKit の滲み事故を踏まない） */
-.thumbMono {
-  filter: grayscale(1) contrast(1.04) brightness(0.55);
-}
-
-/* カラーは opacity だけでクロスフェードする */
-.thumbColor {
-  opacity: 0;
-  transition: opacity 0.9s cubic-bezier(0.45, 0, 0.2, 1);
-}
-
-/* 下端を地へ沈める（通常合成のみ・blend 不使用） */
-.thumbVeil {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: linear-gradient(to top, rgba(20, 18, 18, 0.62), transparent 52%);
-}
-
-/* ---- 文字側 ---- */
-/* ⚠ 縦の flex にしてあるのは、柱ごとに添え書きの行数が違っても
-   導線（.cta）が3枚とも同じ高さに揃うようにするため（margin-top:auto） */
-.body {
-  display: flex;
-  flex-direction: column;
-  flex: 1 1 auto;
-  padding: clamp(1.1rem, 0.9rem + 0.8vw, 1.5rem) clamp(1rem, 0.85rem + 0.6vw, 1.35rem)
-    clamp(1.3rem, 1rem + 1vw, 1.7rem);
-}
-
-.head {
-  display: flex;
-  align-items: baseline;
-  gap: 0.7rem;
+  z-index: 1;
+  min-width: 0;
 }
 
 .no {
   font-family: var(--font-mono, monospace);
-  font-size: 0.72rem;
+  font-size: 0.74rem;
   letter-spacing: 0.14em;
   font-variant-numeric: tabular-nums;
   color: var(--neutral);
 }
 
+.nameRow {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.2rem 0.85rem;
+}
+
+.name {
+  display: inline-block;
+  font-family: var(--font-display-washi, serif);
+  font-weight: 600;
+  font-size: 1.38rem;
+  line-height: 1.5;
+  letter-spacing: 0.06em;
+  font-feature-settings: "palt" 1;
+  color: var(--ink-deep);
+  transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
 .en {
   font-family: var(--font-heading, sans-serif);
-  font-size: 0.68rem;
+  font-size: 0.64rem;
   letter-spacing: 0.26em;
   text-transform: uppercase;
   color: var(--neutral);
 }
 
-.name {
+.line {
   display: block;
-  margin-top: 0.55rem;
-  font-family: var(--font-display-washi, serif);
-  font-weight: 600;
-  font-size: clamp(1.1rem, 1rem + 0.45vw, 1.38rem);
-  line-height: 1.5;
-  letter-spacing: 0.06em;
+  margin-top: 0.5rem;
+  font-size: 0.86rem;
+  line-height: 1.95;
+  letter-spacing: 0.02em;
   font-feature-settings: "palt" 1;
-  color: var(--ink-deep);
+  color: var(--muted);
 }
 
-/* 数字ひとつ＋単位 */
+/* ---- 数字（行の中でもう1つの強点） ---- */
 .stat {
+  display: block;
+}
+
+.statNum {
   display: flex;
   align-items: baseline;
-  gap: 0.22rem;
-  margin-top: 0.95rem;
-  padding-top: 0.95rem;
-  border-top: 1px solid var(--rule-soft);
+  gap: 0.24rem;
+  white-space: nowrap; /* 数字と単位は折り返さない */
 }
 
 .statValue {
   font-family: var(--font-display-washi, serif);
   font-weight: 600;
-  font-size: clamp(2rem, 1.45rem + 1.5vw, 2.9rem);
-  line-height: 1.1;
+  font-size: 2.4rem;
+  line-height: 1.15;
   letter-spacing: 0.02em;
   font-variant-numeric: tabular-nums;
   color: var(--ink-deep);
@@ -326,54 +411,177 @@
 .statUnit {
   font-family: var(--font-display-washi, serif);
   font-weight: 500;
-  font-size: clamp(0.9rem, 0.86rem + 0.2vw, 1.05rem);
+  font-size: 0.98rem;
   letter-spacing: 0.04em;
   color: var(--ink);
 }
 
 .statLabel {
   display: block;
-  margin-top: 0.4rem;
-  font-size: 0.74rem;
+  margin-top: 0.45rem;
+  font-size: 0.72rem;
   line-height: 1.85;
   letter-spacing: 0.02em;
   font-feature-settings: "palt" 1;
   color: var(--neutral);
 }
 
-.line {
-  display: block;
-  margin-top: 0.95rem;
-  font-size: clamp(0.84rem, 0.82rem + 0.12vw, 0.9rem);
-  line-height: 2;
-  letter-spacing: 0.02em;
-  font-feature-settings: "palt" 1;
-  color: var(--muted);
+/* ---- 導線（文言は契約ファイルの cta＝読み上げでも目的が分かる） ---- */
+.go {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  justify-self: end;
+  white-space: nowrap;
 }
 
-/* 導線（リンクの中なので押せる見た目だけ持たせる） */
 .cta {
-  display: inline-flex;
-  align-items: center;
-  align-self: flex-start; /* 伸ばさない＝下の罫が文字幅で止まる */
-  gap: 0.5em;
-  margin-top: auto; /* 3枚とも同じ高さに揃える */
-  padding-top: 1.1rem;
-  padding-bottom: 5px;
-  border-bottom: 1px solid var(--rule);
-  font-size: 0.8rem;
-  letter-spacing: 0.1em;
-  white-space: nowrap;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  color: var(--neutral);
+  transition: color 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.arrow {
+  display: inline-block;
+  font-size: 0.95rem;
+  line-height: 1;
   color: var(--ink);
+  transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ---- ホバーで出る代表画像（PC のみ・絶対配置＝場所を取らない） ----
+   ⚠ 出すのは opacity だけ。filter はアニメさせない（iOS/WebKit の滲み事故を踏まない）。
+   ⚠ 置き場所は版面の外＝行の右の余白（2026-09-20 親が変更）。行の中に置くと導線と添え書きの
+     文字に絵が重なって読みにくかった。余白が足りない幅（〜1599px）では出さない。
+     1600px 以上なら右端＝画面幅/2＋778px ≦ 画面幅＝横あふれは出ない。 */
+.media {
+  position: absolute;
+  top: 50%;
+  left: calc(100% + 2.4rem);
+  z-index: 0;
+  display: block;
+  width: 260px;
+  aspect-ratio: 16 / 10;
+  transform: translateY(-50%);
+  overflow: hidden;
+  overflow: clip;
+  background: var(--paper-deep);
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
   transition:
-    border-color 0.35s cubic-bezier(0.16, 1, 0.3, 1),
-    color 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    opacity 0.55s cubic-bezier(0.45, 0, 0.2, 1),
+    visibility 0s linear 0.55s;
+}
+
+.mediaImg {
+  object-fit: cover;
+  object-position: 50% 0%;
+}
+
+/* 文字と重ならなくなったので帳は薄い一枚だけ（地の黒となじませる） */
+.mediaVeil {
+  position: absolute;
+  inset: 0;
+  background: rgba(20, 18, 18, 0.18);
+}
+
+/* ⚠ タッチ端末では :hover が張り付くので、ホバー由来の演出はこの中へ */
+@media (hover: hover) and (pointer: fine) {
+  .row:hover .rowRule,
+  .row:hover + .row .rowRule,
+  .row:focus-within .rowRule {
+    background-color: var(--edge);
+  }
+
+  .rowLink:hover .name,
+  .rowLink:focus-visible .name,
+  .rowLink:hover .arrow,
+  .rowLink:focus-visible .arrow {
+    transform: translateX(6px);
+  }
+
+  .rowLink:hover .cta,
+  .rowLink:focus-visible .cta {
+    color: var(--ink);
+  }
+
+  .rowLink:hover .media,
+  .rowLink:focus-visible .media {
+    opacity: 0.94;
+    visibility: visible;
+    transition:
+      opacity 0.55s cubic-bezier(0.45, 0, 0.2, 1),
+      visibility 0s linear 0s;
+  }
+}
+
+/* タッチ端末と、右の余白に絵が入りきらない幅では画像を出さない（読み込みもさせない） */
+@media (hover: none), (max-width: 1599px) {
+  .media {
+    display: none;
+  }
 }
 
 /* ---- 狭幅 ---- */
+@media (max-width: 1099px) {
+  .rowLink {
+    grid-template-columns: 2.4rem minmax(0, 1fr) 13rem 8rem;
+    column-gap: 1.2rem;
+  }
+
+  .statValue {
+    font-size: 2.1rem;
+  }
+}
+
 @media (max-width: 860px) {
   .steps {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* 1行を縦に組み替える＝番号＋和名 → 説明 → 数字＋単位＋添え書き（矢印は右上） */
+  .rowLink {
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: 0.85rem;
+    padding-block: 1.3rem;
+  }
+
+  .main {
+    padding-right: 2.4rem; /* 右上の矢印の逃げ */
+  }
+
+  /* 数字は和名・説明と同じ位置から始める（番号の列ぶん下げて左端を揃える） */
+  .stat {
+    grid-column: 2 / -1;
+    margin-top: 0.95rem;
+  }
+
+  .go {
+    position: absolute;
+    top: 1.3rem;
+    right: 0;
+  }
+
+  /* 導線の文言は画面から外すが、読み上げには残す（リンクの目的が分かるように） */
+  .cta {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    border: 0;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  .name {
+    font-size: 1.22rem;
+  }
+
+  .statValue {
+    font-size: 1.95rem;
   }
 }
 
@@ -381,17 +589,6 @@
   .steps {
     grid-template-columns: minmax(0, 1fr);
     gap: 1.5rem;
-  }
-
-  .pillars {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-
-/* ホバーできない端末では最初からカラーで見せる（画面が読めるように） */
-@media (hover: none), (max-width: 767px) {
-  .thumbColor {
-    opacity: 1;
   }
 }
 
@@ -418,6 +615,10 @@
   .closingRule {
     width: min(100%, 14rem);
   }
+
+  .line {
+    font-size: 0.84rem;
+  }
 }
 
 @media (max-width: 400px) {
@@ -428,6 +629,14 @@
   .closingText {
     font-size: 1.5rem;
     letter-spacing: 0.01em;
+  }
+
+  .name {
+    font-size: 1.15rem;
+  }
+
+  .statValue {
+    font-size: 1.8rem;
   }
 }
 
@@ -441,16 +650,25 @@
     font-size: 1.28rem;
     letter-spacing: 0;
   }
+
+  .statValue {
+    font-size: 1.7rem;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .tile,
-  .thumbColor,
-  .cta {
+  .rowRule,
+  .name,
+  .arrow,
+  .cta,
+  .media {
     transition: none;
   }
 
-  .tile:hover {
+  .rowLink:hover .name,
+  .rowLink:focus-visible .name,
+  .rowLink:hover .arrow,
+  .rowLink:focus-visible .arrow {
     transform: none;
   }
 }

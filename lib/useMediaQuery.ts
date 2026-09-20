@@ -34,3 +34,31 @@ export function useMediaQuery(query: string): boolean {
 
   return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }
+
+const REDUCE_QUERY = "(prefers-reduced-motion: reduce)";
+
+const subscribeReduce = (onChange: () => void) => {
+  if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+    return () => {};
+  }
+  const mq = window.matchMedia(REDUCE_QUERY);
+  mq.addEventListener("change", onChange);
+  return () => mq.removeEventListener("change", onChange);
+};
+
+const getMotionAllowed = () =>
+  typeof window !== "undefined" &&
+  typeof window.matchMedia === "function" &&
+  !window.matchMedia(REDUCE_QUERY).matches;
+
+/**
+ * 入場アニメを仕込んでよいか（＝ブラウザ上で、かつ「動きを減らす」設定でない）。
+ *
+ * サーバーと最初の hydration では false＝SSR が描いた完成形のまま（JS 無しでも読める）。
+ * 直後にブラウザの実値へ切り替わる。図解など「初期状態を被せてから再生する」部品が、
+ * useEffect 内の同期 setState（react-hooks/set-state-in-effect）を使わずに済むための口。
+ * useFullMotion() と違い、タッチ端末・狭幅でも true を返す（SP でも図は動かす）。
+ */
+export function useMotionAllowed(): boolean {
+  return useSyncExternalStore(subscribeReduce, getMotionAllowed, getServerSnapshot);
+}

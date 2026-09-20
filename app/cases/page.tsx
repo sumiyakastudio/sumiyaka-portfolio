@@ -4,6 +4,7 @@ import SubPageFVAnim from "@/components/animation/SubPageFVAnim";
 import ScrollReveal from "@/components/animation/ScrollReveal";
 import CasesFV from "@/components/cases/CasesFV";
 import CaseCard from "@/components/cases/CaseCard";
+import MeasureDiagram from "@/components/cases/MeasureDiagram";
 import HashLanding from "@/components/cases/HashLanding";
 import { getAllCases, getFdeIntro } from "@/lib/caseCatalog";
 import { SITE_ORIGIN } from "@/lib/site";
@@ -120,6 +121,10 @@ export default function CasesPage() {
               <p className={styles.measuredText}>{intro.deployedIn}</p>
             </div>
           </ScrollReveal>
+
+          {/* 測り方そのものを1枚で見せる図（数字は data/cases.ts の1事例の実測値）。
+              自前の入場を持つので ScrollReveal では包まない（transform の二重掛けを避ける） */}
+          <MeasureDiagram cases={all} />
         </div>
       </section>
 

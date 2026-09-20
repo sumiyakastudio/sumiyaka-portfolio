@@ -30,6 +30,7 @@ export function getMeasuredSummary(): MeasuredSummary {
     humanMeasuredCount: human.length,
     reductionMin: reductions.length ? Math.min(...reductions).toFixed(1) : "0.0",
     reductionMax: reductions.length ? Math.max(...reductions).toFixed(1) : "0.0",
+    reductionMedian: median(reductions).toFixed(1),
   };
 }
 
@@ -42,7 +43,8 @@ export function getPillars(): Pillar[] {
 
   const derived: Record<Pillar["key"], { statValue: string; image: Pillar["image"] }> = {
     fde: {
-      statValue: String(measured.humanMedianMinutes),
+      // 削減率の中央値（2026-09-20 あおき指示＝「8分」より％のほうが一目で伝わる）
+      statValue: measured.reductionMedian,
       image: { src: repCase?.thumbnail ?? "", alt: repCase ? `導入事例：${repCase.title}` : "" },
     },
     tools: {
@@ -56,7 +58,12 @@ export function getPillars(): Pillar[] {
   };
 
   return pillarCopies
-    .map((copy) => ({ ...copy, ...derived[copy.key] }))
+    .map((copy) => ({
+      ...copy,
+      ...derived[copy.key],
+      // 添え書きの {n} は公開している事例の数（ハードコードしない）
+      statLabel: copy.statLabel.replace("{n}", String(measured.caseCount)),
+    }))
     // 代表画像が取れない柱は出さない（作っていないものは載せない）
     .filter((p) => p.image.src !== "");
 }

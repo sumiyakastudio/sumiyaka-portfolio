@@ -21,7 +21,7 @@ export interface PillarCopy {
   nameJa: string;
   /** 1行の説明 */
   line: string;
-  /** 数字の単位と添え書き（数字そのものはデータから） */
+  /** 数字の単位と添え書き（数字そのものはデータから）。statLabel の {n} は事例数に置き換わる */
   statUnit: string;
   statLabel: string;
   /** 飛び先と導線の文言 */
@@ -48,4 +48,6 @@ export interface MeasuredSummary {
   /** 削減率の最小・最大（%・小数1桁の文字列。例「76.0」「98.5」） */
   reductionMin: string;
   reductionMax: string;
+  /** 削減率の中央値（%・小数1桁の文字列。例「87.7」）。3本柱の FDE の数字に使う */
+  reductionMedian: string;
 }

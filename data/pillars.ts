@@ -17,8 +17,10 @@ export const pillarCopies: PillarCopy[] = [
     nameEn: "FDE",
     nameJa: "FDE事業",
     line: "御社の現場に入り、仕事のやり方をAIに教え込みます。",
-    statUnit: "分",
-    statLabel: "人の手が動いた時間（1件あたりの中央値・実測）",
+    statUnit: "%",
+    // {n} は公開している事例の数に置き換わる（lib/pillarCatalog.ts）。
+    // ⚠「クライアントの作業時間」とは書かない＝導入前は手作業の見積（FDE事例掲載時の線引き）
+    statLabel: "削減率の中央値（{n}事例・実測）。導入前は手作業の見積との比較です",
     href: "/cases",
     cta: "導入事例を見る",
   },
@@ -54,6 +56,16 @@ export const whoCopy = {
   notDoing: "説明会も、セミナーも、行いません。一社ずつ、深く入ります。",
   /** 3本柱の前置き */
   pillarsLead: "入口は、3つあります。",
+};
+
+/** 01 に大きく置く写真（2026-09-20 あおき指示）。/service THE WAY と同じ1枚。
+ *  alt と caption は components/home/Way.tsx の文言と同じ（一言一句そろえる） */
+export const whoPhoto = {
+  src: "/home/teaching.webp",
+  width: 1264,
+  height: 948,
+  alt: "クライアント先での導入指導の様子",
+  caption: "クライアント先での導入指導",
 };
 
 /** 02 実測 */

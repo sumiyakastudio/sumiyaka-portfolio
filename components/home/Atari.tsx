@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import ScrollReveal from "@/components/animation/ScrollReveal";
 import CountUp from "@/components/animation/CountUp";
 import DrawRule from "@/components/animation/DrawRule";
@@ -17,11 +18,20 @@ import styles from "./Atari.module.css";
  *  - 節の枠（section / inner / 図番見出し）は app/service/page.tsx が持つ＝ここは中身だけ。
  *  - 章番号（SectionMark）と data-top-* は外した（トップ専用の仕組みから切り離し）。
  *  - 文言・数値・出典・動きはそのまま。書体だけ /service（線と図面）へ揃えた。
+ *
+ * P17 追補（2026-09-20）＝2つの統計に寸法バーを追加。
+ *  - 同ページ DATA 節（app/service/page.tsx の .statTrack）と同じ見せ方・同じ動きを
+ *    このファイル内に自前で複製（page.module.css は import しない＝完全に自己完結）。
+ *  - 割合はここに既にある数値（60.8 / 48.2）を1箇所の定数に集約し、CountUp とバー両方が参照する。
  */
 type Props = {
   /** 見出しの id（section の aria-labelledby から参照される） */
   titleId?: string;
 };
+
+/** 統計の割合＝この2つの定数だけを CountUp と寸法バーの両方が参照する（数値の重複記述をしない） */
+const STAT_DOUBLE_ENTRY = 60.8;
+const STAT_DATA_ENTRY = 48.2;
 
 export default function Atari({ titleId }: Props) {
   return (
@@ -53,8 +63,16 @@ export default function Atari({ titleId }: Props) {
         <ScrollReveal className={styles.stat}>
           <DrawRule className={styles.statRule} delay={0.1} />
           <p className={styles.statNum}>
-            <CountUp value={60.8} decimals={1} suffix="%" delay={0.35} />
+            <CountUp value={STAT_DOUBLE_ENTRY} decimals={1} suffix="%" delay={0.35} />
           </p>
+          {/* 寸法バー：長さは STAT_DOUBLE_ENTRY から（数字のハードコードなし） */}
+          <span
+            className={styles.statTrack}
+            aria-hidden="true"
+            style={{ "--pct": `${STAT_DOUBLE_ENTRY}%` } as CSSProperties}
+          >
+            <DrawRule className={styles.statFill} duration={1.4} delay={0.5} />
+          </span>
           <p className={styles.statLabel}>
             システム化しても負担が減らない理由 第1位「データの二重入力が発生」
           </p>
@@ -62,8 +80,16 @@ export default function Atari({ titleId }: Props) {
         <ScrollReveal delay={0.15} className={styles.stat}>
           <DrawRule className={styles.statRule} delay={0.25} />
           <p className={styles.statNum}>
-            <CountUp value={48.2} decimals={1} suffix="%" delay={0.5} />
+            <CountUp value={STAT_DATA_ENTRY} decimals={1} suffix="%" delay={0.5} />
           </p>
+          {/* 寸法バー：長さは STAT_DATA_ENTRY から（数字のハードコードなし） */}
+          <span
+            className={styles.statTrack}
+            aria-hidden="true"
+            style={{ "--pct": `${STAT_DATA_ENTRY}%` } as CSSProperties}
+          >
+            <DrawRule className={styles.statFill} duration={1.4} delay={0.65} />
+          </span>
           <p className={styles.statLabel}>
             負担が大きい業務 第1位「データの入力・集計・照合」
           </p>

@@ -16,6 +16,7 @@ import CtaSection from "@/components/home/CtaSection";
 import Steps from "@/components/home/Steps";
 import Trust from "@/components/home/Trust";
 import Way from "@/components/home/Way";
+import UnifyDiagram from "@/components/service/UnifyDiagram";
 import styles from "./page.module.css";
 
 /**
@@ -479,6 +480,9 @@ export default function ServicePage() {
               <p className={styles.pillarBody}>
                 御社がいま使っているファイルに合わせて、仕組みを作ります。AIを入れる前でも始められる、一段目の仕事です。
               </p>
+
+              {/* 上の一句を図にする＝FIG. 03-A（線画・入場で1回描かれ、以後は光の点が周期で流れる） */}
+              <UnifyDiagram />
             </div>
           </ScrollReveal>
 

@@ -78,6 +78,55 @@
   color: var(--color-foreground);
 }
 
+/* 寸法バー（/service DATA節 .statTrack の見た目・動きをここに複製）：
+   全長の罫（両端ティック）に、値の割合だけ白の実線が引かれる。
+   長さは JSX 側から渡す --pct のみで決まる（ここに数値は書かない）。 */
+.statTrack {
+  position: relative;
+  display: block;
+  height: 1px;
+  width: 100%;
+  background: var(--sumi-rule);
+  margin: 1.1rem 0 0;
+}
+
+.statTrack::before,
+.statTrack::after {
+  content: "";
+  position: absolute;
+  top: -5px;
+  width: 1px;
+  height: 11px;
+  background: rgba(241, 234, 236, 0.5);
+}
+
+.statTrack::before {
+  left: 0;
+}
+
+.statTrack::after {
+  right: 0;
+}
+
+.statFill {
+  position: absolute;
+  left: 0;
+  top: -1px;
+  height: 3px;
+  width: var(--pct, 0%);
+  background: var(--color-foreground);
+}
+
+.statFill::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: -4px;
+  width: 1px;
+  height: 11px;
+  background: var(--color-foreground);
+}
+
 .statLabel {
   margin: 0.75rem 0 0;
   font-family: var(--font-body);
@@ -140,5 +189,13 @@
   .statSrc {
     font-size: 11.5px;
     margin-top: 2rem;
+  }
+}
+
+/* Reduced Motion：DrawRule 自身が矩形時の scaleX 設定を止める作りだが、
+   /service DATA節の .statFill と同じ安全網（伸びきった状態で静止）をここにも置く */
+@media (prefers-reduced-motion: reduce) {
+  .statFill {
+    transform: none !important;
   }
 }
