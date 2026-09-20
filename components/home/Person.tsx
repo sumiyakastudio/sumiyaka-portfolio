@@ -4,7 +4,7 @@ import ScrollReveal from "@/components/animation/ScrollReveal";
 import DrawRule from "@/components/animation/DrawRule";
 import Highlight from "@/components/animation/Highlight";
 import tb from "@/components/fv/top-body/top-body.module.css";
-import { stanceLines } from "@/data/pillars";
+import { stanceItems } from "@/data/pillars";
 import styles from "./Person.module.css";
 
 /**
@@ -18,7 +18,8 @@ import styles from "./Person.module.css";
  *
  * P17 の変更は2点だけ：
  *   ・章番号 08 → 04（data-top-section と表示の番号）。既存の文言・写真は一言一句不変
- *   ・グリッドの下に**姿勢の宣言**（data/pillars.ts の stanceLines・3行）を帯として置く。
+ *   ・グリッドの下に**姿勢の宣言**（data/pillars.ts の stanceItems・3項目）を帯として置く。
+ *     2026-09-21＝短い句だけでは意味が取れないとの指摘で、句（見出し）＋説明1〜2文の3列に。
  *     本文3行と同じ列に重ねると「行の列挙」が二度続いて濁るので、版面いっぱいの帯にした。
  *     全文は /about（P17 計画書§2-b）。色は使わない（白と細罫だけ）。
  */
@@ -84,14 +85,15 @@ export default function Person() {
         <div className={styles.stance}>
           <DrawRule className={styles.stanceRule} duration={0.8} delay={0.05} />
           <ul className={styles.stanceList}>
-            {stanceLines.map((t, i) => (
+            {stanceItems.map((item, i) => (
               <ScrollReveal
                 as="li"
-                key={t}
-                className={styles.stanceLine}
+                key={item.title}
+                className={styles.stanceItem}
                 delay={0.08 * i}
               >
-                {t}
+                <p className={styles.stanceLine}>{item.title}</p>
+                <p className={styles.stanceBody}>{item.body}</p>
               </ScrollReveal>
             ))}
           </ul>

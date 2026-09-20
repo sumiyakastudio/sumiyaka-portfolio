@@ -179,27 +179,50 @@
   background: var(--rule);
 }
 
+/* 2026-09-21＝句（見出し）＋説明の3列。短い句だけでは意味が取れない、という指摘への対応。
+   各列の頭に細い罫を1本ずつ置いて、3つが同じ重さで並んでいることを示す */
 .stanceList {
   list-style: none;
   margin: 0;
   padding: 0;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  /* 行間は詰め、字間（列の間）だけ大きく空ける。
-     3行が1行に収まらない幅では自然に折り返す（そのとき行が離れすぎないように） */
-  gap: clamp(0.8rem, 0.7rem + 0.4vw, 1.2rem) clamp(1.2rem, 0.8rem + 2vw, 3.2rem);
+  display: grid;
+  /* 3つ目の見出し（13字）が「…未来の話／に。」と1字だけ折り返さないよう、3列目を広めに取る */
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.28fr);
+  column-gap: clamp(1.6rem, 1rem + 2.2vw, 3.4rem);
+  row-gap: 2rem;
 }
 
+.stanceItem {
+  margin: 0;
+}
+
+/* 句＝見出し。明朝で強く */
 .stanceLine {
   margin: 0;
   font-family: var(--font-display-washi, serif);
   font-weight: 600;
-  font-size: clamp(1.15rem, 1rem + 0.85vw, 1.75rem);
+  font-size: clamp(1.12rem, 1rem + 0.5vw, 1.42rem);
   line-height: 1.7;
-  letter-spacing: 0.07em;
+  letter-spacing: 0.06em;
   font-feature-settings: "palt" 1;
   color: var(--ink-deep);
+}
+
+/* 説明＝一段沈めて、読める大きさで */
+.stanceBody {
+  margin: 0.7rem 0 0;
+  font-size: 0.93rem;
+  line-height: 2.05;
+  letter-spacing: 0.03em;
+  color: var(--muted);
+}
+
+/* 3列のままだと3つ目の見出しが折り返す幅（実測で 861px 付近）は、先に縦積みへ切り替える */
+@media (max-width: 920px) {
+  .stanceList {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 1.7rem;
+  }
 }
 
 @media (max-width: 860px) {
@@ -216,9 +239,14 @@
     width: min(100%, 360px);
   }
 
-  /* 狭幅では横に並べず、1行ずつ立てる（宣言が折り返して濁らないように） */
+  /* 狭幅では横に並べず、1項目ずつ縦に積む */
   .stanceList {
-    flex-direction: column;
-    gap: 0.9rem;
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 1.7rem;
+  }
+
+  .stanceBody {
+    margin-top: 0.45rem;
+    line-height: 1.95;
   }
 }
