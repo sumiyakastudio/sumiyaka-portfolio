@@ -36,8 +36,8 @@ const caseCount = getAllCases().length;
  *  1023px 以下は版面いっぱい（上限 560px＝左右 20px 余白で 600px から頭打ち） */
 const LEAD_PHOTO_SIZES = "(min-width: 1024px) 400px, (min-width: 600px) 560px, calc(100vw - 40px)";
 
-/** C-5 の実表示幅。PC＝見出し帯の右端に 240px。1023px 以下は上限 420px */
-const KEEPS_PHOTO_SIZES = "(min-width: 1024px) 240px, (min-width: 460px) 420px, calc(100vw - 40px)";
+/** C-5 の実表示幅。PC＝見出し帯の右端に 320px。1023px 以下は上限 480px（2026-09-22 あおき指示で拡大） */
+const KEEPS_PHOTO_SIZES = "(min-width: 1024px) 320px, (min-width: 520px) 480px, calc(100vw - 40px)";
 
 export const metadata: Metadata = {
   // 型は /tools・/works・/about と同じ「{ページ名} — AKASHIKI | {日本語}」

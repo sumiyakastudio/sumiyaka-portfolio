@@ -438,7 +438,7 @@
   flex: 0 0 100%;
   min-width: 0;
   width: 100%;
-  max-width: 420px;
+  max-width: 480px; /* 2026-09-22 あおき指示で 420→480 */
   margin-top: 0.6rem;
 }
 
@@ -511,8 +511,8 @@
 
   .keepsPhoto {
     justify-self: end;
-    /* 254px のうち 14px はオフセット罫の逃げ＝写真の実幅は 240px */
-    max-width: 254px;
+    /* 334px のうち 14px はオフセット罫の逃げ＝写真の実幅は 320px（2026-09-22 あおき指示で 240→320） */
+    max-width: 334px;
     margin-top: 0;
     padding-right: 14px;
   }
