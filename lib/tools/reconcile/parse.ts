@@ -168,7 +168,7 @@ export async function parseLedger(input: {
   );
   if (!header) {
     return fail(
-      `見出し行が見つかりませんでした。1行目に「${LEDGER_COLUMNS.join("／")}」の見出しを置いてください。`,
+      `見出し行が見つかりませんでした。1行目に「${LEDGER_COLUMNS.join("・")}」の見出しを置いてください。`,
     );
   }
 
@@ -254,7 +254,7 @@ export async function parseLedger(input: {
         line,
         column: "請求額",
         level: "warn",
-        message: `請求額「${amountRaw}」に小数がついています。${Math.round(amountNum).toLocaleString("ja-JP")} 円として扱います。`,
+        message: `請求額「${amountRaw}」に小数がついています。${Math.round(amountNum).toLocaleString("ja-JP")}円として扱います。`,
       });
     }
 
@@ -318,7 +318,7 @@ export async function parseLedger(input: {
     issues.push({
       line: 0,
       level: "error",
-      message: `請求が ${MAX_LEDGER_ROWS} 行を超えています。ファイルを分けてからお試しください。`,
+      message: `請求が ${MAX_LEDGER_ROWS}行を超えています。ファイルを分けてからお試しください。`,
     });
     return { entries: [], issues, sourceName };
   }
@@ -342,7 +342,7 @@ export async function parseLedger(input: {
         line: entry.sourceLine,
         column: "請求番号",
         level: "warn",
-        message: `請求番号「${entry.invoiceNo}」が ${first} 行目と重複しています。別々の請求として突合します。`,
+        message: `請求番号「${entry.invoiceNo}」が ${first}行目と重複しています。別々の請求として突合します。`,
       });
     }
   }
@@ -587,7 +587,7 @@ export async function parseStatement(input: {
     issues.push({
       line: 0,
       level: "error",
-      message: `明細が ${MAX_STATEMENT_ROWS} 行を超えています。期間を分けて書き出してからお試しください。`,
+      message: `明細が ${MAX_STATEMENT_ROWS}行を超えています。期間を分けて書き出してからお試しください。`,
     });
     return { entries: [], issues, sourceName, layout: null };
   }

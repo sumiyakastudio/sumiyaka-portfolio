@@ -305,7 +305,7 @@ export default function MappingBoard({
                       ? `${owner.name} に割り当て済み`
                       : selectedId
                         ? "この列を割り当てます"
-                        : "右の出力列を選んでから押します"
+                        : "右の「出力する管理表の列」を選んでから押します"
                   }
                 >
                   <span className={styles.sourceName}>{sourceLabels[row] ?? col.header}</span>
@@ -370,7 +370,7 @@ export default function MappingBoard({
                     aria-pressed={selected}
                     title={
                       selected
-                        ? "左の入力列を押すと線がつながります（もう一度押すと選択解除）"
+                        ? "左の「このファイルの列」を押すと線がつながります（もう一度押すと外れます）"
                         : "この出力列を選びます"
                     }
                   >
@@ -453,7 +453,7 @@ export default function MappingBoard({
                       ? sampleOf(assignment.index) || "（この列は空欄です）"
                       : assignment.kind === "const"
                         ? summaryOf(assignment)
-                        : "未割当（出力では空欄になります）"}
+                        : "未割り当て（出力では空欄になります）"}
                   </span>
                 </div>
               );
@@ -468,8 +468,8 @@ export default function MappingBoard({
             <li key={target.id}>
               <span className={styles.noteTag}>候補</span>
               <span>
-                {target.name}：候補が{candidates.length}つあります（
-                {candidates.join("／")}）。どれを使うかは選んでください
+                {target.name}：候補が{candidates.length}件あります（
+                {candidates.join("・")}）。どれを使うかを選んでください。
               </span>
             </li>
           ))}

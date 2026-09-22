@@ -7,7 +7,7 @@ import styles from "./page.module.css";
 export const metadata: Metadata = {
   title: "CONTACT — AKASHIKI | お問い合わせ",
   description:
-    "AKASHIKI（灯敷）へのお問い合わせ。業務の自動化・AI導入のご相談から、LP・コーポレートサイトなどWeb制作のご相談まで、お気軽にどうぞ。",
+    "AKASHIKI（灯敷）へのお問い合わせ。業務の自動化・AI導入から、LP・コーポレートサイトなどのWeb制作まで、お気軽にどうぞ。",
   robots: { index: true, follow: true },
   openGraph: {
     images: [{ url: "/api/og?title=CONTACT&sub=%E3%81%8A%E5%95%8F%E3%81%84%E5%90%88%E3%82%8F%E3%81%9B", width: 1200, height: 630 }],

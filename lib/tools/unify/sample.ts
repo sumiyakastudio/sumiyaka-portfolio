@@ -70,7 +70,7 @@ export const SAMPLE_GRIDS: SampleGrid[] = [
   },
   {
     id: "f2",
-    name: "B商事_売上一覧.xlsx",
+    name: "B社_売上一覧.xlsx",
     sheetName: "売上一覧",
     sheetNames: ["売上一覧"],
     grid: [
@@ -84,7 +84,7 @@ export const SAMPLE_GRIDS: SampleGrid[] = [
   },
   {
     id: "f3",
-    name: "C_明細_2026年7月.csv",
+    name: "C社_明細_2026年7月.csv",
     sheetName: "",
     sheetNames: [],
     grid: [
@@ -203,7 +203,7 @@ export const SAMPLE_FILES: SourceFile[] = [
   },
   {
     id: "f2",
-    name: "B商事_売上一覧.xlsx",
+    name: "B社_売上一覧.xlsx",
     sheetName: "売上一覧",
     sheetNames: ["売上一覧"],
     headerIndex: 0,
@@ -287,7 +287,7 @@ export const SAMPLE_FILES: SourceFile[] = [
   },
   {
     id: "f3",
-    name: "C_明細_2026年7月.csv",
+    name: "C社_明細_2026年7月.csv",
     sheetName: "",
     sheetNames: [],
     headerIndex: 0,

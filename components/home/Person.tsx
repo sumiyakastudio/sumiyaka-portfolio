@@ -46,7 +46,7 @@ export default function Person() {
             {/* 3行（各1文）。マーカーは「使う側」＝2文目の主張の側に引く */}
             <ul className={styles.lines}>
               <ScrollReveal as="li" className={styles.line} delay={0.12}>
-                大手美容外科の社内・院内SEを7年。止まれば診療が止まるシステムを守ってきました。
+                大手美容外科クリニックの社内・院内SEを7年。止まれば診療が止まるシステムを守ってきました。
               </ScrollReveal>
               <ScrollReveal as="li" className={styles.line} delay={0.2}>
                 仕事はこれから、AIにできないことをする側と、AIを使う側に分かれる。私は、

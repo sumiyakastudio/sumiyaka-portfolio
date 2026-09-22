@@ -221,7 +221,7 @@ export default function MonthlyReportTool() {
       triggerDownload(pdf, `${safeFileName(`月次レポート_${doc.target.key}`)}.pdf`);
     } catch (error) {
       setMessage(
-        error instanceof Error ? error.message : "PDFを作成できませんでした。",
+        error instanceof Error ? error.message : "PDFを書き出せませんでした。",
       );
     } finally {
       setBusy(null);
@@ -295,7 +295,7 @@ export default function MonthlyReportTool() {
               <span className={styles.dropIcon} aria-hidden="true" />
               <span className={styles.dropText}>Excel（.xlsx）か CSV をここへ</span>
               <span className={styles.dropSub}>
-                日付と金額の列があれば読めます。クリックしても選べます
+                日付と金額の列があれば読めます／押しても選べます
               </span>
               <input
                 ref={fileInputRef}
@@ -347,13 +347,13 @@ export default function MonthlyReportTool() {
                   </li>
                 ))}
                 {issues.length > 8 ? (
-                  <li className={styles.issueMore}>ほか {issues.length - 8} 件</li>
+                  <li className={styles.issueMore}>ほか{issues.length - 8}件</li>
                 ) : null}
               </ul>
             ) : null}
             {dropped > 0 ? (
               <p className={styles.issueSummary}>
-                {dropped} 行を集計に含めていません。読めなかった値を 0 円として混ぜると、
+                {dropped}行を集計に含めていません。読み取れなかった値を0円として混ぜると、
                 合計が静かにずれるためです。
               </p>
             ) : null}
@@ -511,7 +511,7 @@ export default function MonthlyReportTool() {
               onClick={exportPdf}
               disabled={!doc || busy !== null || trial.limited}
             >
-              このレポートをPDFで保存
+              このレポートをPDFで書き出す
             </button>
             <TrialNotice trial={trial} />
 
@@ -542,11 +542,11 @@ export default function MonthlyReportTool() {
             </p>
           )}
 
-          <p className={styles.spHint}>← 横にスクロールできます →</p>
+          <p className={styles.spHint}>横にスクロールできます。</p>
           <p className={styles.stageNote}>
             紙面はA4横1枚です。PDFにも同じ内容が入ります。
             {doc && doc.missing.length > 0
-              ? `　表示期間のうち ${doc.missing.length} か月はデータが無いため、棒を描かずに要約で明記しています。`
+              ? `　表示期間のうち${doc.missing.length}か月はデータが無いため、棒を描かずに要約で明記しています。`
               : ""}
           </p>
         </div>

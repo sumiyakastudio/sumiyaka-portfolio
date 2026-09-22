@@ -52,7 +52,7 @@ export function buildZipInput(
   const entries = listZipEntries(plan);
   if (entries.length !== bytesList.length) {
     throw new Error(
-      `ZIPに入れる件数が合いません（一覧 ${entries.length} 件 / バイト列 ${bytesList.length} 件）。`,
+      `ZIPに入れる件数が合いません（一覧 ${entries.length}件 / バイト列 ${bytesList.length}件）。`,
     );
   }
 

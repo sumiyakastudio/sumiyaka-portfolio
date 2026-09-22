@@ -324,7 +324,7 @@ export default function CasesFV({
                   </span>
                   {rep.after.human
                     ? `実測（人の手 ${formatDuration(rep.after.human)}＋AIの稼働 ${formatDuration(rep.after.ai)}）`
-                    : "実測（AIが動いた時間）"}
+                    : "実測（AIの稼働時間）"}
                 </p>
               </>
             ) : null}

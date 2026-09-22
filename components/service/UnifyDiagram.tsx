@@ -162,7 +162,7 @@ export default function UnifyDiagram() {
         <span className={styles.figNo} aria-hidden="true">
           FIG. 03-A
         </span>
-        <span className={styles.figLabel}>入力の形式をそろえる</span>
+        <span className={styles.figLabel}>入力の形式を揃える</span>
         <span className={styles.rule} aria-hidden="true" />
       </figcaption>
 

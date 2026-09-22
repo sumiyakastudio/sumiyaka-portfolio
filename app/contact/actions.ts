@@ -55,7 +55,7 @@ export async function submitContact(
     return { success: false, error: "メールアドレスを正しく入力してください" };
   }
   if (!message?.trim() || message.length > 5000) {
-    return { success: false, error: "お問い合わせ内容を入力してください（5000文字以内）" };
+    return { success: false, error: "ご相談内容を入力してください（5000文字以内）" };
   }
 
   try {

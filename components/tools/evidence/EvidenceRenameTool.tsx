@@ -123,8 +123,8 @@ const STATUS_CLASS: Record<RenameStatus, string> = {
 const DISCLAIMER_LINES: readonly string[] = [
   "このツールが行うのは、ファイル名の付け替えと索引簿の作成だけです。",
   "電子帳簿保存法の要件を満たすことを保証するものではありません。",
-  "検索要件は事業者の状況によって不要になる場合があり（判定期間に係る基準期間の売上高が5,000万円以下のときなど）、逆にファイル名以外にも必要な対応（改ざん防止措置、事務処理規程の備付けなど）があります。",
-  "ご自身の要件は、国税庁「電子帳簿保存法一問一答【電子取引関係】」をご確認のうえ、必要に応じて顧問税理士にご相談ください。",
+  "検索要件は、事業者の状況によって不要になる場合があります（判定期間に係る基準期間の売上高が5,000万円以下のときなど）。一方で、ファイル名以外にも必要な対応（改ざん防止措置、事務処理規程の備付けなど）があります。",
+  "ご自身に必要な要件については、国税庁「電子帳簿保存法一問一答【電子取引関係】」をご確認のうえ、必要に応じて顧問税理士にご相談ください。",
 ];
 
 const NTA_QA_URL =
@@ -143,9 +143,9 @@ function formatMb(bytes: number): string {
 }
 
 function formatSize(bytes: number): string {
-  if (bytes <= 0) return "0 KB";
-  if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
-  return `${formatMb(bytes)} MB`;
+  if (bytes <= 0) return "0KB";
+  if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))}KB`;
+  return `${formatMb(bytes)}MB`;
 }
 
 /** 保存済みの値が選択肢に無ければ既定へ落とす */
@@ -313,13 +313,13 @@ export default function EvidenceRenameTool() {
         setSourceName("");
       }
       if (result.addedCount === 0 && result.skippedCount > 0) {
-        setCollectNote(`${result.skippedCount} 件はすでに読み込み済みです。`);
+        setCollectNote(`${result.skippedCount}件はすでに読み込み済みです。`);
       } else if (result.skippedCount > 0) {
         setCollectNote(
-          `${result.addedCount} 件を追加しました（${result.skippedCount} 件はすでに読み込み済み）。`,
+          `${result.addedCount}件を追加しました（${result.skippedCount}件はすでに読み込み済み）。`,
         );
       } else {
-        setCollectNote(`${result.addedCount} 件を追加しました。`);
+        setCollectNote(`${result.addedCount}件を追加しました。`);
       }
     },
     [files, isSample],
@@ -504,7 +504,7 @@ export default function EvidenceRenameTool() {
       );
     } catch (error) {
       setMessage(
-        error instanceof Error ? error.message : "ZIPを作成できませんでした。",
+        error instanceof Error ? error.message : "ZIPを書き出せませんでした。",
       );
     } finally {
       setBusy(null);
@@ -525,7 +525,7 @@ export default function EvidenceRenameTool() {
         );
       } catch (error) {
         setMessage(
-          error instanceof Error ? error.message : "CSVを作成できませんでした。",
+          error instanceof Error ? error.message : "CSVを書き出せませんでした。",
         );
       }
     },
@@ -582,7 +582,7 @@ export default function EvidenceRenameTool() {
             <dt>合計</dt>
             <dd>
               {formatMb(totalBytes)}
-              <span>/ {formatMb(MAX_TOTAL_BYTES)} MB</span>
+              <span>/ {formatMb(MAX_TOTAL_BYTES)}MB</span>
             </dd>
           </div>
         </dl>
@@ -629,7 +629,7 @@ export default function EvidenceRenameTool() {
               >
                 <span className={styles.dropIcon} aria-hidden="true" />
                 <span className={styles.dropText}>PDF・画像をここへ</span>
-                <span className={styles.dropSub}>クリックしても選べます</span>
+                <span className={styles.dropSub}>押しても選べます</span>
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -667,8 +667,8 @@ export default function EvidenceRenameTool() {
               </p>
               <p className={styles.stepNote}>
                 対応する形式は {ACCEPTED_EXTENSIONS.join(" / ")} です。
-                {MAX_FILES} 件・1件あたり {formatMb(MAX_FILE_BYTES)} MB・合計{" "}
-                {formatMb(MAX_TOTAL_BYTES)} MB まで。
+                最大{MAX_FILES}件・1件あたり{formatMb(MAX_FILE_BYTES)}MB・合計
+                {formatMb(MAX_TOTAL_BYTES)}MBまで。
                 台帳に無いファイルは {UNMATCHED_FOLDER}/ に元の名前のまま入ります（黙って落としません）。
               </p>
 
@@ -705,7 +705,7 @@ export default function EvidenceRenameTool() {
                 <span className={styles.dropText}>
                   Excel（.xlsx）か CSV をここへ
                 </span>
-                <span className={styles.dropSub}>クリックしても選べます</span>
+                <span className={styles.dropSub}>押しても選べます</span>
                 <input
                   ref={ledgerInputRef}
                   type="file"
@@ -743,14 +743,14 @@ export default function EvidenceRenameTool() {
                   onClick={useSample}
                   disabled={busy !== null}
                 >
-                  サンプルに戻す
+                  サンプルで試す
                 </button>
               </div>
 
               <p className={styles.stepNote}>
-                列は {LEDGER_COLUMNS.join(" / ")} の6つ。
+                列は {LEDGER_COLUMNS.join("・")} の6つ。
                 見出しは名前で照合するので、並び順が違っても、余計な列があっても読めます。
-                {MAX_LEDGER_ROWS} 行まで。
+                {MAX_LEDGER_ROWS}行まで。
               </p>
 
               {allIssues.length > 0 ? (
@@ -770,14 +770,14 @@ export default function EvidenceRenameTool() {
                   ))}
                   {allIssues.length > 8 ? (
                     <li className={styles.issueMore}>
-                      ほか {allIssues.length - 8} 件
+                      ほか{allIssues.length - 8}件
                     </li>
                   ) : null}
                 </ul>
               ) : null}
               {skipped > 0 ? (
                 <p className={styles.issueSummary}>
-                  {skipped} 行を対応表に載せていません。台帳を直してから読み込み直してください。
+                  {skipped}行を対応表に載せていません。台帳を直してから読み込み直してください。
                 </p>
               ) : null}
             </section>
@@ -927,7 +927,7 @@ export default function EvidenceRenameTool() {
                   onClick={exportZip}
                   disabled={!canZip || busy !== null || trial.limited}
                 >
-                  {canZip ? `${zipCount} 件をZIPで書き出す` : "ZIPで書き出す"}
+                  {canZip ? `${zipCount}件をZIPで書き出す` : "ZIPで書き出す"}
                 </button>
               </div>
               <TrialNotice trial={trial} />
@@ -1006,7 +1006,7 @@ export default function EvidenceRenameTool() {
 
           {plan.pairs.length === 0 ? (
             <p className={styles.empty}>
-              証憑と台帳を読み込むと、ここに前後の対応表が並びます。
+              証憑と台帳を読み込むと、ここに新旧の対応表が並びます。
             </p>
           ) : (
             <div className={styles.tableScroll}>
@@ -1048,7 +1048,7 @@ export default function EvidenceRenameTool() {
                           <div>
                             <dt>台帳の行</dt>
                             <dd>
-                              {pair.row ? `${pair.row.sourceLine} 行目` : "—"}
+                              {pair.row ? `${pair.row.sourceLine}行目` : "—"}
                             </dd>
                           </div>
                           <div>
@@ -1097,14 +1097,14 @@ export default function EvidenceRenameTool() {
                 className={styles.ghostButton}
                 onClick={() => setVisibleRows(plan.pairs.length)}
               >
-                残り {restCount} 件を表示
+                残り{restCount}件を表示
               </button>
             </div>
           ) : null}
 
           <p className={styles.stageNote}>
             設定を変えると、右側の名前がその場で書き換わります。
-            行をクリックすると、台帳のどの行と結びついたかを開けます。
+            行を押すと、台帳のどの行と結びついたかを開けます。
           </p>
         </div>
       </div>

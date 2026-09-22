@@ -97,7 +97,7 @@ export default function Atari({ titleId }: Props) {
       </div>
       <ScrollReveal>
         <p className={styles.statSrc}>
-          エイトレッド調べ（2023年8月・従業員200人以下の中小企業バックオフィス担当者110名）
+          エイトレッド調べ（2023年8月・従業員200人以下の中小企業バックオフィス担当者110名対象）
         </p>
       </ScrollReveal>
     </>

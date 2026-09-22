@@ -15,7 +15,7 @@ const OG_URL =
 export const metadata: Metadata = {
   title: "入金消込 突合 — AKASHIKI Tools",
   description:
-    "銀行の入出金明細CSVと請求台帳を読み込むと、自動一致・要確認・未入金の3つに分かれます。振込名義のカナのゆれ、手数料の差引、合算入金、分割入金にも理由つきで対応。ファイルはブラウザの中だけで処理され、外部へ送信されません。",
+    "銀行の入出金明細CSVと請求台帳を読み込むと、自動一致・要確認・未入金の三つに分かれます。振込名義のカナのゆれ、手数料の差引、合算入金、分割入金にも理由つきで対応。ファイルはブラウザの中だけで処理され、外部へ送信されません。",
   alternates: { canonical: "/tools/payment-reconcile" },
   openGraph: {
     title: "入金消込 突合 — AKASHIKI Tools",
@@ -44,7 +44,7 @@ const CAN_DO = [
 const CANNOT_DO = [
   {
     title: "通帳や紙の明細の読み取り",
-    body: "通帳をスキャンした画像やPDFから入金を読み取ることは、このツールではしません。読むのは銀行が出したCSVと、Excel／CSVの請求台帳だけです。",
+    body: "通帳をスキャンした画像やPDFから入金を読み取ることは、このツールではしません。読むのは銀行が出したCSVと、Excel・CSVの請求台帳だけです。",
   },
   {
     title: "会計ソフトへの登録",
@@ -104,14 +104,14 @@ export default function PaymentReconcilePage() {
           </div>
 
           <p className={styles.lead}>
-            銀行の入出金明細と請求台帳を読み込むと、自動一致・要確認・未入金の3つに分かれます。
+            銀行の入出金明細と請求台帳を読み込むと、自動一致・要確認・未入金の三つに分かれます。
             <br className={styles.brPc} />
             ファイルはこの端末の中だけで処理され、どこにも送信されません。
           </p>
 
           <ul className={styles.badges}>
             <li>ブラウザの中だけで完結</li>
-            <li>銀行の入出金CSV × 請求台帳</li>
+            <li>銀行の入出金CSV×請求台帳</li>
             <li>判定の根拠が見える</li>
           </ul>
         </div>
@@ -163,7 +163,7 @@ export default function PaymentReconcilePage() {
         <div className={styles.customInner}>
           <ScrollReveal>
             <p className={styles.customLead}>
-              ここに置いているのは、1口座ぶんの明細と整った台帳を前提にした汎用版です。
+              ここに置いているのは、1口座ぶんの明細と整った台帳を前提にしたお試し版です。
             </p>
           </ScrollReveal>
           <ScrollReveal delay={0.1}>

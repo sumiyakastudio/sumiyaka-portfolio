@@ -224,7 +224,7 @@ export function parseNameList(bytes: Uint8Array, fileName: string): ParseResult 
   }
   if (colCount > MAX_COLUMNS) {
     return fail(
-      `列が ${colCount} 列あり、上限の ${MAX_COLUMNS} 列を超えています。名簿に関係する列だけを残してからお試しください。`,
+      `列が ${colCount}列あり、上限の ${MAX_COLUMNS}列を超えています。名簿に関係する列だけを残してからお試しください。`,
     );
   }
 
@@ -272,7 +272,7 @@ export function parseNameList(bytes: Uint8Array, fileName: string): ParseResult 
   }
   if (dataRows > MAX_ROWS) {
     return fail(
-      `データが ${dataRows} 行あり、上限の ${MAX_ROWS} 行を超えています。ファイルを分けてからお試しください。`,
+      `データが ${dataRows}行あり、上限の ${MAX_ROWS}行を超えています。ファイルを分けてからお試しください。`,
     );
   }
 

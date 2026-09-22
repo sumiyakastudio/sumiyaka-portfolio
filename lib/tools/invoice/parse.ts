@@ -116,7 +116,7 @@ export async function parseLedger(input: { name: string; bytes: Uint8Array }): P
   const header = findHeaderRow(grid, LEDGER_COLUMNS, LEDGER_REQUIRED_COLUMNS, LEDGER_HEADER_SCAN_ROWS);
   if (!header) {
     return fail(
-      `見出し行が見つかりませんでした。1行目に「${LEDGER_COLUMNS.join("／")}」の見出しを置いてください。`
+      `見出し行が見つかりませんでした。1行目に「${LEDGER_COLUMNS.join("・")}」の見出しを置いてください。`
     );
   }
 
@@ -278,7 +278,7 @@ export async function parseLedger(input: { name: string; bytes: Uint8Array }): P
     issues.push({
       line: 0,
       level: "error",
-      message: `明細が ${rows.length} 行あり、テンプレートの想定（${MAX_LEDGER_ROWS} 行）を超えています。ファイルを分けてお試しください。`,
+      message: `明細が ${rows.length}行あり、テンプレートの想定（${MAX_LEDGER_ROWS}行）を超えています。ファイルを分けてお試しください。`,
     });
   }
 

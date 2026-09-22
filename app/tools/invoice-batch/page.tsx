@@ -28,8 +28,8 @@ export const metadata: Metadata = {
 
 const CAN_DO = [
   {
-    title: "1つの台帳から、何十枚でも",
-    body: "請求書番号でまとめ、取引先ごとの1枚に組み替えます。10社でも50社でも、操作は一度きりで変わりません。",
+    title: "一つの台帳から、何十枚でも",
+    body: "請求書番号でまとめ、取引先ごとの1枚に組み替えます。10社でも50社でも、操作は一度きりです。",
   },
   {
     title: "適格請求書（インボイス）の形で",
@@ -43,8 +43,8 @@ const CAN_DO = [
 
 const CANNOT_DO = [
   {
-    title: "スキャンした画像の読み取り",
-    body: "紙をスキャンしたPDFや写真から文字を起こすことは、このツールではしません。読むのはExcelとCSVだけです。",
+    title: "スキャンした画像やPDFの読み取り",
+    body: "紙をスキャンしたPDFや写真から文字を起こすことは、このツールではしません。読むのは Excel（.xlsx）と CSV だけです。",
   },
   {
     title: "人の判断の置き換え",
@@ -167,7 +167,7 @@ export default function InvoiceBatchPage() {
         <div className={styles.customInner}>
           <ScrollReveal>
             <p className={styles.customLead}>
-              ここに置いているのは、整った台帳を前提にした汎用版です。
+              ここに置いているのは、整った台帳を前提にしたお試し版です。
             </p>
           </ScrollReveal>
           <ScrollReveal delay={0.1}>

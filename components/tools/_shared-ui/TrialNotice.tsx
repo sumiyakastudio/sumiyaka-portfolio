@@ -18,9 +18,9 @@ export default function TrialNotice({ trial, className }: { trial: TrialState; c
     return (
       <p className={cls} role="status" aria-live="polite" data-trial-limited data-license={LICENSE}>
         お試し版の上限（1時間に{trial.limit}回）に達しました。{formatResetTime(trial.resetAt)} に再び書き出せます。
-        業務で継続して使うなら、御社の形に合わせた専用版を
+        業務で継続して使うなら、
         <Link href="/contact" className={styles.link}>
-          ご相談ください →
+          御社の形に合わせた専用版のご相談はこちら →
         </Link>
       </p>
     );
@@ -28,7 +28,7 @@ export default function TrialNotice({ trial, className }: { trial: TrialState; c
 
   return (
     <p className={cls} data-trial-remaining={trial.remaining} data-license={LICENSE}>
-      お試し版：書き出しは1時間に{trial.limit}回まで（残り {trial.remaining} 回）。
+      お試し版：書き出しは1時間に{trial.limit}回まで（残り{trial.remaining}回）。
     </p>
   );
 }

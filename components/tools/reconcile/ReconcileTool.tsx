@@ -369,7 +369,7 @@ export default function ReconcileTool() {
             >
               <span className={styles.dropIcon} aria-hidden="true" />
               <span className={styles.dropText}>Excel（.xlsx）か CSV をここへ</span>
-              <span className={styles.dropSub}>1行 ＝ 請求1件</span>
+              <span className={styles.dropSub}>1行 ＝ 請求1件／押しても選べます</span>
               <input
                 ref={ledgerInputRef}
                 type="file"
@@ -400,8 +400,8 @@ export default function ReconcileTool() {
             </div>
 
             <p className={styles.stepNote}>
-              請求 {result.invoiceCount} 件を突合に使います。
-              {droppedLedger > 0 ? `（${droppedLedger} 行は読み取れず、含めていません）` : ""}
+              請求{result.invoiceCount}件を突合に使います。
+              {droppedLedger > 0 ? `（${droppedLedger}行は読み取れず、含めていません）` : ""}
             </p>
           </section>
 
@@ -431,7 +431,9 @@ export default function ReconcileTool() {
             >
               <span className={styles.dropIcon} aria-hidden="true" />
               <span className={styles.dropText}>銀行の入出金明細 CSV をここへ</span>
-              <span className={styles.dropSub}>見出し行があれば、多くの銀行の形をそのまま読みます</span>
+              <span className={styles.dropSub}>
+                見出し行があれば、多くの銀行の形をそのまま読みます／押しても選べます
+              </span>
               <input
                 ref={statementInputRef}
                 type="file"
@@ -481,11 +483,11 @@ export default function ReconcileTool() {
             ) : null}
 
             <p className={styles.stepNote}>
-              入金 {result.paymentCount} 件を突合に使います。
+              入金{result.paymentCount}件を突合に使います。
               {layout && layout.skippedDebits > 0
-                ? `出金 ${layout.skippedDebits} 行は対象外にしました。`
+                ? `出金${layout.skippedDebits}行は対象外にしました。`
                 : ""}
-              {droppedStatement > 0 ? `（${droppedStatement} 行は読み取れず、含めていません）` : ""}
+              {droppedStatement > 0 ? `（${droppedStatement}行は読み取れず、含めていません）` : ""}
             </p>
 
           </section>
@@ -508,12 +510,12 @@ export default function ReconcileTool() {
                   </li>
                 ))}
                 {issues.length > 8 ? (
-                  <li className={styles.issueMore}>ほか {issues.length - 8} 件</li>
+                  <li className={styles.issueMore}>ほか{issues.length - 8}件</li>
                 ) : null}
               </ul>
               {droppedLedger + droppedStatement > 0 ? (
                 <p className={styles.stepNote}>
-                  読み取れなかった {droppedLedger + droppedStatement} 行は、突合に含めていません。
+                  読み取れなかった{droppedLedger + droppedStatement}行は、突合に含めていません。
                   0円や空欄で埋めて通すと、間違いに気づけなくなるためです。
                 </p>
               ) : null}
@@ -669,7 +671,7 @@ export default function ReconcileTool() {
           )}
 
           <p className={styles.stageNote}>
-            行を押すと、なぜその判定になったのかと、照合に使ったキーが開きます。
+            行を押すと、判定の理由と、照合に使ったキーが開きます。
           </p>
         </div>
       </div>
@@ -699,7 +701,7 @@ function ReconcileRow({
       ? "台帳に該当なし"
       : row.invoices.length === 1
         ? firstInvoice.invoiceNo
-        : `${firstInvoice.invoiceNo} ほか ${row.invoices.length - 1} 件`;
+        : `${firstInvoice.invoiceNo} ほか${row.invoices.length - 1}件`;
 
   const clientLabel =
     row.invoices.length === 0
@@ -731,7 +733,7 @@ function ReconcileRow({
             <span className={styles.rowDate}>{formatIsoSlash(firstPayment.date)}</span>
             <span className={styles.rowDesc}>
               {row.payments.length > 1
-                ? `${firstPayment.description} ほか ${row.payments.length - 1} 件`
+                ? `${firstPayment.description} ほか${row.payments.length - 1}件`
                 : firstPayment.description}
             </span>
             <span className={styles.rowAmount}>入金 {formatYen(row.paymentTotal)}</span>
@@ -772,7 +774,7 @@ function ReconcileRow({
                   {gap === 0
                     ? "期日ちょうど"
                     : gap > 0
-                      ? `${gap}日 遅れ`
+                      ? `${gap}日 遅い`
                       : `${-gap}日 早い`}
                 </dd>
               </div>

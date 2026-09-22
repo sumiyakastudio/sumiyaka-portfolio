@@ -48,7 +48,7 @@ const DUPLICATE_HEADER: readonly string[] = [
   "判定",
   "類似度",
   "元ファイルの行番号",
-  "突合に使った値",
+  "照合に使った値",
   "比較キー",
 ];
 

@@ -252,7 +252,7 @@ export default function TableUnifyTool() {
             addedIssues.push({
               line: 0,
               level: "warn",
-              message: `一度に取り込めるのは ${MAX_FILES} ファイルまでです。${file.name} は取り込んでいません。`,
+              message: `一度に取り込めるのは${MAX_FILES}ファイルまでです。${file.name} は取り込んでいません。`,
             });
             continue;
           }
@@ -274,7 +274,7 @@ export default function TableUnifyTool() {
             addedIssues.push({
               line: 0,
               level: "error",
-              message: `合計 ${MAX_TOTAL_ROWS.toLocaleString("ja-JP")} 行を超えるため、${file.name} は取り込んでいません。`,
+              message: `合計 ${MAX_TOTAL_ROWS.toLocaleString("ja-JP")}行を超えるため、${file.name} は取り込んでいません。`,
             });
             continue;
           }
@@ -590,7 +590,7 @@ export default function TableUnifyTool() {
             <dt>ファイル</dt>
             <dd>
               {files.length}
-              <span>本</span>
+              <span>ファイル</span>
             </dd>
           </div>
           <div>
@@ -653,7 +653,7 @@ export default function TableUnifyTool() {
             >
               <span className={styles.dropIcon} aria-hidden="true" />
               <span className={styles.dropText}>Excel（.xlsx）か CSV をここへ</span>
-              <span className={styles.dropSub}>まとめて選べます（{MAX_FILES}本まで）</span>
+              <span className={styles.dropSub}>まとめて選べます（{MAX_FILES}ファイルまで）</span>
               <input
                 ref={fileInputRef}
                 type="file"
@@ -680,19 +680,19 @@ export default function TableUnifyTool() {
               <a
                 className={styles.ghostButton}
                 href="/tools/unify/sample-b-uriage.xlsx"
-                download="B商事_売上一覧.xlsx"
+                download="B社_売上一覧.xlsx"
               >
                 B .xlsx
               </a>
               <a
                 className={styles.ghostButton}
                 href="/tools/unify/sample-c-meisai.csv"
-                download="C_明細_2026年7月.csv"
+                download="C社_明細_2026年7月.csv"
               >
                 C .csv
               </a>
               <button type="button" className={styles.ghostButton} onClick={useSample}>
-                サンプルに戻す
+                サンプルで試す
               </button>
             </div>
 
@@ -710,7 +710,7 @@ export default function TableUnifyTool() {
                   </li>
                 ))}
                 {allIssues.length > 8 ? (
-                  <li className={styles.issueMore}>ほか {allIssues.length - 8} 件</li>
+                  <li className={styles.issueMore}>ほか{allIssues.length - 8}件</li>
                 ) : null}
               </ul>
             ) : null}
@@ -747,7 +747,7 @@ export default function TableUnifyTool() {
                 href="/tools/unify/sample-schema-uriage.xlsx"
                 download="管理表のひな形.xlsx"
               >
-                ひな形の見本
+                ひな形 .xlsx
               </a>
             </p>
 
@@ -945,7 +945,7 @@ export default function TableUnifyTool() {
 
             {result.stats.droppedSources.length > 0 ? (
               <p className={styles.issueSummary}>
-                出力に載せていない列：{result.stats.droppedSources.slice(0, 6).join(" / ")}
+                出力に載せていない列：{result.stats.droppedSources.slice(0, 6).join("・")}
                 {result.stats.droppedSources.length > 6
                   ? ` ほか${result.stats.droppedSources.length - 6}件`
                   : ""}
@@ -1056,8 +1056,8 @@ export default function TableUnifyTool() {
           <div className={styles.previewHead}>
             <h4>統合プレビュー</h4>
             <span>
-              先頭 {Math.min(PREVIEW_ROWS, result.rows.length)} 行 / 全{" "}
-              {result.stats.outputRows} 行
+              先頭 {Math.min(PREVIEW_ROWS, result.rows.length)}行 / 全
+              {result.stats.outputRows}行
             </span>
           </div>
           <div className={styles.previewScroll}>
@@ -1092,11 +1092,11 @@ export default function TableUnifyTool() {
               </tbody>
             </table>
           </div>
-          <p className={styles.spHint}>表は横にスクロールできます。</p>
+          <p className={styles.spHint}>横にスクロールできます。</p>
           {result.stats.mismatchCells > 0 ? (
             <p className={styles.stageNote}>
               下線の付いたセルは、列の種類（日付・数値）として読み取れなかったものです。
-              値は元のまま書き出します。列の種類を「文字」に変えると印は消えます。
+              値は元のまま書き出します。列の種類を「文字」に変えると下線は消えます。
             </p>
           ) : null}
         </div>

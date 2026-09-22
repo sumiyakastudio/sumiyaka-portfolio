@@ -27,7 +27,7 @@ const SECTIONS: { title: string; body: string[] }[] = [
   {
     title: "2. お試し利用の範囲",
     body: [
-      "書き出し（PDF・ZIP・CSV・Excel のダウンロード）は、ツールごとに 1時間あたり10回 までです。回数は端末側で数え、上限に達すると復帰時刻が表示されます。プレビューや設定の変更に制限はありません。",
+      "書き出し（PDF・ZIP・CSV・Excel のダウンロード）は、ツールごとに1時間に10回までです。回数は端末側で数え、上限に達すると復帰時刻が表示されます。プレビューや設定の変更に制限はありません。",
       "業務で継続して使う場合、社内システムに組み込む場合、御社の台帳の形に合わせる場合は、専用版として一社ずつ作ります。お問い合わせページからご相談ください。",
     ],
   },
@@ -96,11 +96,11 @@ export default function ToolsTermsPage() {
           <section className={styles.section}>
             <h2 className={styles.h2}>7. お問い合わせ</h2>
             <p className={styles.p}>
-              専用版のご相談、利用許諾、本条件に関するお問い合わせは
+              専用版のご相談・利用許諾・本条件については、
               <Link href="/contact" className={styles.link}>
                 お問い合わせページ
               </Link>
-              からお願いします。
+              からご連絡ください。
             </p>
           </section>
 

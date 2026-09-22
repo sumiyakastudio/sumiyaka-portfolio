@@ -81,7 +81,7 @@ export default function CaseCard({ item }: { item: CaseStudy }) {
                     value={item.after.ai.minutes}
                     display={item.after.ai.display}
                   />
-                  （AIが動いた時間）
+                  （AIの稼働時間）
                 </>
               )}
             </span>

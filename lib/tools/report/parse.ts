@@ -245,7 +245,7 @@ export async function parseSales(input: { name: string; bytes: Uint8Array }): Pr
       line: 0,
       column: "商品・サービス",
       level: "warn",
-      message: `「商品・サービス」が空の行が ${blankItem} 行あります。${UNCLASSIFIED}としてまとめました。`,
+      message: `「商品・サービス」が空の行が ${blankItem}行あります。${UNCLASSIFIED}としてまとめました。`,
     });
   }
   if (blankClient > 0) {
@@ -253,7 +253,7 @@ export async function parseSales(input: { name: string; bytes: Uint8Array }): Pr
       line: 0,
       column: "取引先",
       level: "warn",
-      message: `「取引先」が空の行が ${blankClient} 行あります。${UNCLASSIFIED}としてまとめました。`,
+      message: `「取引先」が空の行が ${blankClient}行あります。${UNCLASSIFIED}としてまとめました。`,
     });
   }
   if (zeroCount > 0) {
@@ -261,7 +261,7 @@ export async function parseSales(input: { name: string; bytes: Uint8Array }): Pr
       line: 0,
       column: "件数",
       level: "warn",
-      message: `件数が 0 の行が ${zeroCount} 行あります。金額だけ集計し、平均単価の計算には含めていません。`,
+      message: `件数が 0 の行が ${zeroCount}行あります。金額だけ集計し、平均単価の計算には含めていません。`,
     });
   }
   if (roundedCount > 0) {
@@ -269,7 +269,7 @@ export async function parseSales(input: { name: string; bytes: Uint8Array }): Pr
       line: 0,
       column: "件数",
       level: "warn",
-      message: `件数に小数のある行が ${roundedCount} 行あります。四捨五入して扱いました。`,
+      message: `件数に小数のある行が ${roundedCount}行あります。四捨五入して扱いました。`,
     });
   }
   if (negativeAmount > 0) {
@@ -277,14 +277,14 @@ export async function parseSales(input: { name: string; bytes: Uint8Array }): Pr
       line: 0,
       column: "金額",
       level: "warn",
-      message: `金額が負の行が ${negativeAmount} 行あります。返品・値引きとしてそのまま合算しています。`,
+      message: `金額が負の行が ${negativeAmount}行あります。返品・値引きとしてそのまま合算しています。`,
     });
   }
   if (droppedRows > 0) {
     issues.push({
       line: 0,
       level: "error",
-      message: `${droppedRows} 行を読み込めなかったため、集計に含めていません。上の指摘の行を直すと集計に入ります。`,
+      message: `${droppedRows}行を読み込めなかったため、集計に含めていません。上の指摘の行を直すと集計に入ります。`,
     });
   }
 
@@ -305,7 +305,7 @@ export async function parseSales(input: { name: string; bytes: Uint8Array }): Pr
         {
           line: 0,
           level: "error",
-          message: `明細が ${rows.length.toLocaleString("ja-JP")} 行あり、想定（${MAX_SALES_ROWS.toLocaleString("ja-JP")} 行）を超えています。期間で分けてお試しください。`,
+          message: `明細が ${rows.length.toLocaleString("ja-JP")}行あり、想定（${MAX_SALES_ROWS.toLocaleString("ja-JP")}行）を超えています。期間で分けてお試しください。`,
         },
       ],
       sourceName,

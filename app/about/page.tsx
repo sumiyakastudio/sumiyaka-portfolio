@@ -98,7 +98,7 @@ const TIMELINE: { when: string; text: ReactNode }[] = [
   },
   {
     when: "29歳〜",
-    text: "独立。AI導入の設計・教育、業務効率化の設計と実装、Web制作を、一人で。",
+    text: "独立。AI導入の設計・教育、業務の自動化・ツール開発、Web制作を、一人で。",
   },
 ];
 
@@ -117,14 +117,14 @@ const BELIEFS = [
   {
     num: "03",
     heading: "仕組みで速く、手で仕上げる",
-    text: "まず動くものを作り、実際のファイルで確かめながらブラッシュアップする。構造から考え、設計で差をつけ、最後は人の目で一つひとつ確認します。AIが作ったものも、例外ではありません。",
+    text: "まず動くものを作り、実際のファイルで確かめながらブラッシュアップします。構造から考え、設計で差をつけ、最後は人の目で一つひとつ確認します。AIが作ったものも、例外ではありません。",
   },
 ];
 
 /* ---- B-7 引き受けないこと ---- */
 const DONTS = [
   { name: "手書き書類のスキャン画像の読み取り", desc: "読み取り精度を保証できないため。" },
-  { name: "人の判断そのものの置き換え", desc: "例外対応や承認は、人に残すべき仕事です。" },
+  { name: "人の判断そのものの置き換え", desc: "例外対応や承認の判断は、人に残すべき仕事です。" },
   { name: "全業務の一括自動化", desc: "効果の大きい作業から、一つずつ確実に。" },
 ];
 
@@ -244,7 +244,7 @@ export default function AboutPage() {
 
               <ScrollReveal className={styles.reveal} delay={0.08}>
                 <p className={styles.profileLead}>
-                  机上のコンサルティングではなく、「現場の当事者」としての経験がもとになっています。
+                  この仕事のやり方は、机上のコンサルティングではなく、「現場の当事者」としての経験がもとになっています。
                 </p>
               </ScrollReveal>
 
@@ -255,14 +255,14 @@ export default function AboutPage() {
                 <p className={styles.body}>
                   そこで見たのは、システムが「無い」現場ではなく、システム同士が
                   <Highlight>「繋がっていない」</Highlight>
-                  現場です。だから人が転記し、照合し、月末に半日を失う。業務が止まる現場を見てきたから——それが、この仕事をしている理由です。
+                  現場です。だから人が転記し、照合し、月末に半日を失う。その現場を見てきたから——それが、この仕事をしている理由です。
                 </p>
               </ScrollReveal>
 
               <ScrollReveal className={styles.reveal} delay={0.2}>
                 <Disclose className={styles.disclose}>
                   <p className={styles.detail}>
-                    2022年12月、ChatGPTの公開初日に登録しました。趣味ではなく、仕事のためです。医療機関の中で使う以上、何を渡さないかから決めました。メールの返信案から、スケジュール管理、プログラミングの補助へと、任せる範囲を一つずつ広げ、その後29歳で独立。AIを実務で使い続けて、4年目になります。
+                    2022年12月、ChatGPTの公開初日に登録しました。趣味ではなく、仕事のためです。医療機関の中で使う以上、何を渡さないかを、先に決めました。メールの返信案から、スケジュール管理、プログラミングの補助へと、任せる範囲を一つずつ広げ、その後29歳で独立。AIを実務で使い続けて、4年目になります。
                   </p>
                 </Disclose>
               </ScrollReveal>
@@ -319,7 +319,7 @@ export default function AboutPage() {
                   </ScrollReveal>
                   <ScrollReveal className={styles.reveal} delay={0.15}>
                     <p className={styles.stanceBody}>
-                      会社の業務がどう回るかを分かった上で、技術を当てる。だから仕事を三段に分けています——御社専用の道具を渡す、その道具をAIに使わせる、社員の方が自分で作れるようにする。
+                      会社の業務がどう回るかが分かった上で、技術を当てる。だから仕事を三段に分けています——御社専用の道具を渡す、その道具をAIに使わせる、社員の方が自分で作れるようにする。
                     </p>
                   </ScrollReveal>
                 </div>
@@ -476,7 +476,7 @@ export default function AboutPage() {
               <div className={styles.scopeItem}>
                 <h3 className={styles.scopeItemHeading}>支給データからの実装</h3>
                 <p className={styles.scopeItemText}>
-                  デザインが既にある場合は、Figma／XD からの実装だけも承ります。
+                  デザインが既にある場合は、Figma／XD からの実装だけでも承ります。
                 </p>
               </div>
             </ScrollReveal>

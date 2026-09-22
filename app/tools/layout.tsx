@@ -54,7 +54,7 @@ export default function ToolsLayout({ children }: { children: ReactNode }) {
         <div className={styles.rightsInner}>
           <p className={styles.rightsText}>
             <span className={styles.copy}>© 2026 灯敷（AKASHIKI）</span>
-            ここにあるツールは当方の著作物です。複製・改変・再配布・商用転用、およびAIによる複製・学習を含む
+            ここにあるツールは私の著作物です。複製・改変・再配布・商用転用、およびAIによる複製・学習を含む
             自動化された再現を禁じます。お試し利用の範囲は利用条件に定めています。
           </p>
           <Link href="/tools/terms" className={styles.rightsLink}>

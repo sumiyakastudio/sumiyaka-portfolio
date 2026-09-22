@@ -120,7 +120,7 @@ export function collectFiles(
     }
     if (size > MAX_FILE_BYTES) {
       return collectFailed(
-        `「${name}」は ${mb(size)} MB あり、1件あたりの上限（${mb(MAX_FILE_BYTES)} MB）を超えています。読み込みを中止しました。`,
+        `「${name}」は ${mb(size)}MB あり、1件あたりの上限（${mb(MAX_FILE_BYTES)}MB）を超えています。読み込みを中止しました。`,
       );
     }
     seen.add(dk);
@@ -149,7 +149,7 @@ export function collectFiles(
 
   if (files.length > MAX_FILES) {
     return collectFailed(
-      `合計 ${files.length} 件になり、一度に読み込める上限（${MAX_FILES} 件）を超えます。分けてお試しください。`,
+      `合計 ${files.length}件になり、一度に読み込める上限（${MAX_FILES}件）を超えます。分けてお試しください。`,
     );
   }
 
@@ -157,7 +157,7 @@ export function collectFiles(
   for (const f of files) totalBytes += f.size;
   if (totalBytes > MAX_TOTAL_BYTES) {
     return collectFailed(
-      `合計 ${mb(totalBytes)} MB になり、上限（${mb(MAX_TOTAL_BYTES)} MB）を超えます。読み込みを中止しました。分けてお試しください。`,
+      `合計 ${mb(totalBytes)}MB になり、上限（${mb(MAX_TOTAL_BYTES)}MB）を超えます。読み込みを中止しました。分けてお試しください。`,
     );
   }
 
@@ -317,7 +317,7 @@ export function buildPlan(
     const file = found.file;
     const owner = claimedBy.get(file.key);
     if (owner !== undefined) {
-      const message = `このファイルは ${owner} 行目でも指定されています。1つのファイルを2つの行から指すことはできません。`;
+      const message = `このファイルは ${owner}行目でも指定されています。1つのファイルを2つの行から指すことはできません。`;
       issues.push({ line: row.sourceLine, column: "元のファイル名", level: "error", message });
       pairs.push(missingPair(row, message));
       continue;
@@ -359,7 +359,7 @@ export function buildPlan(
               ? "取引先の名称に、ファイル名に使える文字がありません。"
               : reason === "length"
                 ? "取引先の名称が長すぎて、ファイル名を決められません。"
-                : `同じ名前が ${MAX_SEQ} 件を超えました。台帳を分けてお試しください。`;
+                : `同じ名前が ${MAX_SEQ}件を超えました。台帳を分けてお試しください。`;
       issues.push({ line: row.sourceLine, level: "error", message });
       pairs.push(missingPair(row, `${message}この証憑は「_未処理」に入れます。`));
       continue;
@@ -495,7 +495,7 @@ export function buildPlan(
     issues.push({
       line: 0,
       level: "warn",
-      message: `台帳の ${counts.missing} 行は、対応するファイルが読み込まれていません（対応表に「ファイルなし」と出ています）。`,
+      message: `台帳の ${counts.missing}行は、対応するファイルが読み込まれていません（対応表に「ファイルなし」と出ています）。`,
     });
   }
 

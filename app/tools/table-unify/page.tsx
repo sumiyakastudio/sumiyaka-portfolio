@@ -15,7 +15,7 @@ const OG_URL =
 export const metadata: Metadata = {
   title: "列マッピング統合 — AKASHIKI Tools",
   description:
-    "列の並びも見出し名もバラバラなExcel／CSVを、決めた管理表の形へ揃えて1つの表にまとめます。対応づけは見出しの名前から機械が下書きし、人が線を引き直して確定できます。読み込んだファイルはブラウザの中だけで処理され、外部へ送信されません。",
+    "列の並びも見出し名もバラバラなExcel・CSVを、決めた管理表の形へ揃えて一つの表にまとめます。対応づけは見出しの名前から機械が下書きし、人が線を引き直して確定できます。読み込んだファイルはブラウザの中だけで処理され、外部へ送信されません。",
   alternates: { canonical: "/tools/table-unify" },
   openGraph: {
     title: "列マッピング統合 — AKASHIKI Tools",
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
 const CAN_DO = [
   {
     title: "列の名前が違っても、揃う",
-    body: "「得意先名」「取引先」「会社名」— 呼び方が違うだけの列を、機械が見つけて線でつなぎます。つながらなかったところだけを直せば終わりです。",
+    body: "「得意先名」「取引先」「会社名」——呼び方が違うだけの列を、機械が見つけて線でつなぎます。つながらなかったところだけを直せば終わりです。",
   },
   {
     title: "出力の形は、御社の管理表",
@@ -37,13 +37,13 @@ const CAN_DO = [
   },
   {
     title: "どこから来た行かが残る",
-    body: "統合した表には、取り込み元のファイル名が入ります。あとから「この行はどのファイルの何行目か」をたどれます。",
+    body: "統合した表には、取り込み元のファイル名が入ります。行番号を足せば「どのファイルの何行目か」までたどれます。",
   },
 ];
 
 const CANNOT_DO = [
   {
-    title: "スキャンした画像の読み取り",
+    title: "スキャンした画像やPDFの読み取り",
     body: "紙をスキャンしたPDFや写真から表を起こすことは、このツールではしません。読むのは Excel（.xlsx）と CSV だけです。",
   },
   {
@@ -51,7 +51,7 @@ const CANNOT_DO = [
     body: "「㈱」と「株式会社」を同じものに直したり、住所の表記を整えたり、同じ人物の重複を名寄せしたりはしません。列と列をつなぐところだけを引き受けます。",
   },
   {
-    title: "全業務の一括自動化",
+    title: "人の判断の置き換え",
     body: "表を揃えるという一工程だけを引き受けます。どの列がどの列に当たるかを最後に決めるのは人です。機械が出すのは下書きです。",
   },
 ];
@@ -65,7 +65,7 @@ export default function TableUnifyPage() {
     operatingSystem: "Web browser",
     url: "https://akashiki.com/tools/table-unify",
     description:
-      "列の並びも見出し名もバラバラな複数のExcel／CSVを、利用者が決めた1つの管理表の形へ揃えて統合するブラウザ内完結のツール。統合した表は Excel（.xlsx）と CSV で書き出せる。",
+      "列の並びも見出し名もバラバラな複数のExcel・CSVを、利用者が決めた一つの管理表の形へ揃えて統合するブラウザ内完結のツール。統合した表は Excel（.xlsx）と CSV で書き出せる。",
     offers: { "@type": "Offer", price: "0", priceCurrency: "JPY" },
     author: {
       "@type": "Organization",
@@ -104,7 +104,7 @@ export default function TableUnifyPage() {
           </div>
 
           <p className={styles.lead}>
-            列の並びも見出し名も違う複数の表を、決めた管理表の形へ揃えて1つにまとめます。
+            列の並びも見出し名も違う複数の表を、決めた管理表の形へ揃えて一つにまとめます。
             <br className={styles.brPc} />
             読み込んだファイルはこの端末の中だけで処理され、どこにも送信されません。
           </p>
@@ -167,7 +167,7 @@ export default function TableUnifyPage() {
         <div className={styles.customInner}>
           <ScrollReveal>
             <p className={styles.customLead}>
-              ここに置いているのは、整った表を前提にした汎用版です。
+              ここに置いているのは、整った表を前提にしたお試し版です。
             </p>
           </ScrollReveal>
           <ScrollReveal delay={0.1}>

@@ -95,7 +95,7 @@ export default function Trust({ titleId }: Props) {
         <p className={styles.since}>ChatGPT公開初日から、仕事で使い続けて4年目。</p>
         <Disclose className={styles.detail}>
           <p className={sv.detail}>
-            止まれば診療が止まり、漏れれば人体の情報という最上級のプライバシーが漏れる現場でした。そこで身についた作り方に、AIを掛けています。医療機関の中で使う以上、何を渡さないかから決めました。
+            止まれば診療が止まり、漏れれば人体の情報という最上級のプライバシーが漏れる現場でした。そこで身についた作り方に、AIを掛けています。医療機関の中で使う以上、何を渡さないかを、先に決めました。
           </p>
         </Disclose>
       </ScrollReveal>

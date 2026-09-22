@@ -281,7 +281,7 @@ export function buildSourceFileFromGrid(
     headerIndex = opts.headerRow === NO_HEADER_ROW ? NO_HEADER_ROW : opts.headerRow;
     if (headerIndex >= 0 && rowIsEmpty(grid[headerIndex])) {
       return fail(
-        `見出し行に指定された ${lineOf(headerIndex)} 行目が空です。ほかの行を選ぶか、「見出し行なし」にしてください。`,
+        `見出し行に指定された ${lineOf(headerIndex)}行目が空です。ほかの行を選ぶか、「見出し行なし」にしてください。`,
         lineOf(headerIndex),
       );
     }
@@ -289,7 +289,7 @@ export function buildSourceFileFromGrid(
     const detected = detectHeaderRow(grid, HEADER_SCAN_ROWS);
     if (detected === null) {
       return fail(
-        `先頭 ${HEADER_SCAN_ROWS} 行のなかに見出し行が見つかりませんでした。見出し行を選び直すか、「見出し行なし」でお試しください。`,
+        `先頭 ${HEADER_SCAN_ROWS}行のなかに見出し行が見つかりませんでした。見出し行を選び直すか、「見出し行なし」でお試しください。`,
       );
     }
     headerIndex = detected;
@@ -311,7 +311,7 @@ export function buildSourceFileFromGrid(
     issues.push({
       line: headerLine,
       level: "warn",
-      message: `列が ${colCount} 列あります。先頭 ${MAX_SOURCE_COLUMNS} 列だけを読み込みました。`,
+      message: `列が ${colCount}列あります。先頭 ${MAX_SOURCE_COLUMNS}列だけを読み込みました。`,
     });
     colCount = MAX_SOURCE_COLUMNS;
   }
@@ -330,13 +330,13 @@ export function buildSourceFileFromGrid(
     return fail(
       headerIndex === NO_HEADER_ROW
         ? "データ行がありません。"
-        : `${headerLine} 行目を見出しとして読みましたが、その下にデータがありません。見出し行を選び直してください。`,
+        : `${headerLine}行目を見出しとして読みましたが、その下にデータがありません。見出し行を選び直してください。`,
       headerLine,
     );
   }
   if (rows.length > MAX_ROWS_PER_FILE) {
     return fail(
-      `データが ${rows.length} 行あり、1ファイルの上限（${MAX_ROWS_PER_FILE} 行）を超えています。ファイルを分けてお試しください。`,
+      `データが ${rows.length}行あり、1ファイルの上限（${MAX_ROWS_PER_FILE}行）を超えています。ファイルを分けてお試しください。`,
     );
   }
 
@@ -378,7 +378,7 @@ export function buildSourceFileFromGrid(
     issues.push({
       line: headerLine,
       level: "warn",
-      message: `同じ見出しの列が ${duplicated} 組あります。画面では「(2)」を付けて区別します。`,
+      message: `同じ見出しの列が ${duplicated}組あります。画面では「(2)」を付けて区別します。`,
     });
   }
 

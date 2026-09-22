@@ -42,10 +42,10 @@ function validateField(field: string, value: string): string | undefined {
     case "email":
       if (!value.trim()) return "メールアドレスを入力してください";
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value))
-        return "正しいメールアドレスを入力してください";
+        return "メールアドレスを正しく入力してください";
       return undefined;
     case "message":
-      if (!value.trim()) return "お問い合わせ内容を入力してください";
+      if (!value.trim()) return "ご相談内容を入力してください";
       if (value.length > 5000) return "5000文字以内で入力してください";
       return undefined;
     default:
@@ -221,7 +221,7 @@ export default function ContactForm() {
                 className={styles.input}
                 value={form.name}
                 onChange={(e) => handleChange("name", e.target.value)}
-                placeholder="お名前をご記入ください"
+                placeholder="氏名をご記入ください"
                 autoComplete="name"
                 required
                 disabled={phase === "sending"}

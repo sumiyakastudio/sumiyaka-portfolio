@@ -221,7 +221,7 @@ export default function InvoiceBatchTool() {
       event.target.value = "";
       if (!file) return;
       if (file.size > IMAGE_MAX_BYTES) {
-        setMessage("画像は 400KB 以内にしてください。");
+        setMessage("角印の画像は400KB以内にしてください。");
         return;
       }
       const reader = new FileReader();
@@ -269,7 +269,7 @@ export default function InvoiceBatchTool() {
       );
     } catch (error) {
       setMessage(
-        error instanceof Error ? error.message : "PDFを作成できませんでした。",
+        error instanceof Error ? error.message : "PDFを書き出せませんでした。",
       );
     } finally {
       setBusy(null);
@@ -297,11 +297,11 @@ export default function InvoiceBatchTool() {
       const zipped = zipSync(files, { level: 0 });
       triggerDownload(
         new Blob([zipped.slice().buffer as ArrayBuffer], { type: "application/zip" }),
-        `invoices_${docs.length}件.zip`,
+        `請求書_${docs.length}件.zip`,
       );
     } catch (error) {
       setMessage(
-        error instanceof Error ? error.message : "PDFを作成できませんでした。",
+        error instanceof Error ? error.message : "PDFを書き出せませんでした。",
       );
     } finally {
       setBusy(null);
@@ -364,7 +364,7 @@ export default function InvoiceBatchTool() {
               <span className={styles.dropText}>
                 Excel（.xlsx）か CSV をここへ
               </span>
-              <span className={styles.dropSub}>クリックしても選べます</span>
+              <span className={styles.dropSub}>押しても選べます</span>
               <input
                 ref={fileInputRef}
                 type="file"
@@ -416,14 +416,14 @@ export default function InvoiceBatchTool() {
                 ))}
                 {issues.length > 8 ? (
                   <li className={styles.issueMore}>
-                    ほか {issues.length - 8} 件
+                    ほか{issues.length - 8}件
                   </li>
                 ) : null}
               </ul>
             ) : null}
             {skipped > 0 ? (
               <p className={styles.issueSummary}>
-                {skipped} 行を請求書に載せていません。台帳を直してから読み込み直してください。
+                {skipped}行を請求書に載せていません。台帳を直してから読み込み直してください。
               </p>
             ) : null}
           </section>
@@ -660,7 +660,7 @@ export default function InvoiceBatchTool() {
                 onClick={exportOne}
                 disabled={!current || busy !== null || trial.limited}
               >
-                この1件をPDF
+                この1件をPDFで書き出す
               </button>
               <button
                 type="button"
@@ -668,7 +668,7 @@ export default function InvoiceBatchTool() {
                 onClick={exportAll}
                 disabled={docs.length === 0 || busy !== null || trial.limited}
               >
-                {docs.length} 件まとめてZIP
+                {docs.length}件まとめてZIPで書き出す
               </button>
             </div>
             <TrialNotice trial={trial} />
@@ -722,7 +722,7 @@ export default function InvoiceBatchTool() {
             </p>
           )}
 
-          <p className={styles.spHint}>紙は横にスクロールできます。</p>
+          <p className={styles.spHint}>横にスクロールできます。</p>
           <p className={styles.stageNote}>
             プレビューは1ページ目です。PDFにはすべての明細が入り、A4で自動的に改ページされます。
           </p>

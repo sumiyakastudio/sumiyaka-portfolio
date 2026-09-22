@@ -29,7 +29,7 @@ export const metadata: Metadata = {
 const CAN_DO = [
   {
     title: "Excelを読み込むと、レポートが1枚出る",
-    body: "日付と金額の列があれば、月へ畳んで前月比・前年同月比・年度累計まで計算します。日々の明細でも、月次に集計済みの表でも、同じテンプレートで読めます。",
+    body: "日付と金額の列があれば、月へ畳んで前月比・前年同月比・年度累計まで計算します。日々の明細でも、月次に集計済みの表でも、同じ読み取り方で扱えます。",
   },
   {
     title: "数字とグラフと文章が、同じ集計から出る",
@@ -167,7 +167,7 @@ export default function MonthlyReportPage() {
         <div className={styles.customInner}>
           <ScrollReveal>
             <p className={styles.customLead}>
-              ここに置いているのは、整った売上表を前提にした汎用版です。
+              ここに置いているのは、整った売上表を前提にしたお試し版です。
             </p>
           </ScrollReveal>
           <ScrollReveal delay={0.1}>

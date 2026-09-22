@@ -123,7 +123,7 @@ export function runCleanup(
   if (dedupe.enabled) {
     if (keyColumnsFor(columns, dedupe.keyRoles).length === 0) {
       messages.push(
-        "重複の突合に使える列がありません。列の役割で「会社名」や「氏名」を指定してください。",
+        "重複の照合に使える列がありません。列の役割で「会社名」や「氏名」を指定してください。",
       );
     }
     // 全規則 ON のときは applyToRows の結果をそのまま使い回す（5,000行×18規則を2度走らせない）
@@ -138,8 +138,8 @@ export function runCleanup(
     // 1グループが上限に達した＝突合キーの選び方が悪いサイン
     if (duplicates.some((g) => g.rows.length >= MAX_GROUP_ROWS)) {
       messages.push(
-        `${MAX_GROUP_ROWS}行以上が同じキーです。突合に使う列を増やしてください。` +
-          `（1つのグループには${MAX_GROUP_ROWS}行までを表示しています）`,
+        `${MAX_GROUP_ROWS}行以上が同じキーです。照合に使う列を増やしてください。` +
+          `（一つのグループには${MAX_GROUP_ROWS}行までを表示しています）`,
       );
     }
   }

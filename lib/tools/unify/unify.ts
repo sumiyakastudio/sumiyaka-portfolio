@@ -230,14 +230,14 @@ export function unify(
           subtotalNotes.push({
             line: row.line,
             level: "warn",
-            message: `${file.name} の ${row.line} 行目を小計・合計行として外しました。`,
+            message: `${file.name} の ${row.line}行目を小計・合計行として外しました。`,
           });
           continue;
         }
         subtotalNotes.push({
           line: row.line,
           level: "warn",
-          message: `${file.name} の ${row.line} 行目は小計・合計行の可能性があります。外すなら「小計らしき行を外す」を入れてください。`,
+          message: `${file.name} の ${row.line}行目は小計・合計行の可能性があります。外すなら「小計らしき行を外す」を入れてください。`,
         });
       }
 
@@ -311,7 +311,7 @@ export function unify(
           dedupeNotes.push({
             line: row.line,
             level: "warn",
-            message: `${file.name} の ${row.line} 行目は ${first.fileName} の ${first.line} 行目と同じ内容のため外しました。`,
+            message: `${file.name} の ${row.line}行目は ${first.fileName} の ${first.line}行目と同じ内容のため外しました。`,
           });
           continue;
         }
@@ -371,7 +371,7 @@ export function unify(
     issues.push({
       line: 0,
       level: "warn",
-      message: `ほか ${hidden} 件、対応づけられていない出力列があります。`,
+      message: `ほか${hidden}件、対応づけられていない出力列があります。`,
     });
   }
 
@@ -402,7 +402,7 @@ export function unify(
         line: bad.line,
         column: stat.target.name,
         level: "warn",
-        message: `${stat.fileName} の ${bad.line} 行目《${stat.target.name}》の「${bad.raw}」は${label}として読み取れません。原文のまま出します。`,
+        message: `${stat.fileName} の ${bad.line}行目《${stat.target.name}》の「${bad.raw}」は${label}として読み取れません。原文のまま出します。`,
       });
     }
     if (stat.bad.length > shown.length) {
@@ -410,7 +410,7 @@ export function unify(
         line: 0,
         column: stat.target.name,
         level: "warn",
-        message: `${stat.fileName} の《${stat.target.name}》には、ほか ${stat.bad.length - shown.length} 件の読み取れない値があります。`,
+        message: `${stat.fileName} の《${stat.target.name}》には、ほか${stat.bad.length - shown.length}件の読み取れない値があります。`,
       });
     }
   }
@@ -423,7 +423,7 @@ export function unify(
       issues.push({
         line: 0,
         level: "warn",
-        message: `ほか ${notes.length - MAX_LISTED_ISSUES} 件、同じ指摘があります。`,
+        message: `ほか${notes.length - MAX_LISTED_ISSUES}件、同じ指摘があります。`,
       });
     }
   }

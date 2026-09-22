@@ -347,7 +347,7 @@ function prepare(sheet: Sheet, doc: InvoiceDoc, issuer: Issuer): Prepared {
   const dueDate = formatDate(doc.dueDate);
   if (invoiceNo) meta.push({ label: "請求書番号", value: invoiceNo });
   if (issueDate) meta.push({ label: "発行日", value: issueDate });
-  if (dueDate) meta.push({ label: "支払期日", value: dueDate });
+  if (dueDate) meta.push({ label: "お支払期日", value: dueDate });
 
   // 敬称の前は少し空ける（「〇〇株式会社御中」と密着させない）。
   // 空白文字ではなく実寸の空きで開けるので、折り返しで敬称だけが次行へ落ちることもない。

@@ -262,7 +262,7 @@ export default async function WorkDetailPage({ params }: PageProps) {
                   ))}
                   {group.truncatedCount > 0 && (
                     <span className={styles.chipMore}>
-                      ほか {group.truncatedCount} 件
+                      ほか{group.truncatedCount}件
                     </span>
                   )}
                 </div>

@@ -26,7 +26,7 @@ export const stancePhoto: SitePhoto = {
   width: 1440,
   height: 1080,
   alt: "クライアント先で、担当者の方と向き合って話を聞いている実際の様子",
-  caption: "クライアント先で、担当者の話を聞く",
+  caption: "クライアント先で、担当者の方の話を聞く",
 };
 
 /** C-2 クライアント先で、社員の方の作業を一歩引いて見ている → /cases FDEとは（3:2・mono） */
@@ -43,7 +43,7 @@ export const scopePhoto: SitePhoto = {
   src: "/about/scope-color.webp",
   width: 1440,
   height: 960,
-  alt: "クライアントの案件の設計画面とコードを並べて、一人で実装を進めている実際の様子",
+  alt: "クライアント案件の設計画面とコードを並べて、一人で実装を進めている実際の様子",
   caption: "クライアントの案件を、設計から実装まで一人で",
 };
 

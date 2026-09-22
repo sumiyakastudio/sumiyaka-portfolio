@@ -236,7 +236,7 @@ export default function CasesPage() {
           <ScrollReveal delay={0.1}>
             <div className={styles.ctas}>
               <Link href="/contact" className={styles.ctaPrimary}>
-                まず現場の話から
+                まずは現場の話から
                 <span className={styles.ctaArrow} aria-hidden="true">
                   →
                 </span>

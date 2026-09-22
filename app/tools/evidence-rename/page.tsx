@@ -44,7 +44,7 @@ const CAN_DO = [
 const CANNOT_DO = [
   {
     title: "スキャンした画像やPDFの読み取り",
-    body: "PDFや写真の中身から日付・取引先・金額を読み取ることはしません。3項目はご自身で台帳に書いていただきます。読み取れるのはExcelとCSVの台帳だけです。",
+    body: "PDFや写真の中身から日付・取引先・金額を読み取ることはしません。3項目はご自身で台帳に書いていただきます。読むのは Excel（.xlsx）と CSV だけです。",
   },
   {
     title: "法令の要件を満たしているかの判断",
@@ -167,13 +167,13 @@ export default function EvidenceRenamePage() {
         <div className={styles.customInner}>
           <ScrollReveal>
             <p className={styles.customLead}>
-              ここに置いているのは、整った台帳を前提にした汎用版です。
+              ここに置いているのは、整った台帳を前提にしたお試し版です。
             </p>
           </ScrollReveal>
           <ScrollReveal delay={0.1}>
             <p className={styles.customBody}>
               実務で手が止まるのは、名前を付ける一工程よりも、その前後にあります。
-              メールの添付を集める、1つのPDFを取引ごとに分ける、会計ソフトの仕訳と突き合わせる。
+              メールの添付を集める、一つのPDFを取引ごとに分ける、会計ソフトの仕訳と突き合わせる。
               そこは会社ごとに形が違うので、一社ずつ作ります。
               証憑に限らず、毎月くり返している事務作業があれば、同じやり方で仕組みに変えられます。
             </p>

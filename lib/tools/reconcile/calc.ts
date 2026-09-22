@@ -190,7 +190,7 @@ export function reconcile(
         "likely",
         [inRange[0]],
         [pay],
-        `同じ名義・同じ金額の請求が ${inRange.length} 件あります。どれに当てるかご確認ください。`,
+        `同じ名義・同じ金額の請求が ${inRange.length}件あります。どれに当てるかご確認ください。`,
       );
     } else {
       const picked = [...all].sort(byDueThenLine)[0];
@@ -243,7 +243,7 @@ export function reconcile(
           "likely",
           [picked],
           [pay],
-          `手数料を引くと合う請求が ${cands.length} 件あります。差額のいちばん小さいものを当てました。ご確認ください。`,
+          `手数料を引くと合う請求が ${cands.length}件あります。差額のいちばん小さいものを当てました。ご確認ください。`,
         );
       }
     }
@@ -414,7 +414,7 @@ export function reconcile(
         "likely",
         [picked],
         [pay],
-        `名義が前方一致する請求が ${cands.length} 件あります。いちばん長く一致するものを当てました。ご確認ください。`,
+        `名義が前方一致する請求が ${cands.length}件あります。いちばん長く一致するものを当てました。ご確認ください。`,
       );
     }
   }

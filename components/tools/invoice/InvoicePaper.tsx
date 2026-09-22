@@ -75,7 +75,7 @@ export default function InvoicePaper({
           </div>
           {doc.dueDate ? (
             <div className={styles.metaRow}>
-              <dt>支払期日</dt>
+              <dt>お支払期日</dt>
               <dd>{formatDateJa(doc.dueDate)}</dd>
             </div>
           ) : null}
@@ -185,7 +185,7 @@ export default function InvoicePaper({
             {hiddenCount > 0 ? (
               <tr className={styles.moreRow}>
                 <td colSpan={5}>
-                  ほか {hiddenCount} 行（PDFには全件が入ります）
+                  ほか{hiddenCount}行（PDFには全件が入ります）
                 </td>
               </tr>
             ) : null}

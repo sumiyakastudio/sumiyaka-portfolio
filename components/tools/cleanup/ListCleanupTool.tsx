@@ -306,8 +306,8 @@ export default function ListCleanupTool() {
         } satisfies CleanResult,
         error:
           error instanceof Error
-            ? `計算できませんでした：${error.message}`
-            : "計算できませんでした。",
+            ? `診断できませんでした：${error.message}`
+            : "診断できませんでした。",
       };
     }
   }, [deferredSource, deferredSwitches, deferredDedupe, deferredOptions]);
@@ -706,7 +706,7 @@ export default function ListCleanupTool() {
     if (entry.kind === "gap") {
       return (
         <div className={styles.gapRow} key={`gap-${index}`} role="row">
-          <span role="cell">… {formatNumber(entry.count)} 行</span>
+          <span role="cell">… {formatNumber(entry.count)}行</span>
         </div>
       );
     }
@@ -807,7 +807,7 @@ export default function ListCleanupTool() {
         if (entry.kind === "gap") {
           return (
             <p className={styles.cardGap} key={`gap-${index}`}>
-              … {formatNumber(entry.count)} 行
+              … {formatNumber(entry.count)}行
             </p>
           );
         }
@@ -950,7 +950,7 @@ export default function ListCleanupTool() {
             >
               <span className={styles.dropIcon} aria-hidden="true" />
               <span className={styles.dropText}>Excel（.xlsx）か CSV をここへ</span>
-              <span className={styles.dropSub}>クリックしても選べます</span>
+              <span className={styles.dropSub}>押しても選べます</span>
               <input
                 ref={fileInputRef}
                 type="file"
@@ -1005,7 +1005,7 @@ export default function ListCleanupTool() {
                   </li>
                 ))}
                 {issueLines.length > 10 ? (
-                  <li className={styles.issueMore}>ほか {issueLines.length - 10} 件</li>
+                  <li className={styles.issueMore}>ほか{issueLines.length - 10}件</li>
                 ) : null}
               </ul>
             ) : null}
@@ -1071,7 +1071,7 @@ export default function ListCleanupTool() {
                     >
                       {RISK_LABELS[risk]}
                     </span>
-                    <span className={styles.ruleGroupCount}>{list.length} 規則</span>
+                    <span className={styles.ruleGroupCount}>{list.length}規則</span>
                     <span className={styles.ruleGroupActions}>
                       <button
                         type="button"
@@ -1092,7 +1092,7 @@ export default function ListCleanupTool() {
 
                   {pendingBulk === risk ? (
                     <p className={styles.confirm} role="status">
-                      危険度「危険」の規則をまとめて入れます。別のものに化けることがあります。もう一度「すべて入れる」を押すと有効になります。
+                      危険度「危険」の規則をまとめて入れます。値が別のものに化けることがあります。もう一度「すべて入れる」を押すと有効になります。
                     </p>
                   ) : null}
 
@@ -1175,7 +1175,7 @@ export default function ListCleanupTool() {
                           focusRow === row ? styles.docItemActive : ""
                         }`}
                         onClick={() => focusOnRow(row)}
-                        title={`元ファイル ${sourceLine} 行目`}
+                        title={`元ファイル ${sourceLine}行目`}
                       >
                         <span className={styles.docNo}>{row}行目</span>
                         <span className={styles.docWhere}>
@@ -1187,7 +1187,7 @@ export default function ListCleanupTool() {
                 })}
                 {result.changedRows.length > LIST_MAX ? (
                   <li className={styles.issueMore}>
-                    ほか {formatNumber(result.changedRows.length - LIST_MAX)} 行
+                    ほか{formatNumber(result.changedRows.length - LIST_MAX)}行
                   </li>
                 ) : null}
               </ul>
@@ -1195,12 +1195,12 @@ export default function ListCleanupTool() {
 
             <details className={styles.details}>
               <summary className={styles.summary}>
-                重複の疑い {formatNumber(result.duplicates.length)} 組
+                重複の疑い {formatNumber(result.duplicates.length)}組
               </summary>
 
               <p className={styles.stepFine}>
                 同じ相手に見える行を候補として並べます。行を勝手に消すことはしません。
-                突合は先頭の文字が近い組から探すので、先頭が大きく違う組は見つけられません。
+                照合は先頭の文字が近い組から探すので、先頭が大きく違う組は見つけられません。
               </p>
 
               <label className={styles.checkRow}>
@@ -1242,7 +1242,7 @@ export default function ListCleanupTool() {
                       type="button"
                       className={styles.docItem}
                       onClick={() => focusOnRow(group.rows[0])}
-                      title={`突合に使った値：${group.key}`}
+                      title={`照合に使った値：${group.key}`}
                     >
                       <span className={styles.docNo}>{group.mark}</span>
                       <span className={styles.docWhere}>
@@ -1280,7 +1280,7 @@ export default function ListCleanupTool() {
                 onClick={() => void runExport("xlsx")}
                 disabled={busy !== null || parsed.rows.length === 0 || trial.limited}
               >
-                整えた名簿 .xlsx
+                整えた名簿を .xlsx で書き出す
               </button>
               <button
                 type="button"
@@ -1302,7 +1302,7 @@ export default function ListCleanupTool() {
             <TrialNotice trial={trial} />
 
             <p className={styles.stepFine}>
-              .xlsx は「名簿 / 修正一覧 / 重複候補」の3シートです。CSV は Excel
+              .xlsx は「名簿・修正一覧・重複候補」の3シートです。CSV は Excel
               で開いても文字化けしない形（UTF-8 BOM 付き）で書き出します。
             </p>
 
@@ -1365,7 +1365,7 @@ export default function ListCleanupTool() {
               ? "すべての行を出しています。"
               : "修正が入った行と、その前後1行、重複の疑いのある行だけを出しています。"}
             {stageEntries.truncated > 0
-              ? `　画面が重くなるため ${formatNumber(stageEntries.truncated)} 行は表示していません（書き出しにはすべて含まれます）。`
+              ? `　画面が重くなるため${formatNumber(stageEntries.truncated)}行は表示していません（書き出しにはすべて含まれます）。`
               : ""}
           </p>
         </div>

@@ -82,7 +82,7 @@ export default function ToolsPage() {
           {/* ⚠「クライアントへ納品した実績」と読ませないための一文。
               見出し「開発したツール」＋この説明で、言葉ではなく構造で区別する */}
           <p className={styles.listNote}>
-            自社で開発したツールです。実際に動くものだけを置いています。
+            私が開発したツールです。実際に動くものだけを置いています。
           </p>
 
           <ul className={styles.cards}>
@@ -149,12 +149,12 @@ export default function ToolsPage() {
           <div className={styles.whyRuler} aria-hidden="true" />
           <div className={styles.whyText}>
             <ScrollReveal>
-              <h2 className={styles.whyTitle}>データは、御社のパソコンから出ません。</h2>
+              <h2 className={styles.whyTitle}>データは、御社の端末から出ません。</h2>
             </ScrollReveal>
             <ScrollReveal delay={0.1}>
               <p className={styles.whyBody}>
                 ここに置いている道具は、すべてブラウザの中だけで動きます。
-                読み込んだ台帳も、作られたPDFも、外部のサーバーへは送られません。
+                読み込んだ台帳も、書き出したPDFも、外部のサーバーへは送られません。
                 顧客名簿や売上のように、外に出せないファイルこそ、その場で試していただけます。
               </p>
             </ScrollReveal>
@@ -178,7 +178,7 @@ export default function ToolsPage() {
           </ScrollReveal>
           <ScrollReveal delay={0.1}>
             <p className={styles.customBody}>
-              ここに置いている汎用版は、整った台帳を前提にしています。
+              ここに置いているお試し版は、整った台帳を前提にしています。
               実際の業務データは、会社ごとに形が違います。列の並び、表記のゆれ、例外の行。
               そこを読み解いて形を揃えるところからが、私の仕事です。
             </p>

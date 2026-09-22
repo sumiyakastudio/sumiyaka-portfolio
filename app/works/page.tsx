@@ -85,7 +85,7 @@ export default function WorksPage() {
                 ))}
               </ul>
               <p className={styles.mediaNote}>
-                掲載作品はすべて静的データで制作しているため、WordPress・STUDIO・Figma など、他の媒体へ丸ごと移植できます。
+                掲載作品はすべて静的データで持っているため、WordPress・STUDIO・Figma など、他の媒体へ丸ごと移植できます。
               </p>
             </div>
           </ScrollReveal>
@@ -107,7 +107,7 @@ export default function WorksPage() {
           <p className={styles.noticeText}>
             本ページに掲載しているサイトは、
             <span className={styles.noticeStrong}>
-              実際に私がご依頼を受けて制作したWeb制作案件
+              実際に私がご依頼を受けて制作したWeb案件
             </span>
             です（自社で使うために作った AKASHIKI WORKS FINDER と AOKI MITUMORI の2件を除きます）。クライアントのプライバシーと守秘義務を守るため、社名や写真、商標など、そのまま掲載できない部分を編集したうえで公開しています。
           </p>
