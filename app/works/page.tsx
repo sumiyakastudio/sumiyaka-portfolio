@@ -107,9 +107,9 @@ export default function WorksPage() {
           <p className={styles.noticeText}>
             本ページに掲載しているサイトは、
             <span className={styles.noticeStrong}>
-              実際の案件をベースに制作したもの
+              実際に私がご依頼を受けて制作したWeb制作案件
             </span>
-            です（自社で使うために作った AKASHIKI WORKS FINDER と AOKI MITUMORI の2件を除きます）。掲載にあたっては、クライアントを特定できる情報と、権利上掲載できない素材のみを差し替えています。
+            です（自社で使うために作った AKASHIKI WORKS FINDER と AOKI MITUMORI の2件を除きます）。クライアントのプライバシーと守秘義務を守るため、社名や写真、商標など、そのまま掲載できない部分を編集したうえで公開しています。
           </p>
         </div>
       </section>
