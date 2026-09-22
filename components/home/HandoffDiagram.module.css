@@ -1,24 +1,37 @@
 /* ==========================================================================
-   「手を離すまで」＝トップ 01「何をする人か」の図（2026-09-22）
+   「手を離すまで」＝トップ 01「何をする人か」の図（2026-09-22・v2）
+
+   v2＝同じ仕組みを3コマで描く紙芝居（書類2枚 → ひし形の節点 → 管理表4列×3行 ＋ 人）。
+   部品も線種も FIG. 03-A（UnifyDiagram）から借りる＝同じ作者の図に見せる。
 
    地はトップの暖黒（--paper）。**この章では色を使わない**（朱は 02 実測の1点だけ）＝
-   白と灰のトークン（--ink-deep／--ink／--muted／--neutral／--rule／--rule-soft）だけ。
+   白と灰のトークン（--ink-deep／--ink／--muted／--neutral／--rule／--rule-soft）と、
+   その白のアルファ段（--ho-strong／--ho-line／--ho-soft＝03-A の --u-* と同じ作り）だけ。
 
    既定（クラス無し・SSR）＝完成形の静止表示。JS が載ると .armed が初期状態を被せ、
-   画面に 18% 入ると .play が入場アニメを流す。常時演出（光の点）は InViewGate の
-   .live が付いているあいだだけ running（既定 animation-play-state: paused）。
+   画面に 18% 入ると .play が入場アニメを流す。常時演出（光の点・節点の輪）は
+   InViewGate の .live が付いているあいだだけ running（既定 animation-play-state: paused）。
 
-   ⚠「私」の線の終端値は opacity 0.35（＝着いたあと必要なくなる）。これは**完成形**なので
-     クラス無し・reduced-motion でも 0.35 で出る（アニメはそこへ落ちるだけ）。
+   ⚠ 03 の「私」＝ .ghostGroup の終端値は opacity 0.25（＝手を離したあと）。これは**完成形**
+     なので、クラス無し・reduced-motion でも 0.25 で出る（アニメはそこへ落ちるだけ）。
+     0.25 は3か所（既定・keyframes の to・reduced-motion）で同じ値にすること。
 
    互換：transform(2D)・opacity・stroke-dashoffset だけを動かす。
          filter / backdrop-filter / mix-blend-mode / 3D / SMIL / offset-path は不使用。
          線は pathLength="100" で正規化（＝どの長さの線も同じ尺で引ける）。
          太さは vector-effect: non-scaling-stroke で拡大率に依らず一定。
+   ⚠ 点線・破線の部品（.nodeGhost／.carry／.gaze／.personGhost）は stroke-dasharray を
+     見た目に使うので、描線アニメ（.d）を当てない＝必ず .fade で出す。
    ========================================================================== */
 
 .fig {
-  --ho-cycle: 5s; /* 常時演出の周期。動くのはこのうち 1/4 だけ＝残りは休む */
+  /* 03-A の --u-* と同じ段。実体はすべて --ink（#f1eaec）のアルファ違い＝新しい色は作らない */
+  --ho-ink: var(--ink-deep);
+  --ho-strong: rgba(241, 234, 236, 0.4);
+  --ho-line: rgba(241, 234, 236, 0.32);
+  --ho-soft: rgba(241, 234, 236, 0.14);
+  --ho-dim: var(--neutral);
+  --ho-cycle: 5s; /* 常時演出の周期。動くのはこのうち 1/3 ほどだけ＝残りは休む */
 
   margin: clamp(2.2rem, 1.8rem + 1.2vw, 3.2rem) 0 0;
   padding: 0;
@@ -88,95 +101,177 @@
 /* ========================================
    線の種類（太さは 1px / 2px の二段だけ。光の点だけ「点」として太い）
    ======================================== */
-.axis,
 .divider,
-.drop,
-.me,
-.staff,
+.paper,
+.grid,
+.data,
+.dataStrong,
+.headRule,
+.cell,
+.wire,
+.node,
+.nodeGhost,
+.carry,
+.gaze,
+.person,
+.personGhost,
 .spark {
   fill: none;
   vector-effect: non-scaling-stroke;
 }
 
-/* 底の時間の軸 */
-.axis {
-  stroke: var(--rule);
-  stroke-width: 1;
-  stroke-linecap: butt;
-}
-
-/* 3区分に分ける縦の点線 */
+/* コマ間の細い罫 */
 .divider {
   stroke: var(--rule-soft);
   stroke-width: 1;
-  stroke-dasharray: 2 6;
   stroke-linecap: butt;
 }
 
-/* 着地点を軸へ落とす細い目盛り */
-.drop {
-  stroke: var(--rule-soft);
+/* 紙・表の外枠 */
+.paper {
+  stroke: var(--ho-strong);
   stroke-width: 1;
+  stroke-linejoin: miter;
+}
+
+/* 升目・角の折れ */
+.grid {
+  stroke: var(--ho-soft);
+  stroke-width: 1;
+}
+
+/* 表の見出し罫 */
+.headRule {
+  stroke: var(--ho-strong);
+  stroke-width: 1;
+}
+
+/* 紙の罫（＝中身の抽象） */
+.data {
+  stroke: var(--ho-line);
+  stroke-width: 2;
   stroke-linecap: butt;
 }
 
-/* 「私」＝見出しと同じ明るさ（最初の主役） */
-.me {
-  stroke: var(--ink-deep);
+/* 表の見出しの桁（一段強い） */
+.dataStrong {
+  stroke: rgba(241, 234, 236, 0.62);
   stroke-width: 2;
+  stroke-linecap: butt;
+}
+
+/* 表のセル */
+.cell {
+  stroke: var(--ho-line);
+  stroke-width: 2;
+  stroke-linecap: butt;
+}
+
+/* 配線 */
+.wire {
+  stroke: var(--ho-line);
+  stroke-width: 1;
   stroke-linejoin: round;
   stroke-linecap: butt;
 }
 
-/* 「社員の方」＝本文の白 */
-.staff {
-  stroke: var(--ink);
-  stroke-width: 2;
-  stroke-linejoin: round;
-  stroke-linecap: butt;
-}
-
-/* 手を離す＝白抜きの円（地色で塗って線を切る） */
-.mark {
-  fill: var(--paper);
-  stroke: var(--ink-deep);
+/* 端子（配線の根本） */
+.pin {
+  fill: none;
+  stroke: var(--ho-line);
   stroke-width: 1;
   vector-effect: non-scaling-stroke;
 }
 
-/* 社員の方の右端＝小さな塗りの点 */
+/* 節点（ひし形）＝02・03 */
+.node {
+  stroke: rgba(241, 234, 236, 0.7);
+  stroke-width: 1;
+  stroke-linejoin: miter;
+}
+
+/* 節点の芯 */
 .dot {
-  fill: var(--ink);
+  fill: var(--ho-ink);
   stroke: none;
 }
 
-/* ---- SVG 内の文字 ---- */
-.zone {
-  font-family: var(--font-mono, monospace);
+/* 節点の同心の輪（03 だけ・既定は見えない） */
+.ring {
+  fill: none;
+  stroke: rgba(241, 234, 236, 0.5);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+  opacity: 0;
+}
+
+/* 01＝まだ無い節点の輪郭（点線） */
+.nodeGhost {
+  stroke: rgba(241, 234, 236, 0.26);
+  stroke-width: 1;
+  stroke-dasharray: 2 3;
+  stroke-linejoin: miter;
+}
+
+/* 01＝手で運ぶ流れ（破線で直結） */
+.carry {
+  stroke: var(--ho-line);
+  stroke-width: 1;
+  stroke-dasharray: 4 4;
+  stroke-linejoin: round;
+  stroke-linecap: butt;
+}
+
+/* 01＝私が見ている細い点線 */
+.gaze {
+  stroke: rgba(241, 234, 236, 0.22);
+  stroke-width: 1;
+  stroke-dasharray: 1.5 4;
+  stroke-linecap: butt;
+}
+
+/* 人（肩までのピクトグラム） */
+.person {
+  stroke: var(--ink);
+  stroke-width: 1;
+  stroke-linecap: butt;
+}
+
+/* 03＝手を離したあとの「私」＝点線の輪郭だけ */
+.personGhost {
+  stroke: var(--ink);
+  stroke-width: 1;
+  stroke-dasharray: 2 3;
+  stroke-linecap: butt;
+}
+
+/* ---- SVG 内の文字（「01」「02」「03」「私」「社員の方」の5語だけ） ---- */
+.num {
+  font-family: var(--font-ibm-plex-mono), var(--font-mono, monospace);
   font-weight: 400;
   font-size: 10px;
   letter-spacing: 0.18em;
   font-variant-numeric: tabular-nums;
-  fill: var(--neutral);
+  fill: var(--ho-dim);
 }
 
 .label {
   font-family: var(--font-noto-sans-jp), "Hiragino Kaku Gothic ProN", sans-serif;
   font-weight: 500;
-  font-size: 13px;
+  font-size: 12px;
   letter-spacing: 0.08em;
   fill: var(--ink);
 }
 
 /* SP の viewBox（420）は約310pxに縮んで出る（約0.74倍）ので、文字だけ user unit を
-   1.35 倍にして画面上の大きさを保つ（10px→約10px／13px→約13px） */
-.svgSp .zone {
+   1.35 倍にして画面上の大きさを保つ（10px→約10px／12px→約12px） */
+.svgSp .num {
   font-size: 13.5px;
   letter-spacing: 0.14em;
 }
 
 .svgSp .label {
-  font-size: 17.5px;
+  font-size: 16.2px;
 }
 
 /* ========================================
@@ -192,12 +287,13 @@
   stroke-dashoffset: 100;
 }
 
-.armed .fade {
+.armed .fade,
+.armed .row {
   opacity: 0;
 }
 
 .play .d {
-  animation: hoDraw 0.6s linear both;
+  animation: hoDraw 0.5s linear both;
 }
 
 .play .dFast {
@@ -205,16 +301,15 @@
 }
 
 .play .dSlow {
-  animation-duration: 0.75s;
-}
-
-/* 2本の線は左→右へ 0.9 秒かけて描く */
-.play .dLine {
-  animation-duration: 0.9s;
+  animation-duration: 0.7s;
 }
 
 .play .fade {
   animation: hoFade 0.4s ease-out both;
+}
+
+.play .row {
+  animation: hoRow 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 @keyframes hoDraw {
@@ -237,22 +332,34 @@
   }
 }
 
-/* ========================================
-   「私」の線だけ、着いたあと静かに落ちる（＝必要なくなる）
-   既定＝落ちきった 0.35（完成形）。.armed のときだけ 1 から始めて落とす。
-   ======================================== */
-/* ⚠ 0.35 は3か所（既定・keyframes の to・reduced-motion）で同じ値にすること。
-   var() を keyframes の中で使うのは WebKit で当てにしない＝実数で持つ */
-.meGroup {
-  opacity: 0.35;
+@keyframes hoRow {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.armed .meGroup {
+/* ========================================
+   03 の「私」＝入場の最後に静かに薄くなる（＝手を離した）
+   既定＝落ちきった 0.25（完成形）。.armed のときだけ 1 から始めて落とす。
+   ⚠ 0.25 は3か所（既定・keyframes の to・reduced-motion）で同じ値にすること。
+     var() を keyframes の中で使うのは WebKit で当てにしない＝実数で持つ。
+   ======================================== */
+.ghostGroup {
+  opacity: 0.25;
+}
+
+.armed .ghostGroup {
   opacity: 1;
 }
 
-.play .meGroup {
-  animation: hoDim 0.9s ease-out both;
+.play .ghostGroup {
+  animation: hoDim 0.7s ease-out both;
 }
 
 @keyframes hoDim {
@@ -261,35 +368,59 @@
   }
 
   to {
-    opacity: 0.35;
+    opacity: 0.25;
   }
 }
 
 /* ========================================
-   常時演出：「社員の方」の線の上だけを光の点が左→右へ流れる
-   同じ線に重ねた短いダッシュを stroke-dashoffset で流す（offset-path を使わない）。
-   周期 5 秒・動くのは 0〜25%＝1.25 秒だけで、残りは休む。
+   光の点＝同じ配線に重ねた短いダッシュを stroke-dashoffset で流す
+   （offset-path を使わない）。03 のコマだけ 5 秒周期で常時流れる。
+   02 の「私→節点」は入場の1回だけ（.sparkOnce）。
    ======================================== */
 .spark {
-  stroke: var(--ink-deep);
-  stroke-width: 4;
+  stroke: var(--ho-ink);
+  stroke-width: 3.5;
   stroke-linecap: round;
-  stroke-dasharray: 1.4 98.6;
+  stroke-dasharray: 1.6 98.4;
   stroke-dashoffset: 100;
   opacity: 0;
 }
 
-.play .spark {
-  animation: hoSpark var(--ho-cycle) linear infinite;
+.play .sparkIn {
+  animation: hoSparkIn var(--ho-cycle) linear infinite;
   animation-play-state: paused;
 }
 
+.play .sparkOut {
+  animation: hoSparkOut var(--ho-cycle) linear infinite;
+  animation-play-state: paused;
+}
+
+.play .ring1 {
+  animation: hoRing1 var(--ho-cycle) ease-out infinite;
+  animation-play-state: paused;
+}
+
+.play .ring2 {
+  animation: hoRing2 var(--ho-cycle) ease-out infinite;
+  animation-play-state: paused;
+}
+
+/* 入場のときだけ1回（02＝私が節点へ教え込む） */
+.play .sparkOnce {
+  animation: hoSparkOnce 0.7s linear both;
+}
+
 /* 画面内かつ前面タブのあいだだけ動かす（InViewGate）。上の規則より後に置いて上書きする */
-.live .spark {
+.live .sparkIn,
+.live .sparkOut,
+.live .ring1,
+.live .ring2 {
   animation-play-state: running;
 }
 
-@keyframes hoSpark {
+/* 書類 → 節点（0〜17%＝0.85 秒で走り切り、残りは休む） */
+@keyframes hoSparkIn {
   0% {
     stroke-dashoffset: 100;
     opacity: 0;
@@ -299,11 +430,11 @@
     opacity: 1;
   }
 
-  22% {
+  15% {
     opacity: 1;
   }
 
-  25% {
+  17% {
     stroke-dashoffset: 0;
     opacity: 0;
   }
@@ -314,9 +445,96 @@
   }
 }
 
+/* 節点 → 管理表（17%〜30%＝着いた直後に出ていく） */
+@keyframes hoSparkOut {
+  0%,
+  17% {
+    stroke-dashoffset: 100;
+    opacity: 0;
+  }
+
+  19% {
+    opacity: 1;
+  }
+
+  28% {
+    opacity: 1;
+  }
+
+  30% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+}
+
+/* 私 → 節点（入場の1回だけ） */
+@keyframes hoSparkOnce {
+  0% {
+    stroke-dashoffset: 100;
+    opacity: 0;
+  }
+
+  12% {
+    opacity: 1;
+  }
+
+  82% {
+    opacity: 1;
+  }
+
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+}
+
+/* 節点がともる＝同心の輪が順にふっと明るくなる（scale を使わない＝WebKit 安全） */
+@keyframes hoRing1 {
+  0%,
+  14% {
+    opacity: 0;
+  }
+
+  18% {
+    opacity: 0.5;
+  }
+
+  26% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes hoRing2 {
+  0%,
+  18% {
+    opacity: 0;
+  }
+
+  23% {
+    opacity: 0.28;
+  }
+
+  34% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
 /* ========================================
    動きを減らす設定＝完成形で静止
-   （2本の線は引き終わり・円と点と番号は出ていて・「私」の線は 0.35・光の点は無し）
+   （3コマとも描き終わり・03 の「私」は 0.25・光の点と輪は無し）
    ======================================== */
 @media (prefers-reduced-motion: reduce) {
   .d {
@@ -324,18 +542,20 @@
     animation: none !important;
   }
 
-  .fade {
+  .fade,
+  .row {
     opacity: 1 !important;
     transform: none !important;
     animation: none !important;
   }
 
-  .meGroup {
-    opacity: 0.35 !important;
+  .ghostGroup {
+    opacity: 0.25 !important;
     animation: none !important;
   }
 
-  .spark {
+  .spark,
+  .ring {
     animation: none !important;
     opacity: 0 !important;
   }

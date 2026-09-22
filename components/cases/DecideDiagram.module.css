@@ -1,8 +1,18 @@
 /* ==========================================================================
-   DecideDiagram — /cases「人が決めるところ」の図「機械が出し、人が決める」
+   DecideDiagram — /cases「人が決めるところ」の図「機械が出し、人が決める」（v2）
 
    器は MeasureDiagram と同じ＝紙（--cs-paper）の板＋罫（--cs-line）の枠。
    色は /cases の紙のトークンだけ（朱 --cs-seal は「実測」の印だけの決まりなので使わない）。
+   線の種類と太さは FIG. 03-A（UnifyDiagram）と同じ体系に合わせてある：
+     paper       1px  物（紙・表・書類・窓）の外枠
+     grid        1px  中の罫（升目・窓の帯・書類の区切り）
+     data        2px  中身の行（薄い）
+     dataStrong  2px  見出しの行（濃い）
+     wire        1px  物と物をつなぐ配線
+     brace       1px  機械の受け持ちを囲う括弧線（いちばん薄い）
+     person      1px  人のピクトグラム（頭＝円 r=8／肩＝半円弧）
+     seal        2px  人が決める印（この図でいちばん強い線）
+     check       2px  印の中の「✓」
 
    既定（クラス無し・SSR・JS 無し）＝完成形の静止表示（「✓」も描かれた状態）。
    JS が載ると .armed が初期状態を被せ、画面に入ると .play が入場を流す。
@@ -79,8 +89,12 @@
    ======================================== */
 .brace,
 .wire,
-.box,
-.node,
+.paper,
+.grid,
+.data,
+.dataStrong,
+.person,
+.seal,
 .check,
 .spark {
   fill: none;
@@ -96,33 +110,73 @@
 }
 
 .wire {
-  stroke: var(--dd-line-strong);
+  stroke: var(--dd-ink-3);
   stroke-width: 1;
   stroke-linejoin: round;
 }
 
-/* 駅＝小さな四角 */
-.box {
+/* 物の外枠（紙・升目の表・書類・ブラウザの窓） */
+.paper {
+  stroke: var(--dd-ink-3);
+  stroke-width: 1;
+  stroke-linejoin: miter;
+}
+
+/* 中の罫（升目・窓の帯と箱・書類の区切り） */
+.grid {
+  stroke: var(--dd-line-strong);
+  stroke-width: 1;
+  stroke-linejoin: miter;
+}
+
+/* 中身の行 */
+.data {
+  stroke: var(--dd-line-strong);
+  stroke-width: 2;
+}
+
+/* 見出しの行（表の1行目・書類の太い見出し線） */
+.dataStrong {
+  stroke: var(--dd-ink-3);
+  stroke-width: 2;
+}
+
+/* 人のピクトグラム（顔・手足は描かない） */
+.person {
   stroke: var(--dd-ink-2);
   stroke-width: 1;
-  stroke-linejoin: miter;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
-/* 節点＝ひし形（この図でいちばん強い線） */
-.node {
+/* 人が決める印＝角丸の四角。この図でいちばん強い線 */
+.seal {
   stroke: var(--dd-ink);
-  stroke-width: 1;
-  stroke-linejoin: miter;
+  stroke-width: 2;
+  stroke-linejoin: round;
 }
 
-/* 人が通した印＝ひし形の中の「✓」 */
+/* 人が通した印＝印の中の「✓」 */
 .check {
   stroke: var(--dd-ink);
   stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
-  stroke-dasharray: 100; /* pathLength=100＝全長ぶんの1本のダッシュ */
+  /* pathLength=100＝全長ぶんの1本のダッシュ。
+     ⚠ 空きを 100 にすると（dasharray: 100 だけにすると）模様の周期が 200 になり、
+     未描画（dashoffset: 100）のときに線の終点＝ちょうど次のダッシュの頭に当たる。
+     線端が round なので、そこに長さ0の丸が1つ描かれてしまう（印の右上に点だけ残る）。
+     空きを 120 にして周期を 220 にすると、線の上に次のダッシュの頭が来ない＝完全に消える。 */
+  stroke-dasharray: 100 120;
   stroke-dashoffset: 0; /* 既定＝描かれた状態 */
+}
+
+/* ブラウザの窓の操作丸（pathLength を使わず opacity で出す＝WebKit 対策） */
+.pin {
+  fill: none;
+  stroke: var(--dd-ink-3);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
 }
 
 /* 同心の輪＝決まった瞬間だけふっと明るくなる。既定は見えない */
@@ -136,7 +190,7 @@
 
 /* ========================================
    SVG 内の文字
-   ⚠ この図は置かれる幅（左列 520〜890px）で 0.65〜1.05 倍に伸び縮みするので、
+   ⚠ この図は置かれる幅（左列 約520〜868px）で 0.65〜1.05 倍に伸び縮みするので、
      画面上の実寸が 10px を割らないよう、幅の段ごとに user unit を調整する。
    ======================================== */
 .tag {
@@ -198,9 +252,9 @@
 }
 
 /* ========================================
-   1023px 以下＝2段に折った SP 用の図に差し替える（このページの境）。
+   1023px 以下＝2段に組み替えた SP 用の図に差し替える（このページの境）。
    viewBox 420 を素のまま伸ばすと文字が肥大するので、板と図に上限を置く。
-   390px 端末では約 0.75 倍（mono 10.1px／駅 12.3px／節点 13.4px）。
+   390px 端末では約 0.75 倍（mono 10.1px／駅 12.3px／印 13.4px）。
    ======================================== */
 @media (max-width: 1023px) {
   .fig {
@@ -233,7 +287,7 @@
 }
 
 /* ==========================================================================
-   入場（画面に入ったら1回）
+   入場（画面に入ったら1回・総尺 約3.7秒）
    既定＝完成形。.armed で初期状態、.play で再生。
    ========================================================================== */
 .d {
@@ -269,6 +323,12 @@
   animation: ddFade 0.4s ease-out both;
 }
 
+/* 「✓」は入場で1回だけ描かれ、そのあとはずっと描かれたまま残る
+   （常時演出では消さない・描き直さない＝印が空に見える時間を作らない） */
+.play .check {
+  animation: ddDraw 0.45s linear both;
+}
+
 @keyframes ddDraw {
   from {
     stroke-dashoffset: 100;
@@ -290,11 +350,17 @@
 }
 
 /* ==========================================================================
-   常時演出（周期 5.5s）
-     0.0〜1.2s  光の点が 集める→揃える→出す を走り、ひし形の手前に着く
-     1.2〜2.0s  そこで止まる。輪が一度ふっと明るくなり、ひし形の中に「✓」が描かれる
-     2.0〜2.6s  「使う」へ進んで消える
-     2.6〜5.5s  休む
+   常時演出（周期 5.5s・PC の時刻）
+     0.00〜0.36s  光の点が 集める→揃える の配線を走る
+     0.66〜1.02s  揃える→出す
+     1.32〜1.68s  出す→印（ここで止まる）
+     1.87〜2.31s  印の輪が一度ふっと明るくなる（既に描かれている「✓」の上で光る）
+     2.48〜2.84s  「使う」へ進んで消える
+     2.84〜5.50s  休む
+   ⚠「✓」はこの周期に含めない。入場で1回描いたら、そのまま残す
+     （周期で消すと、読者が見る時間の多くで印が空に見える＝2026-09-22 差し戻し）。
+   SP は折り返しの配線が長いので、その区間だけ長い尺（.sparkLong）で走らせ、
+   輪と退出はインラインの animation-delay を 0.63 秒ずらして位相を合わせる。
    光の点は「同じ経路に重ねた短いダッシュを stroke-dashoffset で流す」方式
    （offset-path を使わない）。
    ========================================================================== */
@@ -309,6 +375,11 @@
 
 .play .sparkRun {
   animation: ddRun var(--dd-cycle) linear infinite both;
+  animation-play-state: paused;
+}
+
+.play .sparkLong {
+  animation: ddRunLong var(--dd-cycle) linear infinite both;
   animation-play-state: paused;
 }
 
@@ -327,42 +398,31 @@
   animation-play-state: paused;
 }
 
-.play .check {
-  animation: ddCheck var(--dd-cycle) linear infinite both;
-  animation-play-state: paused;
-}
-
 /* 画面内かつ前面タブのあいだだけ動かす（InViewGate）。上の規則より後に置いて上書きする */
 .live .sparkRun,
+.live .sparkLong,
 .live .sparkExit,
 .live .ring1,
-.live .ring2,
-.live .check {
+.live .ring2 {
   animation-play-state: running;
 }
 
-/* 集める→ひし形の手前（0〜21.8%＝1.2秒）。着いたらそこで待つ */
+/* 1区間（物と物のあいだ）を 0.36 秒で走る＝6.6% */
 @keyframes ddRun {
   0% {
     stroke-dashoffset: 100;
     opacity: 0;
   }
 
-  3% {
+  1% {
     opacity: 1;
   }
 
-  21.8% {
-    stroke-dashoffset: 1.6;
+  5.8% {
     opacity: 1;
   }
 
-  34% {
-    stroke-dashoffset: 1.6;
-    opacity: 1;
-  }
-
-  36.4% {
+  6.6% {
     stroke-dashoffset: 1.6;
     opacity: 0;
   }
@@ -373,23 +433,49 @@
   }
 }
 
-/* ひし形→使う（36.4%〜48%）。着くと同時に消える */
-@keyframes ddExit {
-  0%,
-  36.4% {
+/* SP の折り返しだけ＝0.99 秒（18%）。道のりが長いぶん尺を伸ばして速さをそろえる */
+@keyframes ddRunLong {
+  0% {
     stroke-dashoffset: 100;
     opacity: 0;
   }
 
-  38% {
+  1% {
     opacity: 1;
+  }
+
+  17% {
+    opacity: 1;
+  }
+
+  18% {
+    stroke-dashoffset: 1.6;
+    opacity: 0;
+  }
+
+  100% {
+    stroke-dashoffset: 1.6;
+    opacity: 0;
+  }
+}
+
+/* 印→使う（45%〜51.6%）。0.8 秒待ってから出ていく */
+@keyframes ddExit {
+  0%,
+  45% {
+    stroke-dashoffset: 100;
+    opacity: 0;
   }
 
   46% {
     opacity: 1;
   }
 
-  48% {
+  50.8% {
+    opacity: 1;
+  }
+
+  51.6% {
     stroke-dashoffset: 1.6;
     opacity: 0;
   }
@@ -403,15 +489,15 @@
 /* 止まっているあいだに輪が一度だけ光る（内→外） */
 @keyframes ddRing1 {
   0%,
-  22% {
+  30% {
     opacity: 0;
   }
 
-  26% {
+  34% {
     opacity: 0.5;
   }
 
-  35% {
+  42% {
     opacity: 0;
   }
 
@@ -422,49 +508,19 @@
 
 @keyframes ddRing2 {
   0%,
-  25% {
+  33% {
     opacity: 0;
   }
 
-  30% {
+  37% {
     opacity: 0.28;
   }
 
-  40% {
+  46% {
     opacity: 0;
   }
 
   100% {
-    opacity: 0;
-  }
-}
-
-/* 「✓」＝止まっているあいだに描かれ、次の周が来る直前に静かに消える
-   （消える瞬間は opacity 0 なので、描き戻しは見えない） */
-@keyframes ddCheck {
-  0%,
-  24% {
-    stroke-dashoffset: 100;
-    opacity: 1;
-  }
-
-  33% {
-    stroke-dashoffset: 0;
-    opacity: 1;
-  }
-
-  92% {
-    stroke-dashoffset: 0;
-    opacity: 1;
-  }
-
-  99% {
-    stroke-dashoffset: 0;
-    opacity: 0;
-  }
-
-  100% {
-    stroke-dashoffset: 100;
     opacity: 0;
   }
 }

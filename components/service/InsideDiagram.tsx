@@ -6,23 +6,28 @@ import { useMotionAllowed } from "@/lib/useMediaQuery";
 import styles from "./InsideDiagram.module.css";
 
 /**
- * FIG. 08-A ＝「データは、御社のパソコンの中だけ」境界図（2026-09-22・図解の憲法 §8-C）
+ * FIG. 08-A ＝「データは、御社のパソコンの中だけ」境界図
+ * v2（2026-09-22・図解の憲法 §9-0／§9-C）＝ v1 の差し戻し（①左上が欠ける ②パソコンに見えない）を直した版。
  *
  * /service の世界観（重＝線と図面）に合わせ、線画（ストローク）だけで描く。
  * 同じページの FIG. 03-A（UnifyDiagram）と同じ作法＝図題・枠・トンボ・色変数・時刻表・
- * armed/play・InViewGate の .live・reduced-motion。
+ * armed/play・InViewGate の .live・reduced-motion。窓の中は 03-A の縮小版をそのまま流用する。
  *
- *   外側＝角丸の枠「御社のパソコン」
- *   その中＝「ブラウザ」の窓（上辺に細い帯＋小さな丸3つ）
- *   窓の中＝CSV／Excel／PDF の小さな紙片 → 配線 → 節点 → 小さな「管理表」（FIG. 03-A の縮小版）
- *   パソコンの右（SP は下）＝境界の破線。その向こうは空で mono「外」
+ *   器＝ディスプレイ：画面（角丸4の矩形）を**ベゼル**（画面より 10px 大きい角丸矩形）で囲み、
+ *       下に**スタンド**（首＝短い台形／台＝幅の広い 2px の横線）を付ける。
+ *       ラベル「御社のパソコン」は**ベゼルの外側・上**（線に重ねない＝v1 の左上の欠けを断つ）。
+ *   画面の中＝「ブラウザ」の窓（上辺に細い帯＋小さな丸3つ）
+ *   窓の中＝CSV／Excel／PDF の紙片 → 配線 → 節点 → 「管理表」（FIG. 03-A の縮小版）
+ *   境界＝ベゼルの右（SP は下）に破線。その先に**雲の輪郭**（破線・薄い・1つだけ）＝インターネット側。
+ *        雲の下（SP も下）に mono「外」。
  *
- * 動き（画面に入ったら1回・総尺 約4.7秒）：
- *   ①パソコンの枠 → ②ブラウザの窓と帯 → ③紙片（CSV/Excel/PDF）→ ④配線 → ⑤節点 →
- *   ⑥管理表の行が埋まる → ⑦境界の破線が引かれる → ⑧「外」
- *   以後の常時演出＝5秒周期。前半で紙片→節点→管理表へ光の点が流れ、続けて管理表から境界へ
- *   向かう点が**パソコンの枠の内側で止まり**、枠の縁に短い光が 0.4 秒ともって消える（＝出ない）。
- *   動くのは周期の約 1/3（残りは休む）。InViewGate で画面内かつ前面タブのときだけ running。
+ * 動き（画面に入ったら1回・総尺 約4.8秒）：
+ *   ①ベゼル → ②画面 → ③スタンド → ④ブラウザの窓と帯 → ⑤紙片（CSV/Excel/PDF）→ ⑥配線 →
+ *   ⑦節点 → ⑧管理表の行が埋まる → ⑨境界の破線 → ⑩雲と「外」
+ *   以後の常時演出＝5秒周期。前半で紙片→節点→管理表へ光の点が流れ、続けて管理表から外へ
+ *   向かう点が**画面の右端（ベゼルの内側）で止まり**、縁に短い光が 0.4 秒ともって消える。
+ *   雲側には何も届かない。動くのは周期の約 1/3（残りは休む）。
+ *   InViewGate で画面内かつ前面タブのときだけ running。
  *
  * 互換：動かすのは transform(2D)・opacity・stroke-dashoffset のみ。
  *   filter / blend / 3D / SMIL / offset-path は使わない。線は pathLength="100" で正規化し、
@@ -31,7 +36,7 @@ import styles from "./InsideDiagram.module.css";
  */
 
 const ARIA =
-  "御社のパソコンの中のブラウザだけで、CSV・Excel・PDF が1つの管理表にまとまる図。管理表から外へ向かった光は、パソコンの枠の内側で止まり、境界の外へは出ない。";
+  "御社のパソコンのディスプレイを描いた図。画面の中のブラウザだけで、CSV・Excel・PDF が1つの管理表にまとまる。管理表から外へ向かった光は画面の端で止まり、右の境界の先にある「外」（インターネット）へは出ない。";
 
 /** アニメーションの開始時刻（秒）を渡す。インライン style は CSS より強いので遅延だけ上書きできる */
 const at = (sec: number): CSSProperties => ({ animationDelay: `${sec}s` });
@@ -41,35 +46,39 @@ const CYCLE = 5;
 
 /** 入場の時刻表（秒） */
 const T = {
-  caseFrame: 0,
-  caseLabel: 0.12,
-  win: 0.42,
-  band: 0.72,
-  chip: 0.9,
-  winTag: 0.95,
-  csvTag: 1.0,
-  csvFrame: 1.05,
-  csvRow: 1.25,
+  bezel: 0,
+  caseLabel: 0.15,
+  screen: 0.3,
+  stand: 0.5,
+  base: 0.6,
+  win: 0.72,
+  band: 0.95,
+  chip: 1.08,
+  winTag: 1.12,
+  csvTag: 1.22,
+  csvFrame: 1.26,
+  csvRow: 1.44,
   csvStep: 0.06,
-  xlsTag: 1.15,
-  xlsFrame: 1.2,
-  xlsGrid: 1.4,
-  xlsTick: 1.55,
-  pdfTag: 1.3,
-  pdfFrame: 1.35,
-  pdfLine: 1.65,
-  wire: 1.9,
-  spark: 2.45,
-  node: 2.6,
-  out: 2.72,
-  table: 3.05,
-  tableName: 3.1,
-  tableHead: 3.3,
-  row: 3.45,
+  xlsTag: 1.34,
+  xlsFrame: 1.38,
+  xlsGrid: 1.56,
+  xlsTick: 1.7,
+  pdfTag: 1.46,
+  pdfFrame: 1.5,
+  pdfLine: 1.78,
+  wire: 2.0,
+  spark: 2.55,
+  node: 2.7,
+  out: 2.8,
+  table: 3.1,
+  tableName: 3.15,
+  tableHead: 3.38,
+  row: 3.52,
   rowStep: 0.13,
-  esc: 4.15,
-  border: 3.95,
-  outTag: 4.3,
+  border: 3.85,
+  cloud: 4.15,
+  esc: 4.2,
+  outTag: 4.35,
 };
 
 /** 線分の並び（[開始x, 長さ]）を1本のパスへ。桁の抽象を表す */
@@ -89,70 +98,101 @@ const dashH = (y: number, from: number, to: number, dash = 14, gap = 10) => {
   return out.join(" ");
 };
 
-/* ---------- PC（viewBox 1000×360） ---------- */
+/* ==========================================================================
+   PC（viewBox 1000×420）
+     ベゼル   x  38→746 / y  44→364（角丸 10）
+     画面     x  48→736 / y  54→354（角丸 4・ベゼルより 10px 内側）
+     スタンド 首 y 364→392（台形）／台 y 398（x 292→492・2px）
+     窓       x  62→722 / y  68→340（帯 y=96）
+     境界     縦の破線 x=800 ／ 雲 x 834→964・y 168→238 ／「外」 y=262
+   ========================================================================== */
 
-/** 御社のパソコン＝大きな角丸の枠 */
-const PC_CASE =
-  "M36 52 H770 A10 10 0 0 1 780 62 V324 A10 10 0 0 1 770 334 H36 A10 10 0 0 1 26 324 V62 A10 10 0 0 1 36 52 Z";
+/** 画面＝角丸 4 の矩形 */
+const PC_SCREEN =
+  "M52 54 H732 A4 4 0 0 1 736 58 V350 A4 4 0 0 1 732 354 H52 A4 4 0 0 1 48 350 V58 A4 4 0 0 1 52 54 Z";
+/** ベゼル＝画面より 10px 大きい角丸矩形 */
+const PC_BEZEL =
+  "M48 44 H736 A10 10 0 0 1 746 54 V354 A10 10 0 0 1 736 364 H48 A10 10 0 0 1 38 354 V54 A10 10 0 0 1 48 44 Z";
+/** スタンドの首＝短い台形（上辺はベゼルの下辺と重ねない） */
+const PC_STAND = "M358 364 L344 392 H440 L426 364";
+/** スタンドの台＝幅の広い 2px の横線 */
+const PC_BASE = "M292 398 H492";
 
 /** CSV の紙片＝桁の位置がそろっていないカンマ区切り */
 const PC_CSV: readonly { y: number; s: readonly (readonly [number, number])[] }[] = [
-  { y: 146, s: [[78, 18], [102, 10], [118, 14], [140, 20]] },
-  { y: 155, s: [[78, 12], [96, 22], [124, 16], [146, 16]] },
-  { y: 164, s: [[78, 20], [104, 12], [122, 20], [148, 14]] },
+  { y: 147, s: [[84, 18], [108, 10], [124, 14], [146, 20]] },
+  { y: 158, s: [[84, 12], [102, 22], [130, 16], [152, 16]] },
+  { y: 169, s: [[84, 20], [110, 12], [128, 20], [154, 14]] },
 ];
 
 const PC_XLS_TICKS = [
-  seg(219, [[76, 12], [102, 14], [154, 12]]),
-  seg(232, [[76, 14], [128, 12], [154, 14]]),
+  seg(227, [[82, 12], [108, 14], [160, 12]]),
+  seg(243, [[82, 14], [134, 12], [160, 14]]),
 ].join(" ");
 
 /** 配線（左→右の向きで描く＝描線も光もこの向きに進む） */
-const PC_WIRES = ["M174 154 H250 V218 H306", "M174 218 H306", "M174 282 H250 V218 H306"] as const;
-const PC_OUT = "M334 218 H396";
-/** 管理表 → 境界へ向かう線。パソコンの枠（x=780）の手前で終わる＝出ない */
-const PC_ESC = "M716 218 H774";
-/** 枠の縁でともる短い光（0.4s） */
-const PC_BLOCK = "M780 200 V236";
-const PC_BORDER = dashV(850, 40, 344);
+const PC_WIRES = ["M180 158 H252 V226 H312", "M180 226 H312", "M180 294 H252 V226 H312"] as const;
+const PC_OUT = "M336 226 H400";
+/** 管理表 → 外へ向かう線。画面の右端（x=736＝ベゼルの内側）の手前で終わる＝出ない */
+const PC_ESC = "M708 226 H734";
+/** 画面の右端でともる短い光（0.4s） */
+const PC_BLOCK = "M736 206 V246";
+/** 境界の破線（ベゼルの右） */
+const PC_BORDER = dashV(800, 40, 380);
+/** 雲の輪郭＝インターネット側（破線・薄い・1つだけ） */
+const PC_CLOUD =
+  "M852 238 A18 18 0 0 1 852 202 A24 24 0 0 1 886 180 A26 26 0 0 1 928 190 A22 22 0 0 1 952 214 A12 12 0 0 1 952 238 Z";
 
-const PC_COL_X = [406, 486, 566, 646] as const;
-const PC_ROW_Y = [199, 236, 274] as const;
+const PC_COL_X = [410, 487, 564, 641] as const;
+const PC_ROW_Y = [192, 240, 288] as const;
 const PC_ROW_W: readonly (readonly number[])[] = [
-  [56, 32, 58, 34],
-  [48, 36, 52, 30],
-  [58, 30, 62, 34],
+  [52, 34, 56, 36],
+  [44, 40, 48, 32],
+  [56, 30, 58, 36],
 ];
 
-/* ---------- SP（viewBox 420×520＝縦に組み替え・境界は横の破線） ---------- */
+/* ==========================================================================
+   SP（viewBox 420×600＝縦に組み替え・境界は横の破線・雲は下）
+     ベゼル   x  14→406 / y  40→414（角丸 10）
+     画面     x  24→396 / y  50→404（角丸 4）
+     スタンド 首 y 414→434 ／台 y 440（x 150→270・2px）
+     窓       x  32→388 / y  60→394（帯 y=88）
+     境界     横の破線 y=462 ／ 雲 x 134→285・y 483→556 ／「外」 y=580
+   ========================================================================== */
 
-const SP_CASE =
-  "M18 30 H402 A10 10 0 0 1 412 40 V394 A10 10 0 0 1 402 404 H18 A10 10 0 0 1 8 394 V40 A10 10 0 0 1 18 30 Z";
+const SP_SCREEN =
+  "M28 50 H392 A4 4 0 0 1 396 54 V400 A4 4 0 0 1 392 404 H28 A4 4 0 0 1 24 400 V54 A4 4 0 0 1 28 50 Z";
+const SP_BEZEL =
+  "M24 40 H396 A10 10 0 0 1 406 50 V404 A10 10 0 0 1 396 414 H24 A10 10 0 0 1 14 404 V50 A10 10 0 0 1 24 40 Z";
+const SP_STAND = "M186 414 L177 434 H243 L234 414";
+const SP_BASE = "M150 440 H270";
 
 const SP_CSV: readonly { y: number; s: readonly (readonly [number, number])[] }[] = [
-  { y: 120, s: [[40, 22], [68, 12], [86, 18], [110, 14]] },
-  { y: 131, s: [[40, 14], [60, 26], [92, 20], [118, 16]] },
-  { y: 142, s: [[40, 24], [70, 14], [90, 22], [118, 14]] },
+  { y: 128, s: [[50, 22], [78, 12], [96, 18], [120, 14]] },
+  { y: 139, s: [[50, 14], [70, 26], [102, 20], [128, 12]] },
+  { y: 150, s: [[50, 24], [80, 14], [100, 22], [128, 12]] },
 ];
 
 const SP_XLS_TICKS = [
-  seg(134, [[158, 14], [186, 16], [240, 14]]),
-  seg(150, [[158, 16], [213, 14], [240, 16]]),
+  seg(141, [[164, 16], [190, 14], [242, 16]]),
+  seg(157, [[164, 14], [216, 16], [242, 14]]),
 ].join(" ");
 
-const SP_WIRES = ["M87 156 V180 H207 V186", "M207 156 V186", "M327 156 V180 H207 V186"] as const;
-const SP_OUT = "M207 214 V246";
-/** 管理表 → 境界へ向かう線。パソコンの枠（y=404）の手前で終わる＝出ない */
-const SP_ESC = "M207 366 V396";
-const SP_BLOCK = "M183 404 H231";
-const SP_BORDER = dashH(440, 8, 412);
+const SP_WIRES = ["M94 162 V188 H210 V202", "M210 162 V202", "M328 162 V188 H210 V202"] as const;
+const SP_OUT = "M210 226 V248";
+/** 管理表 → 外へ向かう線。画面の下端（y=404）の手前で終わる＝出ない */
+const SP_ESC = "M210 382 V402";
+const SP_BLOCK = "M186 404 H234";
+const SP_BORDER = dashH(462, 14, 406);
+const SP_CLOUD =
+  "M156 556 A22 22 0 0 1 156 515 A28 28 0 0 1 195 490 A30 30 0 0 1 243 502 A25 25 0 0 1 271 530 A14 14 0 0 1 271 556 Z";
 
-const SP_COL_X = [42, 130, 217, 304] as const;
-const SP_ROW_Y = [292, 323, 355] as const;
+const SP_COL_X = [50, 135, 220, 305] as const;
+const SP_ROW_Y = [294, 329, 365] as const;
 const SP_ROW_W: readonly (readonly number[])[] = [
-  [62, 36, 64, 38],
-  [54, 40, 58, 34],
-  [64, 34, 68, 38],
+  [58, 40, 62, 42],
+  [50, 46, 54, 38],
+  [62, 36, 64, 42],
 ];
 
 export default function InsideDiagram() {
@@ -202,7 +242,7 @@ export default function InsideDiagram() {
             {/* ===== PC ===== */}
             <svg
               className={styles.svgPc}
-              viewBox="0 0 1000 360"
+              viewBox="0 0 1000 420"
               role="img"
               aria-label={ARIA}
               preserveAspectRatio="xMidYMid meet"
@@ -210,52 +250,73 @@ export default function InsideDiagram() {
               {/* 四隅のトンボ */}
               <path
                 className={styles.trim}
-                d="M8 14 H20 M14 8 V20 M980 14 H992 M986 8 V20 M8 346 H20 M14 340 V352 M980 346 H992 M986 340 V352"
+                d="M8 14 H20 M14 8 V20 M980 14 H992 M986 8 V20 M8 406 H20 M14 400 V412 M980 406 H992 M986 400 V412"
                 aria-hidden="true"
               />
 
-              {/* --- 御社のパソコン（角丸の枠） --- */}
-              <text className={`${styles.name} ${styles.fade}`} x={26} y={42} style={at(T.caseLabel)}>
+              {/* --- ディスプレイ（ベゼル＋画面＋スタンド） --- */}
+              {/* ラベルはベゼル（上辺 y=44）の外側・上。線には一切重ねない */}
+              <text className={`${styles.name} ${styles.fade}`} x={38} y={32} style={at(T.caseLabel)}>
                 御社のパソコン
               </text>
               <path
-                className={`${styles.d} ${styles.dSlow} ${styles.case}`}
+                className={`${styles.d} ${styles.dSlow} ${styles.bezel}`}
                 pathLength={100}
-                style={at(T.caseFrame)}
-                d={PC_CASE}
+                style={at(T.bezel)}
+                d={PC_BEZEL}
               />
+              <path
+                className={`${styles.d} ${styles.dSlow} ${styles.screen}`}
+                pathLength={100}
+                style={at(T.screen)}
+                d={PC_SCREEN}
+              />
+              <g aria-hidden="true">
+                <path
+                  className={`${styles.d} ${styles.dFast} ${styles.stand}`}
+                  pathLength={100}
+                  style={at(T.stand)}
+                  d={PC_STAND}
+                />
+                <path
+                  className={`${styles.d} ${styles.dFast} ${styles.base}`}
+                  pathLength={100}
+                  style={at(T.base)}
+                  d={PC_BASE}
+                />
+              </g>
 
-              {/* --- ブラウザの窓（上辺の帯＋小さな丸3つ） --- */}
+              {/* --- 画面の中：ブラウザの窓（上辺の帯＋小さな丸3つ） --- */}
               <path
                 className={`${styles.d} ${styles.win}`}
                 pathLength={100}
                 style={at(T.win)}
-                d="M48 76 H742 V312 H48 Z"
+                d="M62 68 H722 V340 H62 Z"
               />
               <path
                 className={`${styles.d} ${styles.dFast} ${styles.band}`}
                 pathLength={100}
                 style={at(T.band)}
-                d="M48 104 H742"
+                d="M62 96 H722"
               />
               <g aria-hidden="true">
-                <circle className={`${styles.fade} ${styles.chip}`} style={at(T.chip)} cx={64} cy={90} r={3} />
-                <circle className={`${styles.fade} ${styles.chip}`} style={at(T.chip + 0.06)} cx={76} cy={90} r={3} />
-                <circle className={`${styles.fade} ${styles.chip}`} style={at(T.chip + 0.12)} cx={88} cy={90} r={3} />
+                <circle className={`${styles.fade} ${styles.chip}`} style={at(T.chip)} cx={78} cy={82} r={3} />
+                <circle className={`${styles.fade} ${styles.chip}`} style={at(T.chip + 0.06)} cx={90} cy={82} r={3} />
+                <circle className={`${styles.fade} ${styles.chip}`} style={at(T.chip + 0.12)} cx={102} cy={82} r={3} />
               </g>
-              <text className={`${styles.tag} ${styles.tagJa}`} x={104} y={94} style={at(T.winTag)}>
+              <text className={`${styles.tag} ${styles.tagJa}`} x={118} y={86} style={at(T.winTag)}>
                 ブラウザ
               </text>
 
               {/* --- 窓の中 01：CSV の紙片 --- */}
-              <text className={styles.tag} x={70} y={128} style={at(T.csvTag)}>
+              <text className={styles.tag} x={76} y={129} style={at(T.csvTag)}>
                 CSV
               </text>
               <path
                 className={`${styles.d} ${styles.dFast} ${styles.paper}`}
                 pathLength={100}
                 style={at(T.csvFrame)}
-                d="M70 134 H174 V174 H70 Z"
+                d="M76 135 H180 V181 H76 Z"
               />
               {PC_CSV.map((r, i) => (
                 <path
@@ -268,26 +329,26 @@ export default function InsideDiagram() {
               ))}
 
               {/* --- 窓の中 02：Excel の紙片（升目） --- */}
-              <text className={styles.tag} x={70} y={192} style={at(T.xlsTag)}>
+              <text className={styles.tag} x={76} y={197} style={at(T.xlsTag)}>
                 Excel
               </text>
               <path
                 className={`${styles.d} ${styles.dFast} ${styles.paper}`}
                 pathLength={100}
                 style={at(T.xlsFrame)}
-                d="M70 198 H174 V238 H70 Z"
+                d="M76 203 H180 V249 H76 Z"
               />
               <path
                 className={`${styles.d} ${styles.grid}`}
                 pathLength={100}
                 style={at(T.xlsGrid)}
-                d="M96 198 V238 M122 198 V238 M148 198 V238 M70 211 H174 M70 224 H174"
+                d="M102 203 V249 M128 203 V249 M154 203 V249 M76 218 H180 M76 234 H180"
               />
               <path
                 className={`${styles.d} ${styles.dFast} ${styles.dataStrong}`}
                 pathLength={100}
                 style={at(T.xlsTick)}
-                d={seg(206, [[76, 14], [102, 12], [128, 14], [154, 10]])}
+                d={seg(212, [[82, 14], [108, 12], [134, 14], [160, 12]])}
               />
               <path
                 className={`${styles.d} ${styles.dFast} ${styles.data}`}
@@ -297,32 +358,32 @@ export default function InsideDiagram() {
               />
 
               {/* --- 窓の中 03：PDF の紙片（角の折れた頁） --- */}
-              <text className={styles.tag} x={70} y={256} style={at(T.pdfTag)}>
+              <text className={styles.tag} x={76} y={265} style={at(T.pdfTag)}>
                 PDF
               </text>
               <path
                 className={`${styles.d} ${styles.dFast} ${styles.paper}`}
                 pathLength={100}
                 style={at(T.pdfFrame)}
-                d="M70 262 H158 L174 278 V302 H70 Z"
+                d="M76 271 H164 L180 287 V317 H76 Z"
               />
               <path
                 className={`${styles.d} ${styles.dFast} ${styles.grid}`}
                 pathLength={100}
                 style={at(T.pdfFrame + 0.22)}
-                d="M158 262 V278 H174"
+                d="M164 271 V287 H180"
               />
               <path
                 className={`${styles.d} ${styles.dFast} ${styles.dataStrong}`}
                 pathLength={100}
                 style={at(T.pdfLine)}
-                d="M78 272 h50"
+                d="M84 282 h50"
               />
               <path
                 className={`${styles.d} ${styles.dFast} ${styles.data}`}
                 pathLength={100}
                 style={at(T.pdfLine + 0.12)}
-                d="M78 282 h78 M78 292 h62"
+                d="M84 295 h78 M84 307 h62"
               />
 
               {/* --- 配線：3本が節点へ集まり、1本になって管理表へ --- */}
@@ -342,9 +403,9 @@ export default function InsideDiagram() {
                   style={at(T.out)}
                   d={PC_OUT}
                 />
-                <circle className={`${styles.fade} ${styles.pin}`} style={at(T.wire)} cx={174} cy={154} r={2.6} />
-                <circle className={`${styles.fade} ${styles.pin}`} style={at(T.wire + 0.08)} cx={174} cy={218} r={2.6} />
-                <circle className={`${styles.fade} ${styles.pin}`} style={at(T.wire + 0.16)} cx={174} cy={282} r={2.6} />
+                <circle className={`${styles.fade} ${styles.pin}`} style={at(T.wire)} cx={180} cy={158} r={2.6} />
+                <circle className={`${styles.fade} ${styles.pin}`} style={at(T.wire + 0.08)} cx={180} cy={226} r={2.6} />
+                <circle className={`${styles.fade} ${styles.pin}`} style={at(T.wire + 0.16)} cx={180} cy={294} r={2.6} />
 
                 {/* 光の点＝同じ線に重ねた短いダッシュを流す */}
                 {PC_WIRES.map((d) => (
@@ -353,7 +414,7 @@ export default function InsideDiagram() {
                 <path className={`${styles.spark} ${styles.sparkOut}`} pathLength={100} style={at(T.spark)} d={PC_OUT} />
 
                 {/* 節点 */}
-                <g transform="translate(320 218)">
+                <g transform="translate(324 226)">
                   <circle className={`${styles.ring} ${styles.ring1}`} style={at(T.spark)} cx={0} cy={0} r={12} />
                   <circle className={`${styles.ring} ${styles.ring2}`} style={at(T.spark)} cx={0} cy={0} r={18} />
                   <path
@@ -367,32 +428,32 @@ export default function InsideDiagram() {
               </g>
 
               {/* --- 窓の中 04：小さな管理表 --- */}
-              <text className={`${styles.name} ${styles.fade}`} x={396} y={140} style={at(T.tableName)}>
+              <text className={`${styles.name} ${styles.fade}`} x={400} y={133} style={at(T.tableName)}>
                 管理表
               </text>
               <path
                 className={`${styles.d} ${styles.paper}`}
                 pathLength={100}
                 style={at(T.table)}
-                d="M396 148 H716 V288 H396 Z"
+                d="M400 141 H708 V311 H400 Z"
               />
               <path
                 className={`${styles.d} ${styles.grid}`}
                 pathLength={100}
                 style={at(T.table + 0.16)}
-                d="M476 148 V288 M556 148 V288 M636 148 V288 M396 213 H716 M396 251 H716"
+                d="M477 141 V311 M554 141 V311 M631 141 V311 M400 216 H708 M400 264 H708"
               />
               <path
                 className={`${styles.d} ${styles.dFast} ${styles.headRule}`}
                 pathLength={100}
                 style={at(T.table + 0.24)}
-                d="M396 176 H716"
+                d="M400 169 H708"
               />
               <path
                 className={`${styles.d} ${styles.dFast} ${styles.dataStrong}`}
                 pathLength={100}
                 style={at(T.tableHead)}
-                d={seg(167, [[406, 48], [486, 36], [566, 48], [646, 36]])}
+                d={seg(160, [[410, 46], [487, 34], [564, 46], [641, 34]])}
               />
               {PC_ROW_Y.map((y, i) => (
                 <g key={y} className={styles.row} style={at(T.row + i * T.rowStep)}>
@@ -421,11 +482,13 @@ export default function InsideDiagram() {
                   style={at(T.border)}
                   d={PC_BORDER}
                 />
+                {/* 雲＝インターネット側（描線せず opacity で出す＝本物の破線を保つ） */}
+                <path className={`${styles.cloud} ${styles.fade}`} style={at(T.cloud)} d={PC_CLOUD} />
               </g>
               <text
                 className={`${styles.tag} ${styles.tagJa} ${styles.fade}`}
-                x={925}
-                y={196}
+                x={899}
+                y={262}
                 textAnchor="middle"
                 style={at(T.outTag)}
               >
@@ -436,54 +499,74 @@ export default function InsideDiagram() {
             {/* ===== SP ===== */}
             <svg
               className={styles.svgSp}
-              viewBox="0 0 420 520"
+              viewBox="0 0 420 600"
               role="img"
               aria-label={ARIA}
               preserveAspectRatio="xMidYMid meet"
             >
               <path
                 className={styles.trim}
-                d="M2 7 H12 M7 2 V12 M408 7 H418 M413 2 V12 M2 513 H12 M7 508 V518 M408 513 H418 M413 508 V518"
+                d="M2 7 H12 M7 2 V12 M408 7 H418 M413 2 V12 M2 593 H12 M7 588 V598 M408 593 H418 M413 588 V598"
                 aria-hidden="true"
               />
 
-              {/* --- 御社のパソコン --- */}
-              <text className={`${styles.name} ${styles.fade}`} x={10} y={22} style={at(T.caseLabel)}>
+              {/* --- ディスプレイ（ベゼル＋画面＋スタンド） --- */}
+              <text className={`${styles.name} ${styles.fade}`} x={16} y={26} style={at(T.caseLabel)}>
                 御社のパソコン
               </text>
               <path
-                className={`${styles.d} ${styles.dSlow} ${styles.case}`}
+                className={`${styles.d} ${styles.dSlow} ${styles.bezel}`}
                 pathLength={100}
-                style={at(T.caseFrame)}
-                d={SP_CASE}
+                style={at(T.bezel)}
+                d={SP_BEZEL}
               />
+              <path
+                className={`${styles.d} ${styles.dSlow} ${styles.screen}`}
+                pathLength={100}
+                style={at(T.screen)}
+                d={SP_SCREEN}
+              />
+              <g aria-hidden="true">
+                <path
+                  className={`${styles.d} ${styles.dFast} ${styles.stand}`}
+                  pathLength={100}
+                  style={at(T.stand)}
+                  d={SP_STAND}
+                />
+                <path
+                  className={`${styles.d} ${styles.dFast} ${styles.base}`}
+                  pathLength={100}
+                  style={at(T.base)}
+                  d={SP_BASE}
+                />
+              </g>
 
-              {/* --- ブラウザの窓 --- */}
-              <path className={`${styles.d} ${styles.win}`} pathLength={100} style={at(T.win)} d="M24 52 H396 V386 H24 Z" />
+              {/* --- 画面の中：ブラウザの窓 --- */}
+              <path className={`${styles.d} ${styles.win}`} pathLength={100} style={at(T.win)} d="M32 60 H388 V394 H32 Z" />
               <path
                 className={`${styles.d} ${styles.dFast} ${styles.band}`}
                 pathLength={100}
                 style={at(T.band)}
-                d="M24 78 H396"
+                d="M32 88 H388"
               />
               <g aria-hidden="true">
-                <circle className={`${styles.fade} ${styles.chip}`} style={at(T.chip)} cx={38} cy={65} r={3} />
-                <circle className={`${styles.fade} ${styles.chip}`} style={at(T.chip + 0.06)} cx={50} cy={65} r={3} />
-                <circle className={`${styles.fade} ${styles.chip}`} style={at(T.chip + 0.12)} cx={62} cy={65} r={3} />
+                <circle className={`${styles.fade} ${styles.chip}`} style={at(T.chip)} cx={48} cy={74} r={3} />
+                <circle className={`${styles.fade} ${styles.chip}`} style={at(T.chip + 0.06)} cx={60} cy={74} r={3} />
+                <circle className={`${styles.fade} ${styles.chip}`} style={at(T.chip + 0.12)} cx={72} cy={74} r={3} />
               </g>
-              <text className={`${styles.tag} ${styles.tagJa}`} x={78} y={69} style={at(T.winTag)}>
+              <text className={`${styles.tag} ${styles.tagJa}`} x={88} y={79} style={at(T.winTag)}>
                 ブラウザ
               </text>
 
               {/* --- 窓の中 01：CSV --- */}
-              <text className={styles.tag} x={32} y={100} style={at(T.csvTag)}>
+              <text className={styles.tag} x={42} y={110} style={at(T.csvTag)}>
                 CSV
               </text>
               <path
                 className={`${styles.d} ${styles.dFast} ${styles.paper}`}
                 pathLength={100}
                 style={at(T.csvFrame)}
-                d="M32 106 H142 V156 H32 Z"
+                d="M42 116 H146 V162 H42 Z"
               />
               {SP_CSV.map((r, i) => (
                 <path
@@ -496,26 +579,26 @@ export default function InsideDiagram() {
               ))}
 
               {/* --- 窓の中 02：Excel --- */}
-              <text className={styles.tag} x={152} y={100} style={at(T.xlsTag)}>
+              <text className={styles.tag} x={158} y={110} style={at(T.xlsTag)}>
                 Excel
               </text>
               <path
                 className={`${styles.d} ${styles.dFast} ${styles.paper}`}
                 pathLength={100}
                 style={at(T.xlsFrame)}
-                d="M152 106 H262 V156 H152 Z"
+                d="M158 116 H262 V162 H158 Z"
               />
               <path
                 className={`${styles.d} ${styles.grid}`}
                 pathLength={100}
                 style={at(T.xlsGrid)}
-                d="M180 106 V156 M207 106 V156 M234 106 V156 M152 123 H262 M152 140 H262"
+                d="M184 116 V162 M210 116 V162 M236 116 V162 M158 131 H262 M158 147 H262"
               />
               <path
                 className={`${styles.d} ${styles.dFast} ${styles.dataStrong}`}
                 pathLength={100}
                 style={at(T.xlsTick)}
-                d={seg(117, [[158, 16], [186, 14], [213, 16], [240, 14]])}
+                d={seg(126, [[164, 14], [190, 16], [216, 14], [242, 14]])}
               />
               <path
                 className={`${styles.d} ${styles.dFast} ${styles.data}`}
@@ -525,32 +608,32 @@ export default function InsideDiagram() {
               />
 
               {/* --- 窓の中 03：PDF --- */}
-              <text className={styles.tag} x={272} y={100} style={at(T.pdfTag)}>
+              <text className={styles.tag} x={274} y={110} style={at(T.pdfTag)}>
                 PDF
               </text>
               <path
                 className={`${styles.d} ${styles.dFast} ${styles.paper}`}
                 pathLength={100}
                 style={at(T.pdfFrame)}
-                d="M272 106 H366 L382 122 V156 H272 Z"
+                d="M274 116 H366 L382 132 V162 H274 Z"
               />
               <path
                 className={`${styles.d} ${styles.dFast} ${styles.grid}`}
                 pathLength={100}
                 style={at(T.pdfFrame + 0.22)}
-                d="M366 106 V122 H382"
+                d="M366 116 V132 H382"
               />
               <path
                 className={`${styles.d} ${styles.dFast} ${styles.dataStrong}`}
                 pathLength={100}
                 style={at(T.pdfLine)}
-                d="M280 116 h44"
+                d="M282 126 h44"
               />
               <path
                 className={`${styles.d} ${styles.dFast} ${styles.data}`}
                 pathLength={100}
                 style={at(T.pdfLine + 0.12)}
-                d="M280 130 h84 M280 142 h66"
+                d="M282 140 h84 M282 152 h66"
               />
 
               {/* --- 配線 --- */}
@@ -565,16 +648,16 @@ export default function InsideDiagram() {
                   />
                 ))}
                 <path className={`${styles.d} ${styles.dFast} ${styles.wire}`} pathLength={100} style={at(T.out)} d={SP_OUT} />
-                <circle className={`${styles.fade} ${styles.pin}`} style={at(T.wire)} cx={87} cy={156} r={2.6} />
-                <circle className={`${styles.fade} ${styles.pin}`} style={at(T.wire + 0.08)} cx={207} cy={156} r={2.6} />
-                <circle className={`${styles.fade} ${styles.pin}`} style={at(T.wire + 0.16)} cx={327} cy={156} r={2.6} />
+                <circle className={`${styles.fade} ${styles.pin}`} style={at(T.wire)} cx={94} cy={162} r={2.6} />
+                <circle className={`${styles.fade} ${styles.pin}`} style={at(T.wire + 0.08)} cx={210} cy={162} r={2.6} />
+                <circle className={`${styles.fade} ${styles.pin}`} style={at(T.wire + 0.16)} cx={328} cy={162} r={2.6} />
 
                 {SP_WIRES.map((d) => (
                   <path key={`s${d}`} className={`${styles.spark} ${styles.sparkIn}`} pathLength={100} style={at(T.spark)} d={d} />
                 ))}
                 <path className={`${styles.spark} ${styles.sparkOut}`} pathLength={100} style={at(T.spark)} d={SP_OUT} />
 
-                <g transform="translate(207 200)">
+                <g transform="translate(210 214)">
                   <circle className={`${styles.ring} ${styles.ring1}`} style={at(T.spark)} cx={0} cy={0} r={12} />
                   <circle className={`${styles.ring} ${styles.ring2}`} style={at(T.spark)} cx={0} cy={0} r={18} />
                   <path
@@ -588,32 +671,32 @@ export default function InsideDiagram() {
               </g>
 
               {/* --- 窓の中 04：小さな管理表 --- */}
-              <text className={`${styles.name} ${styles.fade}`} x={32} y={238} style={at(T.tableName)}>
+              <text className={`${styles.name} ${styles.fade}`} x={40} y={241} style={at(T.tableName)}>
                 管理表
               </text>
               <path
                 className={`${styles.d} ${styles.paper}`}
                 pathLength={100}
                 style={at(T.table)}
-                d="M32 246 H382 V366 H32 Z"
+                d="M40 248 H380 V382 H40 Z"
               />
               <path
                 className={`${styles.d} ${styles.grid}`}
                 pathLength={100}
                 style={at(T.table + 0.16)}
-                d="M120 246 V366 M207 246 V366 M294 246 V366 M32 303 H382 M32 335 H382"
+                d="M125 248 V382 M210 248 V382 M295 248 V382 M40 311 H380 M40 347 H380"
               />
               <path
                 className={`${styles.d} ${styles.dFast} ${styles.headRule}`}
                 pathLength={100}
                 style={at(T.table + 0.24)}
-                d="M32 272 H382"
+                d="M40 276 H380"
               />
               <path
                 className={`${styles.d} ${styles.dFast} ${styles.dataStrong}`}
                 pathLength={100}
                 style={at(T.tableHead)}
-                d={seg(265, [[42, 54], [130, 40], [217, 54], [304, 40]])}
+                d={seg(267, [[50, 58], [135, 44], [220, 58], [305, 44]])}
               />
               {SP_ROW_Y.map((y, i) => (
                 <g key={y} className={styles.row} style={at(T.row + i * T.rowStep)}>
@@ -621,7 +704,7 @@ export default function InsideDiagram() {
                 </g>
               ))}
 
-              {/* --- 境界（SP は横の破線） --- */}
+              {/* --- 境界（SP は横の破線・雲は下） --- */}
               <g aria-hidden="true">
                 <path
                   className={`${styles.d} ${styles.dFast} ${styles.wireDim}`}
@@ -642,11 +725,12 @@ export default function InsideDiagram() {
                   style={at(T.border)}
                   d={SP_BORDER}
                 />
+                <path className={`${styles.cloud} ${styles.fade}`} style={at(T.cloud)} d={SP_CLOUD} />
               </g>
               <text
                 className={`${styles.tag} ${styles.tagJa} ${styles.fade}`}
                 x={210}
-                y={486}
+                y={580}
                 textAnchor="middle"
                 style={at(T.outTag)}
               >

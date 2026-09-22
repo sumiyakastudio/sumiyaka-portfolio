@@ -1,32 +1,53 @@
 /* ==========================================================================
-   /about 05 SCOPE OF WORK ＝「途中で担当が変わることはありません」（2026-09-22）
+   /about 05 SCOPE OF WORK ＝「途中で担当が変わることはありません」
+   （2026-09-22・図解の憲法 §9-B＝v2 の作り直し）
+
+   5つの工程を「見て分かる形のカード」で描き、一本の線が5枚を途切れずに通る図。
+   形と線種は FIG. 03-A（components/service/UnifyDiagram.module.css）と同じ作りにして、
+   同じ作者の図に見えるようにする（紙＝.paper／罫・升目＝.grid／行＝.data・.dataStrong）。
+
    濃（のう）＝墨の面の上に置く線画。色は墨のトークンだけ（--color-foreground /
    --color-foreground-muted / --sumi-rule）。金 --color-accent は使わない。
    枠は付けない（墨の洗いの上に枠を置くと硬くなる＝憲法 §8-B）。
 
-   既定（クラス無し＝SSR・JS 無し）＝完成形の静止表示（点は消えている）。
+   既定（クラス無し＝SSR・JS 無し）＝完成形の静止表示（光の点は消えている）。
    JS が載ると .armed が初期状態を被せ、画面に入ると .play が入場を流す。
-   常時演出（点が進む・駅が明るくなる）は InViewGate の .live が付いているあいだだけ
-   running（既定 animation-play-state: paused）。
+   常時演出（光の点が走る・カードの枠がともる）は InViewGate の .live が付いている
+   あいだだけ running（既定 animation-play-state: paused）。
 
-   互換：transform(2D)・opacity・stroke-dashoffset だけを動かす。
-         filter / backdrop-filter / mix-blend-mode / 3D / SMIL / offset-path は不使用。
-         線は pathLength="100" で正規化（＝どの長さの線も同じ尺で引ける）。
-         太さは vector-effect: non-scaling-stroke で拡大率に依らず一定。
-         ただし「私」の点（.runner）だけは駅の円と同じ比率で縮めたいので除外する。
+   互換：opacity と stroke-dashoffset だけを動かす（transform も使わない）。
+         filter / backdrop-filter / mix-blend-mode / 3D / SMIL / offset-path /
+         clip-path は不使用。線は pathLength="100" で正規化（＝どの長さの線も同じ尺で
+         引ける）。太さは vector-effect: non-scaling-stroke で拡大率に依らず 1px／2px。
+         ただし「光の点」（.spark）だけは絵と同じ比率で縮めたいので除外する。
    ========================================================================== */
 
 .fig {
   --sc-ink: var(--color-foreground, #f1eaec);
   --sc-dim: var(--color-foreground-muted, #a9a0a2);
-  /* 線＝描かれた後の明るさ（--color-foreground の 0.5） */
+
+  /* カードの枠＝図の骨格。いちばんはっきり見せる */
+  --sc-card: rgba(241, 234, 236, 0.42);
+  /* 一本の線 */
   --sc-rail: rgba(241, 234, 236, 0.5);
-  --sc-station: rgba(241, 234, 236, 0.55);
-  --sc-label: rgba(241, 234, 236, 0.72);
+  /* 中の絵：紙・窓の輪郭（03-A の .paper と同じ濃さ） */
+  --sc-paper: rgba(241, 234, 236, 0.36);
+  /* 中の絵：箱（割り付けの袖と本体・ブラウザの中身） */
+  --sc-box: rgba(241, 234, 236, 0.3);
+  /* 中の絵：罫・折れ・縦罫（03-A の .grid） */
+  --sc-soft: rgba(241, 234, 236, 0.16);
+  /* 中の絵：行（2px・03-A の .data / .dataStrong） */
+  --sc-data: rgba(241, 234, 236, 0.32);
+  --sc-data-strong: rgba(241, 234, 236, 0.58);
+  /* 印＝箇条書きの点・手順の円・ブラウザの丸 */
+  --sc-mark: rgba(241, 234, 236, 0.55);
+  /* 工程名 */
+  --sc-label: rgba(241, 234, 236, 0.78);
+
   --sc-rule: var(--sumi-rule, rgba(241, 234, 236, 0.16));
   --sc-cycle: 6s;
 
-  /* 上下の余白はページ側（.scopeDiagram）が持つ＝部品は位置を主張しない */
+  /* 上下の余白はページ側（.scopeMain [data-scope-diagram]）が持つ＝部品は位置を主張しない */
   margin: 0;
   padding: 0;
 }
@@ -70,9 +91,9 @@
   overflow: visible;
 }
 
-/* SP＝2カラムが解ける 1023px から下。
-   max-width は「文字が大きくなりすぎない」ための上限＝
-   viewBox 420 が 280〜380px で出る（縮小率 0.67〜0.90）＝下の 16.2px が実寸 10.8〜14.7px になる。 */
+/* SP＝2カラムが解ける 1023px から下。3枚＋2枚の2段に組み替える。
+   max-width は「文字が大きくなりすぎない」ための上限＝viewBox 420 が 330〜380px で
+   出る（縮小率 0.79〜0.90）＝下の 16.2px が実寸 12.8〜14.7px になる。 */
 .svgSp {
   display: none;
   width: 100%;
@@ -92,44 +113,89 @@
 }
 
 /* ========================================
-   線の種類（太さは 1px の一段だけ＝この図に 2px の線は無い）
+   線の種類（太さは 1px と 2px の二段だけ＝憲法 §2）
    ======================================== */
-.rail,
-.tick,
-.station,
-.flash,
-.halo {
+.cardFrame,
+.railLine,
+.paper,
+.grid,
+.box,
+.data,
+.dataStrong,
+.step,
+.pin,
+.glow {
   fill: none;
   vector-effect: non-scaling-stroke;
 }
 
-.rail {
+/* カードの枠（96×68・角丸なし） */
+.cardFrame {
+  stroke: var(--sc-card);
+  stroke-width: 1;
+  stroke-linejoin: miter;
+}
+
+/* 一本の線＝カードの外に見えている区間。端は突き合わせ（カードの縁で切る） */
+.railLine {
   stroke: var(--sc-rail);
   stroke-width: 1;
   stroke-linecap: butt;
+  stroke-linejoin: round;
 }
 
-.tick {
-  stroke: var(--sc-rule);
+/* 線の両端の端子 */
+.pin {
+  stroke: var(--sc-rail);
   stroke-width: 1;
+}
+
+/* 紙・窓の輪郭（03-A の .paper と同じ役） */
+.paper {
+  stroke: var(--sc-paper);
+  stroke-width: 1;
+  stroke-linejoin: miter;
+}
+
+/* 罫・折れ・縦罫（03-A の .grid と同じ役） */
+.grid {
+  stroke: var(--sc-soft);
+  stroke-width: 1;
+}
+
+/* 割り付けの箱・ブラウザの中身 */
+.box {
+  stroke: var(--sc-box);
+  stroke-width: 1;
+  stroke-linejoin: miter;
+}
+
+/* 行（03-A の .data／.dataStrong と同じ役） */
+.data {
+  stroke: var(--sc-data);
+  stroke-width: 2;
   stroke-linecap: butt;
 }
 
-.station {
-  stroke: var(--sc-station);
+.dataStrong {
+  stroke: var(--sc-data-strong);
+  stroke-width: 2;
+  stroke-linecap: butt;
+}
+
+/* 手順の円（教育） */
+.step {
+  stroke: var(--sc-mark);
   stroke-width: 1;
 }
 
-/* SVG 内の文字（日本語＝Noto 12px・字間 0.08em） */
-.me {
-  font-family: var(--font-noto-sans-jp), sans-serif;
-  font-weight: 500;
-  font-size: 12px;
-  letter-spacing: 0.08em;
-  fill: var(--sc-ink);
-  text-anchor: middle;
+/* 印＝箇条書きの点・ブラウザの丸（塗りを使ってよいのはここだけ＝憲法 §2） */
+.dot {
+  fill: var(--sc-mark);
+  stroke: none;
 }
 
+/* SVG 内の文字（日本語＝Noto・字間 0.08em） */
 .label {
   font-family: var(--font-noto-sans-jp), sans-serif;
   font-weight: 400;
@@ -139,8 +205,16 @@
   text-anchor: middle;
 }
 
-/* SP 用の viewBox は約 0.83 倍に縮んで出るので、文字だけ 1.35 倍にして実寸を保つ */
-.svgSp .me,
+/* 狭いデスクトップ（1024〜1159px）では左カラムが 480〜615px まで縮み、
+   viewBox 620 が 0.77〜0.99 倍で出る＝12px だと実寸 9.3px まで落ちるので、
+   ここだけ user unit を上げて実寸 10.4px 以上を保つ（憲法 §6 の下限） */
+@media (min-width: 1024px) and (max-width: 1159px) {
+  .svgPc .label {
+    font-size: 13.5px;
+  }
+}
+
+/* SP 用の viewBox は約 0.79〜0.90 倍に縮んで出るので、文字だけ 1.35 倍にして実寸を保つ */
 .svgSp .label {
   font-size: 16.2px;
   letter-spacing: 0.07em;
@@ -149,6 +223,7 @@
 /* ========================================
    入場（1回だけ）
    既定＝完成形。.armed で初期状態、.play で再生。
+   一本の線 → 届いた順にカードの枠 → 中の絵 → 工程名。
    ======================================== */
 .d {
   stroke-dasharray: 100; /* pathLength=100 ＝ 線の長さに依らず同じ尺で引ける */
@@ -164,15 +239,12 @@
 }
 
 .play .d {
-  animation: scDraw 0.5s linear both;
+  animation: scDraw 0.38s linear both;
 }
 
+/* 中の絵は枠より速く描く。一本の線は区間ごとに長さが違うので尺をインラインで渡す */
 .play .dFast {
   animation-duration: 0.3s;
-}
-
-.play .dSlow {
-  animation-duration: 0.8s;
 }
 
 .play .fade {
@@ -200,71 +272,69 @@
 }
 
 /* ========================================
-   常時演出：「私」の点が 企画 → 公開 へ進む（6 秒周期・走るのは 2.22 秒だけ）
-   同じ線に重ねた短いダッシュを stroke-dashoffset で流す（offset-path を使わない）。
-   点は駅の円（r=4）と同じ比率で縮めたいので vector-effect を付けない＝
-   線幅 7 は user unit ＝ 直径 7（＝憲法 §8-B の r=3.5）。
+   常時演出：光の点が一本の線を端から端まで走る（6秒周期・走るのは約2秒）
+   同じ道に重ねた短いダッシュを stroke-dashoffset で流す（offset-path を使わない）。
+   点はカードの内側に道が無いので見えなくなり、そのあいだカードの枠がともる＝
+   「後ろを通り抜けた」姿になる。
+   点は絵と同じ比率で縮めたいので vector-effect を付けない＝線幅 5 は user unit
+   （丸い線端なので、見える直径 ＝ 5。カードの間の空き 16 の 1/3 ほど）。
    ======================================== */
-.runner {
+.spark {
   fill: none;
   stroke: var(--sc-ink);
-  stroke-width: 7;
+  stroke-width: 5;
   stroke-linecap: round;
-  stroke-dasharray: 0.3 99.7;
+  stroke-linejoin: round;
+  stroke-dasharray: 0.4 99.6;
   stroke-dashoffset: 100;
   opacity: 0; /* 既定＝見えない（静止状態では点は消えている） */
 }
 
-.flash {
+/* カードの枠がともる（同じ枠を明るい線で重ね、opacity だけ動かす＝WebKit 安全） */
+.glow {
   stroke: var(--sc-ink);
   stroke-width: 1;
+  stroke-linejoin: miter;
   opacity: 0;
 }
 
-.halo {
-  stroke: var(--sc-ink);
-  stroke-width: 1;
-  opacity: 0;
-}
-
-.play .runner {
-  animation: scRun var(--sc-cycle) linear infinite;
+.play .spark {
+  animation: scSpark var(--sc-cycle) linear infinite;
   animation-play-state: paused;
 }
 
-.play .flash {
-  animation: scFlash var(--sc-cycle) linear infinite;
-  animation-play-state: paused;
+/* SP の戻り線（逆「コ」の字）だけは道が長いので、走る時間も長くとる */
+.play .sparkLong {
+  animation-name: scSparkLong;
 }
 
-.play .halo {
-  animation: scHalo var(--sc-cycle) linear infinite;
+.play .glow {
+  animation: scGlow var(--sc-cycle) linear infinite;
   animation-play-state: paused;
 }
 
 /* 画面内かつ前面タブのあいだだけ動かす（InViewGate）。上の規則より後に置いて上書きする */
-.live .runner,
-.live .flash,
-.live .halo {
+.live .spark,
+.live .glow {
   animation-play-state: running;
 }
 
-/* 0〜37%（＝2.22 秒）で 企画 → 公開。右端で消え、残り 63% は休んでから左端から出直す */
-@keyframes scRun {
+/* 区間を走る＝6s の 2.7%（0.162 秒）。残りは次の区間・次の周まで休む */
+@keyframes scSpark {
   0% {
     stroke-dashoffset: 100;
     opacity: 0;
   }
 
-  1.5% {
+  0.25% {
     opacity: 1;
   }
 
-  36% {
+  2.45% {
     opacity: 1;
   }
 
-  37% {
+  2.7% {
     stroke-dashoffset: 0;
     opacity: 0;
   }
@@ -275,36 +345,48 @@
   }
 }
 
-/* 駅の円が一瞬明るくなる（0.55 → 1.0）。点が着く時刻を animationDelay で渡す */
-@keyframes scFlash {
+/* 戻り線を走る＝6s の 10.3%（0.62 秒）。道が 600 あるので速いが、
+   ここは工程ではなく「次の段へ戻る道」＝速く通り抜けるほうが読みやすい */
+@keyframes scSparkLong {
   0% {
+    stroke-dashoffset: 100;
     opacity: 0;
   }
 
-  3% {
+  0.3% {
     opacity: 1;
   }
 
-  10% {
+  9.8% {
+    opacity: 1;
+  }
+
+  10.3% {
+    stroke-dashoffset: 0;
     opacity: 0;
   }
 
   100% {
+    stroke-dashoffset: 0;
     opacity: 0;
   }
 }
 
-/* 駅の外側の輪がふっとともる（scale を使わない＝WebKit 安全） */
-@keyframes scHalo {
+/* カードの後ろを通っているあいだ（6s の 3.4%＝0.204 秒）だけ枠がともる */
+@keyframes scGlow {
   0% {
     opacity: 0;
   }
 
-  4% {
-    opacity: 0.3;
+  0.5% {
+    opacity: 0.85;
   }
 
-  13% {
+  2.6% {
+    opacity: 0.85;
+  }
+
+  3.4% {
     opacity: 0;
   }
 
@@ -314,7 +396,7 @@
 }
 
 /* ========================================
-   動きを減らす設定＝完成形で静止（線も駅も全部出た状態・点は消えたまま）
+   動きを減らす設定＝完成形で静止（線もカードも工程名も全部出た状態・光の点は消えたまま）
    ======================================== */
 @media (prefers-reduced-motion: reduce) {
   .d {
@@ -324,13 +406,11 @@
 
   .fade {
     opacity: 1 !important;
-    transform: none !important;
     animation: none !important;
   }
 
-  .runner,
-  .flash,
-  .halo {
+  .spark,
+  .glow {
     animation: none !important;
     opacity: 0 !important;
   }
