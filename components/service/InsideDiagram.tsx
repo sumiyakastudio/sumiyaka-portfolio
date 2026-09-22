@@ -8,6 +8,7 @@ import styles from "./InsideDiagram.module.css";
 /**
  * FIG. 08-A ＝「データは、御社のパソコンの中だけ」境界図
  * v2（2026-09-22・図解の憲法 §9-0／§9-C）＝ v1 の差し戻し（①左上が欠ける ②パソコンに見えない）を直した版。
+ * v2.1（同日・あおきさん確認）＝右側の「境界・雲・外」がはっきり読めるよう階調と寸法を上げた版。
  *
  * /service の世界観（重＝線と図面）に合わせ、線画（ストローク）だけで描く。
  * 同じページの FIG. 03-A（UnifyDiagram）と同じ作法＝図題・枠・トンボ・色変数・時刻表・
@@ -18,12 +19,12 @@ import styles from "./InsideDiagram.module.css";
  *       ラベル「御社のパソコン」は**ベゼルの外側・上**（線に重ねない＝v1 の左上の欠けを断つ）。
  *   画面の中＝「ブラウザ」の窓（上辺に細い帯＋小さな丸3つ）
  *   窓の中＝CSV／Excel／PDF の紙片 → 配線 → 節点 → 「管理表」（FIG. 03-A の縮小版）
- *   境界＝ベゼルの右（SP は下）に破線。その先に**雲の輪郭**（破線・薄い・1つだけ）＝インターネット側。
- *        雲の下（SP も下）に mono「外」。
+ *   境界＝ベゼルの右（SP は下）に破線。その先に**雲**（実線 1px・下辺が平らで上に大小3つの丸い山）
+ *        ＝インターネット側。雲の下に「外」。雲の中には何も描かない。
  *
  * 動き（画面に入ったら1回・総尺 約4.8秒）：
  *   ①ベゼル → ②画面 → ③スタンド → ④ブラウザの窓と帯 → ⑤紙片（CSV/Excel/PDF）→ ⑥配線 →
- *   ⑦節点 → ⑧管理表の行が埋まる → ⑨境界の破線 → ⑩雲と「外」
+ *   ⑦節点 → ⑧管理表の行が埋まる → ⑨境界の破線 → ⑩雲が描かれ「外」が出る
  *   以後の常時演出＝5秒周期。前半で紙片→節点→管理表へ光の点が流れ、続けて管理表から外へ
  *   向かう点が**画面の右端（ベゼルの内側）で止まり**、縁に短い光が 0.4 秒ともって消える。
  *   雲側には何も届かない。動くのは周期の約 1/3（残りは休む）。
@@ -36,7 +37,7 @@ import styles from "./InsideDiagram.module.css";
  */
 
 const ARIA =
-  "御社のパソコンのディスプレイを描いた図。画面の中のブラウザだけで、CSV・Excel・PDF が1つの管理表にまとまる。管理表から外へ向かった光は画面の端で止まり、右の境界の先にある「外」（インターネット）へは出ない。";
+  "御社のパソコンのディスプレイを描いた図。画面の中のブラウザだけで、CSV・Excel・PDF が1つの管理表にまとまる。管理表から外へ向かった光は画面の端で止まり、境界の破線の先にある雲（外＝インターネット）へは出ない。";
 
 /** アニメーションの開始時刻（秒）を渡す。インライン style は CSS より強いので遅延だけ上書きできる */
 const at = (sec: number): CSSProperties => ({ animationDelay: `${sec}s` });
@@ -78,21 +79,21 @@ const T = {
   border: 3.85,
   cloud: 4.15,
   esc: 4.2,
-  outTag: 4.35,
+  outTag: 4.45,
 };
 
 /** 線分の並び（[開始x, 長さ]）を1本のパスへ。桁の抽象を表す */
 const seg = (y: number, list: readonly (readonly [number, number])[]) =>
   list.map(([x, w]) => `M${x} ${y} h${w}`).join(" ");
 
-/** 破線の境界＝dasharray は描線アニメに使うので、短い線分の並びとして持つ */
-const dashV = (x: number, from: number, to: number, dash = 14, gap = 10) => {
+/** 破線の境界＝dasharray は描線アニメに使うので、短い線分（長さ10・間隔8）の並びとして持つ */
+const dashV = (x: number, from: number, to: number, dash = 10, gap = 8) => {
   const out: string[] = [];
   for (let y = from; y + dash <= to; y += dash + gap) out.push(`M${x} ${y} V${y + dash}`);
   return out.join(" ");
 };
 
-const dashH = (y: number, from: number, to: number, dash = 14, gap = 10) => {
+const dashH = (y: number, from: number, to: number, dash = 10, gap = 8) => {
   const out: string[] = [];
   for (let x = from; x + dash <= to; x += dash + gap) out.push(`M${x} ${y} H${x + dash}`);
   return out.join(" ");
@@ -104,7 +105,10 @@ const dashH = (y: number, from: number, to: number, dash = 14, gap = 10) => {
      画面     x  48→736 / y  54→354（角丸 4・ベゼルより 10px 内側）
      スタンド 首 y 364→392（台形）／台 y 398（x 292→492・2px）
      窓       x  62→722 / y  68→340（帯 y=96）
-     境界     縦の破線 x=800 ／ 雲 x 834→964・y 168→238 ／「外」 y=262
+     境界     縦の破線 x=780（y 44→360）
+     雲       bbox x 792→968（幅176）/ y 150→252（高さ102）・中心 x=880
+              ＝ベゼル右端 746｜34｜破線 780｜12｜雲 792 … 968｜12｜トンボ 980（左右対称）
+     外       (880, 278) Noto 13px
    ========================================================================== */
 
 /** 画面＝角丸 4 の矩形 */
@@ -138,10 +142,14 @@ const PC_ESC = "M708 226 H734";
 /** 画面の右端でともる短い光（0.4s） */
 const PC_BLOCK = "M736 206 V246";
 /** 境界の破線（ベゼルの右） */
-const PC_BORDER = dashV(800, 40, 380);
-/** 雲の輪郭＝インターネット側（破線・薄い・1つだけ） */
+const PC_BORDER = dashV(780, 44, 368);
+/**
+ * 雲＝インターネット側（実線 1px）。下辺が平らで、上に大小3つの丸い山。
+ * 3つの円 C1(826,222)r34 ／ C2(882,202)r52 ／ C3(938,226)r30 と底辺 y=252 の和集合の輪郭を
+ * 交点から算出した円弧3本＋底辺の閉じたパス（山の頂＝(826,188)／(882,150)／(938,196)）。
+ */
 const PC_CLOUD =
-  "M852 238 A18 18 0 0 1 852 202 A24 24 0 0 1 886 180 A26 26 0 0 1 928 190 A22 22 0 0 1 952 214 A12 12 0 0 1 952 238 Z";
+  "M810 252 A34 34 0 0 1 831.78 188.5 A52 52 0 0 1 933.69 196.31 A30 30 0 0 1 952.97 252 Z";
 
 const PC_COL_X = [410, 487, 564, 641] as const;
 const PC_ROW_Y = [192, 240, 288] as const;
@@ -153,19 +161,21 @@ const PC_ROW_W: readonly (readonly number[])[] = [
 
 /* ==========================================================================
    SP（viewBox 420×600＝縦に組み替え・境界は横の破線・雲は下）
-     ベゼル   x  14→406 / y  40→414（角丸 10）
-     画面     x  24→396 / y  50→404（角丸 4）
-     スタンド 首 y 414→434 ／台 y 440（x 150→270・2px）
-     窓       x  32→388 / y  60→394（帯 y=88）
-     境界     横の破線 y=462 ／ 雲 x 134→285・y 483→556 ／「外」 y=580
+     ベゼル   x  14→406 / y  40→392（角丸 10）
+     画面     x  24→396 / y  50→382（角丸 4）
+     スタンド 首 y 392→410 ／台 y 416（x 150→270・2px）
+     窓       x  32→388 / y  60→372（帯 y=88）
+     境界     横の破線 y=434（x 14→402）
+     雲       bbox x 110→310（幅200）/ y 452→562（高さ110）・中心 x=210
+     外       (210, 586) Noto 16.5px
    ========================================================================== */
 
 const SP_SCREEN =
-  "M28 50 H392 A4 4 0 0 1 396 54 V400 A4 4 0 0 1 392 404 H28 A4 4 0 0 1 24 400 V54 A4 4 0 0 1 28 50 Z";
+  "M28 50 H392 A4 4 0 0 1 396 54 V378 A4 4 0 0 1 392 382 H28 A4 4 0 0 1 24 378 V54 A4 4 0 0 1 28 50 Z";
 const SP_BEZEL =
-  "M24 40 H396 A10 10 0 0 1 406 50 V404 A10 10 0 0 1 396 414 H24 A10 10 0 0 1 14 404 V50 A10 10 0 0 1 24 40 Z";
-const SP_STAND = "M186 414 L177 434 H243 L234 414";
-const SP_BASE = "M150 440 H270";
+  "M24 40 H396 A10 10 0 0 1 406 50 V382 A10 10 0 0 1 396 392 H24 A10 10 0 0 1 14 382 V50 A10 10 0 0 1 24 40 Z";
+const SP_STAND = "M186 392 L177 410 H243 L234 392";
+const SP_BASE = "M150 416 H270";
 
 const SP_CSV: readonly { y: number; s: readonly (readonly [number, number])[] }[] = [
   { y: 128, s: [[50, 22], [78, 12], [96, 18], [120, 14]] },
@@ -178,17 +188,18 @@ const SP_XLS_TICKS = [
   seg(157, [[164, 14], [216, 16], [242, 14]]),
 ].join(" ");
 
-const SP_WIRES = ["M94 162 V188 H210 V202", "M210 162 V202", "M328 162 V188 H210 V202"] as const;
-const SP_OUT = "M210 226 V248";
-/** 管理表 → 外へ向かう線。画面の下端（y=404）の手前で終わる＝出ない */
-const SP_ESC = "M210 382 V402";
-const SP_BLOCK = "M186 404 H234";
-const SP_BORDER = dashH(462, 14, 406);
+const SP_WIRES = ["M94 162 V184 H210 V194", "M210 162 V194", "M328 162 V184 H210 V194"] as const;
+const SP_OUT = "M210 218 V234";
+/** 管理表 → 外へ向かう線。画面の下端（y=382）の手前で終わる＝出ない */
+const SP_ESC = "M210 360 V380";
+const SP_BLOCK = "M186 382 H234";
+const SP_BORDER = dashH(434, 14, 406);
+/** 雲＝C1(148,528)r38 ／ C2(211,508)r56 ／ C3(276,530)r34 と底辺 y=562 の和集合（山の頂 490／452／496） */
 const SP_CLOUD =
-  "M156 556 A22 22 0 0 1 156 515 A28 28 0 0 1 195 490 A30 30 0 0 1 243 502 A25 25 0 0 1 271 530 A14 14 0 0 1 271 556 Z";
+  "M131.03 562 A38 38 0 0 1 157.57 491.23 A56 56 0 0 1 266.01 497.5 A34 34 0 0 1 287.49 562 Z";
 
 const SP_COL_X = [50, 135, 220, 305] as const;
-const SP_ROW_Y = [294, 329, 365] as const;
+const SP_ROW_Y = [277, 310, 344] as const;
 const SP_ROW_W: readonly (readonly number[])[] = [
   [58, 40, 62, 42],
   [50, 46, 54, 38],
@@ -482,13 +493,18 @@ export default function InsideDiagram() {
                   style={at(T.border)}
                   d={PC_BORDER}
                 />
-                {/* 雲＝インターネット側（描線せず opacity で出す＝本物の破線を保つ） */}
-                <path className={`${styles.cloud} ${styles.fade}`} style={at(T.cloud)} d={PC_CLOUD} />
+                {/* 雲＝インターネット側（実線・描線で出る。中には何も描かない） */}
+                <path
+                  className={`${styles.d} ${styles.dCloud} ${styles.cloud}`}
+                  pathLength={100}
+                  style={at(T.cloud)}
+                  d={PC_CLOUD}
+                />
               </g>
               <text
-                className={`${styles.tag} ${styles.tagJa} ${styles.fade}`}
-                x={899}
-                y={262}
+                className={`${styles.name} ${styles.fade}`}
+                x={880}
+                y={278}
                 textAnchor="middle"
                 style={at(T.outTag)}
               >
@@ -542,7 +558,7 @@ export default function InsideDiagram() {
               </g>
 
               {/* --- 画面の中：ブラウザの窓 --- */}
-              <path className={`${styles.d} ${styles.win}`} pathLength={100} style={at(T.win)} d="M32 60 H388 V394 H32 Z" />
+              <path className={`${styles.d} ${styles.win}`} pathLength={100} style={at(T.win)} d="M32 60 H388 V372 H32 Z" />
               <path
                 className={`${styles.d} ${styles.dFast} ${styles.band}`}
                 pathLength={100}
@@ -657,7 +673,7 @@ export default function InsideDiagram() {
                 ))}
                 <path className={`${styles.spark} ${styles.sparkOut}`} pathLength={100} style={at(T.spark)} d={SP_OUT} />
 
-                <g transform="translate(210 214)">
+                <g transform="translate(210 206)">
                   <circle className={`${styles.ring} ${styles.ring1}`} style={at(T.spark)} cx={0} cy={0} r={12} />
                   <circle className={`${styles.ring} ${styles.ring2}`} style={at(T.spark)} cx={0} cy={0} r={18} />
                   <path
@@ -671,32 +687,32 @@ export default function InsideDiagram() {
               </g>
 
               {/* --- 窓の中 04：小さな管理表 --- */}
-              <text className={`${styles.name} ${styles.fade}`} x={40} y={241} style={at(T.tableName)}>
+              <text className={`${styles.name} ${styles.fade}`} x={40} y={227} style={at(T.tableName)}>
                 管理表
               </text>
               <path
                 className={`${styles.d} ${styles.paper}`}
                 pathLength={100}
                 style={at(T.table)}
-                d="M40 248 H380 V382 H40 Z"
+                d="M40 234 H380 V360 H40 Z"
               />
               <path
                 className={`${styles.d} ${styles.grid}`}
                 pathLength={100}
                 style={at(T.table + 0.16)}
-                d="M125 248 V382 M210 248 V382 M295 248 V382 M40 311 H380 M40 347 H380"
+                d="M125 234 V360 M210 234 V360 M295 234 V360 M40 293 H380 M40 327 H380"
               />
               <path
                 className={`${styles.d} ${styles.dFast} ${styles.headRule}`}
                 pathLength={100}
                 style={at(T.table + 0.24)}
-                d="M40 276 H380"
+                d="M40 260 H380"
               />
               <path
                 className={`${styles.d} ${styles.dFast} ${styles.dataStrong}`}
                 pathLength={100}
                 style={at(T.tableHead)}
-                d={seg(267, [[50, 58], [135, 44], [220, 58], [305, 44]])}
+                d={seg(251, [[50, 58], [135, 44], [220, 58], [305, 44]])}
               />
               {SP_ROW_Y.map((y, i) => (
                 <g key={y} className={styles.row} style={at(T.row + i * T.rowStep)}>
@@ -725,12 +741,17 @@ export default function InsideDiagram() {
                   style={at(T.border)}
                   d={SP_BORDER}
                 />
-                <path className={`${styles.cloud} ${styles.fade}`} style={at(T.cloud)} d={SP_CLOUD} />
+                <path
+                  className={`${styles.d} ${styles.dCloud} ${styles.cloud}`}
+                  pathLength={100}
+                  style={at(T.cloud)}
+                  d={SP_CLOUD}
+                />
               </g>
               <text
-                className={`${styles.tag} ${styles.tagJa} ${styles.fade}`}
+                className={`${styles.name} ${styles.fade}`}
                 x={210}
-                y={580}
+                y={586}
                 textAnchor="middle"
                 style={at(T.outTag)}
               >

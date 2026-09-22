@@ -237,20 +237,21 @@
   stroke-width: 1;
 }
 
-/* 境界の破線（短い線分の並び＝描線アニメのため dasharray を使わない） */
+/* 境界の破線（長さ10・間隔8の短い線分の並び＝描線アニメのため dasharray を使わない）
+   v2.1＝階調を --svc-rule-strong(.35) から --i-strong(.4) へ上げ、線分を短く詰めて濃く見せる */
 .border {
-  stroke: var(--svc-rule-strong, rgba(241, 234, 236, 0.35));
+  stroke: var(--i-strong);
   stroke-width: 1;
   stroke-linecap: butt;
 }
 
-/* 雲＝インターネット側の輪郭。ここだけ本物の破線（描線せず opacity で出す） */
+/* 雲＝インターネット側の輪郭。v2.1＝破線をやめ実線 1px・階調を --i-strong(.4) へ上げた
+   （下辺が平らで上に大小3つの丸い山。中には何も描かない） */
 .cloud {
-  stroke: var(--i-soft);
+  stroke: var(--i-strong);
   stroke-width: 1;
   stroke-linejoin: round;
   stroke-linecap: butt;
-  stroke-dasharray: 6 5;
 }
 
 /* 画面の右端（ベゼルの内側）でともる短い光（既定＝消えている） */
@@ -339,6 +340,11 @@
 
 .play .dSlow {
   animation-duration: 0.75s;
+}
+
+/* 雲だけ 0.6s で引く（v2.1） */
+.play .dCloud {
+  animation-duration: 0.6s;
 }
 
 .play .fade {
