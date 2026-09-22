@@ -15,7 +15,9 @@ import InkMotes from "@/components/fv/about/InkMotes";
 import InkTimeline from "@/components/about/InkTimeline";
 import InkStroke from "@/components/about/InkStroke";
 import AboutProgress from "@/components/about/AboutProgress";
+import PhotoFigure from "@/components/photo/PhotoFigure";
 import { stanceFull, stanceTitle } from "@/data/pillars";
+import { scopePhoto, stancePhoto } from "@/data/photos";
 import styles from "./page.module.css";
 
 /* P12（2026-09-06）＝減量。文言の正本＝`P12_原稿_減量差分.md` About 節。
@@ -40,6 +42,16 @@ import styles from "./page.module.css";
 
 // /api/og は日本語フォント搭載済み（Geist + Noto Sans JP）。sub は日本語のまま渡す
 const OG_SUB = "AI導入の設計と教育 — 墨家 / SUMIYAKA";
+
+/* ---- 本人写真の実表示幅（ロードマップ 4-13・2026-09-22）。文言と寸法の正本＝data/photos.ts ----
+   額のオフセット罫が右下へ 14px はみ出すぶん、置き場所の箱に 16px の余白を取ってある＝
+   写真そのものの幅は「箱の幅 − 16px」。下の値はその実寸。
+     PC（1024〜）  … 右カラム 416px − 16px ＝ 400px
+     768–1023     … 箱の上限 520px − 16px ＝ 504px
+     〜767        … STANCE は画面幅 −（左右 padding 40 ＋ 筆の一線の内側 22 ＋ 余白 16）
+                    SCOPE は画面幅 −（左右 padding 40 ＋ 余白 16） */
+const STANCE_PHOTO_SIZES = "(max-width: 767px) calc(100vw - 78px), (max-width: 1023px) 504px, 400px";
+const SCOPE_PHOTO_SIZES = "(max-width: 767px) calc(100vw - 56px), (max-width: 1023px) 504px, 400px";
 
 export const metadata: Metadata = {
   title: "ABOUT — AKASHIKI | 墨家 / SUMIYAKA",
@@ -288,34 +300,49 @@ export default function AboutPage() {
             <span className={styles.label}>STANCE</span>
             <h2 id="about-stance-title" className={styles.stanceTitle}>AIを使う側に、立つ。</h2>
           </ScrollReveal>
-          <div className={styles.stanceBlock}>
-            <InkStroke axis="y" className={styles.stanceStroke} duration={1.6} />
-            <div className={styles.stanceText}>
-              <ScrollReveal className={styles.reveal} delay={0.1}>
-                <p className={styles.stanceLead}>
-                  仕事は二つに分かれる。AIにできないことをする側か、AIを<Highlight>使う側</Highlight>か。私は、後者でありたい。
-                </p>
-              </ScrollReveal>
-              <ScrollReveal className={styles.reveal} delay={0.15}>
-                <p className={styles.stanceBody}>
-                  会社の業務がどう回るかを分かった上で、技術を当てる。だから仕事を三段に分けています——御社専用の道具を渡す、その道具をAIに使わせる、社員の方が自分で作れるようにする。
-                </p>
-              </ScrollReveal>
-            </div>
-          </div>
+          {/* 本文と写真の2カラム（ロードマップ 4-13・2026-09-22）
+              PC（1024〜）＝左に本文（筆の一線＋姿勢の全文）／右に C-1「現場で、話を聞く」。
+                被写体が右・相手の肩が左＝視線が本文側を向くので、写真は右に置く。
+              1023 以下＝縦積み（本文 → 姿勢の全文 → 写真 → 強調の一行）。
+              ⚠ .stanceStroke は .stanceBlock の中の absolute（top/bottom を持つ）＝この包み方を変えない。
+                 強調の一行（.stanceStatement）と詳細はグリッドの外＝これまで通り全幅で下に続く */}
+          <div className={styles.stanceGrid}>
+            <div className={styles.stanceMain}>
+              <div className={styles.stanceBlock}>
+                <InkStroke axis="y" className={styles.stanceStroke} duration={1.6} />
+                <div className={styles.stanceText}>
+                  <ScrollReveal className={styles.reveal} delay={0.1}>
+                    <p className={styles.stanceLead}>
+                      仕事は二つに分かれる。AIにできないことをする側か、AIを<Highlight>使う側</Highlight>か。私は、後者でありたい。
+                    </p>
+                  </ScrollReveal>
+                  <ScrollReveal className={styles.reveal} delay={0.15}>
+                    <p className={styles.stanceBody}>
+                      会社の業務がどう回るかを分かった上で、技術を当てる。だから仕事を三段に分けています——御社専用の道具を渡す、その道具をAIに使わせる、社員の方が自分で作れるようにする。
+                    </p>
+                  </ScrollReveal>
+                </div>
+              </div>
 
-          {/* 姿勢の全文（P17・2026-09-20）＝文言の正本は data/pillars.ts（stanceTitle / stanceFull）。
-              トップ 04 人 に置く短い宣言の、全文をここに置く。筆の一線の内側（36px）に揃える */}
-          <ScrollReveal className={styles.reveal} delay={0.12}>
-            <div className={styles.stanceFull}>
-              <h3 className={styles.stanceFullTitle}>{stanceTitle}</h3>
-              {stanceFull.map((paragraph) => (
-                <p key={paragraph} className={styles.stanceFullText}>
-                  {paragraph}
-                </p>
-              ))}
+              {/* 姿勢の全文（P17・2026-09-20）＝文言の正本は data/pillars.ts（stanceTitle / stanceFull）。
+                  トップ 04 人 に置く短い宣言の、全文をここに置く。筆の一線の内側（36px）に揃える */}
+              <ScrollReveal className={styles.reveal} delay={0.12}>
+                <div className={styles.stanceFull}>
+                  <h3 className={styles.stanceFullTitle}>{stanceTitle}</h3>
+                  {stanceFull.map((paragraph) => (
+                    <p key={paragraph} className={styles.stanceFullText}>
+                      {paragraph}
+                    </p>
+                  ))}
+                </div>
+              </ScrollReveal>
             </div>
-          </ScrollReveal>
+
+            {/* 文字が先・絵が後（トップ 01 Who と同じ作法）。figure 自体に transform は書かない */}
+            <ScrollReveal className={`${styles.reveal} ${styles.stancePhoto}`} delay={0.2}>
+              <PhotoFigure photo={stancePhoto} sizes={STANCE_PHOTO_SIZES} tone="dark" />
+            </ScrollReveal>
+          </div>
 
           <ScrollReveal className={styles.reveal} delay={0.1}>
             <p className={styles.stanceStatement}>
@@ -411,13 +438,26 @@ export default function AboutPage() {
             <span className={styles.label}>SCOPE OF WORK</span>
             <h2 id="about-scope-title" className={styles.title}>企画から公開まで、すべて私一人で。</h2>
           </ScrollReveal>
-          <ScrollReveal className={styles.reveal} delay={0.1}>
-            <p className={styles.scopeLead}>
-              Web制作も、業務ツールも、AI導入も、企画・設計・実装・教育・公開まで、途中で担当が変わることはありません。
-              <Highlight variant="under" className={styles.hlUnder}>分業も外注もありません。</Highlight>
-              Works に載せているものは、すべてこの体制で手がけたものです。
-            </p>
-          </ScrollReveal>
+          {/* 要約と写真の2カラム（ロードマップ 4-13・2026-09-22）
+              PC（1024〜）＝左に要約／右に C-3「設計も実装も、一人で」。
+                モニターが左・人物が右＝右に置くと画面が本文側を向く。h2 は全幅のまま。
+              1023 以下＝縦積み（要約 → 写真 → 墨の面の帯）。
+              墨の面の帯（.scopeSub）と導線はグリッドの外＝これまで通り全幅で下に続く */}
+          <div className={styles.scopeGrid}>
+            <div className={styles.scopeMain}>
+              <ScrollReveal className={styles.reveal} delay={0.1}>
+                <p className={styles.scopeLead}>
+                  Web制作も、業務ツールも、AI導入も、企画・設計・実装・教育・公開まで、途中で担当が変わることはありません。
+                  <Highlight variant="under" className={styles.hlUnder}>分業も外注もありません。</Highlight>
+                  Works に載せているものは、すべてこの体制で手がけたものです。
+                </p>
+              </ScrollReveal>
+            </div>
+
+            <ScrollReveal className={`${styles.reveal} ${styles.scopePhoto}`} delay={0.18}>
+              <PhotoFigure photo={scopePhoto} sizes={SCOPE_PHOTO_SIZES} tone="dark" />
+            </ScrollReveal>
+          </div>
 
           <div className={styles.scopeSub}>
             <ScrollReveal className={`${styles.reveal} ${styles.scopeCell}`} delay={0.15}>

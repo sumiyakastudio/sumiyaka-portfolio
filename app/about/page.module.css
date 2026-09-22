@@ -673,6 +673,26 @@
   max-width: 40em;
 }
 
+/* ---- C-1 の本人写真（ロードマップ 4-13・2026-09-22） ----
+   ここは縦積み（1023 以下）の姿。PC（1024〜）の2カラムはファイル末尾の
+   「Responsive — 本人写真の2カラム」で上書きする（タブレット帯の指定より後に置くため）。
+   額のオフセット罫は右下へ 14px はみ出す＝右・下に 16px の余白を取り、箱の外へ出さない。
+   地色は .page の --sumi-noh（＝--color-background）＝--photo-ground は上書きしない。 */
+.stanceGrid {
+  position: relative;
+}
+
+.stanceMain {
+  min-width: 0;
+}
+
+.stancePhoto {
+  /* 左端を本文（筆の一線の内側 36px）に揃える。上の余白は .stanceFull と同じ */
+  margin: 46px 0 0 36px;
+  max-width: 520px;
+  padding: 0 16px 16px 0;
+}
+
 /* ========================================
    B-4 Timeline — 一本の筆致
    左＝年齢/年（mono・白系）／中＝SVG の一線＋滲む点／右＝本文
@@ -958,6 +978,24 @@
 /* 下線の Highlight（共通部品の変数を上書き） */
 .scopeLead .hlUnder {
   --hl-ink: rgba(241, 234, 236, 0.62);
+}
+
+/* ---- C-3 の本人写真（ロードマップ 4-13・2026-09-22） ----
+   ここは縦積み（1023 以下）の姿＝要約の下・墨の面の帯の上。
+   PC（1024〜）の2カラムはファイル末尾の「Responsive — 本人写真の2カラム」で上書きする。 */
+.scopeGrid {
+  position: relative;
+}
+
+.scopeMain {
+  min-width: 0;
+}
+
+.scopePhoto {
+  /* .scopeLead の margin-bottom 28px と合わせて 32px 空ける */
+  margin: 4px 0 32px;
+  max-width: 520px;
+  padding: 0 16px 16px 0;
 }
 
 .scopeSub {
@@ -1259,6 +1297,7 @@
   .stanceBlock { padding-left: 28px; }
   .stanceStatement { padding: 30px 36px 30px 28px; }
   .stanceFull { margin-left: 28px; }
+  .stancePhoto { margin-left: 28px; } /* 1024〜は末尾のブロックで margin:0 に戻す */
   .discloseStance { margin-left: 28px; }
   .profileLead { font-size: 18px; padding: 16px 22px 16px 20px; }
 
@@ -1363,6 +1402,7 @@
   .stanceStatement { margin-top: 36px; padding: 26px 20px 26px 22px; }
   .stanceStatementText { font-size: 21px; line-height: 1.8; letter-spacing: 0.04em; }
   .stanceFull { margin: 34px 0 0 22px; padding-top: 24px; }
+  .stancePhoto { margin: 34px 0 0 22px; }
   .stanceFullTitle { font-size: 20px; line-height: 1.65; margin-bottom: 16px; }
   .stanceFullText { font-size: 15px; line-height: 2.05; margin-bottom: 18px; }
   .discloseStance { margin: 20px 0 0 22px; }
@@ -1458,6 +1498,7 @@
   }
   .scopeSub::before { right: -20px; }
   .scopeLead { font-size: 15px; line-height: 1.95; margin-bottom: 24px; }
+  .scopePhoto { margin: 2px 0 26px; }
   .scopeItem { padding-left: 18px; }
   .scopeItemText { font-size: 13.5px; }
   .moreLink { margin-top: 30px; font-size: 13px; }
@@ -1485,6 +1526,47 @@
     padding-left: 44px;
     margin-top: 4px;
     font-size: 13.5px;
+  }
+}
+
+/* =============================================
+   Responsive — 本人写真の2カラム（1024 以上・ロードマップ 4-13・2026-09-22）
+
+   ⚠ 置き場所に意味がある：上の「Tablet (768–1279)」より後に書く。
+     1024–1279 では両方の @media が一致するため、後に書いた側が勝つ＝
+     タブレット帯の .stancePhoto { margin-left: 28px } をここで打ち消して2カラムにする。
+
+   右カラム 416px ＝ 写真の実寸 400px ＋ 額のオフセット罫（右下へ 14px）を収める余白 16px。
+   align-items: start ＝ 写真の上端を左カラムの要約（.stanceLead / .scopeLead）の上端に揃える。
+   ============================================= */
+@media (min-width: 1024px) {
+  /* STANCE — 左＝本文（筆の一線＋姿勢の全文）／右＝C-1。
+     強調の一行（.stanceStatement）と詳細はグリッドの外＝全幅のまま */
+  .stanceGrid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 416px;
+    column-gap: 48px;
+    align-items: start;
+  }
+
+  .stancePhoto {
+    margin: 0;
+    max-width: none;
+    padding: 0 16px 16px 0;
+  }
+
+  /* SCOPE — 左＝要約／右＝C-3。墨の面の帯（.scopeSub）と導線はグリッドの外＝全幅のまま */
+  .scopeGrid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 416px;
+    column-gap: 48px;
+    align-items: start;
+  }
+
+  .scopePhoto {
+    margin: 0;
+    max-width: none;
+    padding: 0 16px 16px 0;
   }
 }
 

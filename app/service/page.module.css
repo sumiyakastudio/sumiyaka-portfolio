@@ -410,6 +410,19 @@
   margin-top: 8px;
 }
 
+/* 左カラムの器（例に沿った名）。1023px 以下は素の block（写真は list の後・keyLine の前に流れる）。
+   1024px 以上は 2 カラムグリッド化して右へ写真を出す（@media (min-width: 1024px) 参照）。 */
+.pillarMain {
+  min-width: 0;
+}
+
+/* 本人写真（ロードマップ 4-13）。プレート（--svc-plate）の上に載るので縁をこの地色へ沈める */
+.pillarMain > .pillarPhoto {
+  margin: 28px 0 0;
+  --photo-ground: var(--svc-plate);
+  --photo-edge: var(--svc-rule);
+}
+
 .pillarTitle {
   font-family: var(--font-body);
   font-weight: 700;
@@ -1100,6 +1113,32 @@
 }
 
 @media (min-width: 1024px) {
+
+  /* 第1の柱：左＝既存の中身（1カラムのまま）、右＝本人写真（340〜380px）。
+     写真カラムの開始位置は .partNo（プレート右上のタグ）の下端より確実に空ける。 */
+  .pillarMain {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 360px;
+    /* 左の5要素（label / list / keyLine / keyNote / Disclose）は auto の5行に自動配置。
+       写真は6行ぶんを縦断させ、写真の方が高いぶんの余りは最後の 1fr 行（左は空）が吸う
+       ＝ auto 行だけだと余りが各行へ均等に配られ、左の文が間延びする（2026-09-22 親が修正）。
+       ⚠ `grid-row: 1 / -1` は暗黙グリッドでは1行ぶんにしかならない（-1 は明示行の終端） */
+    grid-template-rows: auto auto auto auto auto 1fr;
+    column-gap: 48px;
+    align-items: start;
+  }
+
+  .pillarMain > * {
+    grid-column: 1;
+  }
+
+  .pillarMain > .pillarPhoto {
+    grid-column: 2;
+    grid-row: 1 / span 6;
+    align-self: start;
+    width: 100%;
+    margin: 40px 0 0;
+  }
 
   /* 索引カードは左右にずらして重ねる */
   .trustItem:nth-child(odd) {

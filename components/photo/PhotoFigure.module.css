@@ -1,0 +1,97 @@
+/* =============================================================
+   PhotoFigure — 本人写真の額（2026-09-22・ロードマップ 4-13）
+
+   トップ 01（Who.module.css .photoFrame）・04（Person.module.css .portraitFrame）と同じ作法。
+     ① オフセットの細い罫＝右下へ 14px ずらした 1px の枠（::before）
+     ② 縁の沈み込み＝四辺から地色へ溶かす通常合成のグラデ（::after・dark のみ）
+     ③ 小さなキャプション＝mono 11px・字間 0.2em・左下
+
+   ページ側が渡す custom property（figure か、その祖先に書く）：
+     --photo-ground  … 縁を沈める先の地色。既定＝ページの --color-background
+                       （プレートの上に置くときはプレートの色を渡す）
+     --photo-edge    … 罫線の色。既定＝theme-top.css の --edge（#3a3335）／paper は #c7c2b8
+     --photo-caption … キャプションの色。既定＝--color-foreground-muted／paper は #6a6862
+     --photo-line    … paper のとき写真の縁の髪の毛線。既定＝rgba(23,23,23,0.14)
+
+   互換：filter・backdrop-filter・mix-blend-mode・3D transform・clip-path・vw 単位は使わない。
+   動きは持たない（入場は外側の ScrollReveal）。
+   ============================================================= */
+.figure {
+  margin: 0;
+  width: 100%;
+  min-width: 0;
+}
+
+.dark {
+  --pf-edge: var(--photo-edge, var(--edge, #3a3335));
+  --pf-ground: var(--photo-ground, var(--color-background, #1f1c1c));
+  --pf-caption: var(--photo-caption, var(--color-foreground-muted, #a9a0a2));
+}
+
+.paper {
+  --pf-edge: var(--photo-edge, #c7c2b8);
+  --pf-caption: var(--photo-caption, #6a6862);
+  --pf-line: var(--photo-line, rgba(23, 23, 23, 0.14));
+}
+
+.frame {
+  position: relative;
+  display: block;
+}
+
+/* ① オフセットの罫線フレーム（右下へずらした枠） */
+.frame::before {
+  content: "";
+  position: absolute;
+  inset: 14px -14px -14px 14px;
+  border: 1px solid var(--pf-edge);
+  pointer-events: none;
+}
+
+/* ② 縁を地色に沈める（通常合成のみ・blend 不使用）。紙の上では行わない */
+.dark .frame::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(to top, var(--pf-ground) 0%, transparent 22%),
+    linear-gradient(to bottom, var(--pf-ground) 0%, transparent 16%),
+    linear-gradient(to right, var(--pf-ground) 0%, transparent 14%),
+    linear-gradient(to left, var(--pf-ground) 0%, transparent 14%);
+  opacity: 0.85;
+}
+
+/* 紙の上＝写真の白（255）が紙（#fbfaf7）へ溶けないよう、外側に 1px の線を回す
+   （box-shadow は寸法を変えない。img に inset の影は乗らないので frame に当てる） */
+.paper .frame {
+  box-shadow: 0 0 0 1px var(--pf-line);
+}
+
+.img {
+  display: block;
+  width: 100%;
+  height: auto; /* 原比率維持＝object-fit による切り抜きをしない */
+}
+
+/* ③ キャプション */
+.caption {
+  margin: 1.2rem 0 0;
+  font-family: var(--font-mono), var(--font-noto-sans-jp), monospace; /* 和文が混ざるので等幅の後ろに Noto */
+  font-weight: 300;
+  font-size: 11px;
+  line-height: 1.8;
+  letter-spacing: 0.2em;
+  color: var(--pf-caption);
+  text-align: left;
+}
+
+.captionRight {
+  text-align: right;
+}
+
+@media (max-width: 767px) {
+  .caption {
+    margin-top: 1rem;
+  }
+}

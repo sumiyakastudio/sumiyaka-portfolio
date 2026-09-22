@@ -7,6 +7,7 @@ import Disclose from "@/components/animation/Disclose";
 import DrawRule from "@/components/animation/DrawRule";
 import Highlight from "@/components/animation/Highlight";
 import ScrollReveal from "@/components/animation/ScrollReveal";
+import { inventoryPhoto } from "@/data/photos";
 import FigRail from "@/components/fv/service/FigRail";
 import ServiceFV from "@/components/fv/service/ServiceFV";
 import StageSteps, { type Stage } from "@/components/fv/service/StageSteps";
@@ -16,6 +17,7 @@ import CtaSection from "@/components/home/CtaSection";
 import Steps from "@/components/home/Steps";
 import Trust from "@/components/home/Trust";
 import Way from "@/components/home/Way";
+import PhotoFigure from "@/components/photo/PhotoFigure";
 import UnifyDiagram from "@/components/service/UnifyDiagram";
 import styles from "./page.module.css";
 
@@ -427,30 +429,42 @@ export default function ServicePage() {
             </ScrollReveal>
           </div>
 
-          {/* 第1の柱：AI導入の設計・教育＝部品プレート PART 01（4項目 → 一句 → 補足 → 裏面） */}
+          {/* 第1の柱：AI導入の設計・教育＝部品プレート PART 01（4項目 → 一句 → 補足 → 裏面）
+              本人写真（ロードマップ 4-13）＝ PC は右カラム（.pillarMain がグリッド化）、
+              1023px 以下は pillarList の後・keyLine の前に自然に流れる（DOM 順はそのまま）。 */}
           <ScrollReveal className={styles.reveal} delay={0.15}>
             <div className={`${styles.plate} ${styles.pillar} ${styles.pillarFirst}`}>
               <span className={styles.partNo} aria-hidden="true">
                 PART {pad2(1)}
               </span>
-              <span className={styles.label}>AI導入の設計・教育</span>
-              <ul className={styles.pillarList} aria-label="AI導入の設計・教育で行うこと">
-                {EDUCATION_POINTS.map((point) => (
-                  <li key={point} className={styles.pillarItem}>{point}</li>
-                ))}
-              </ul>
 
-              {/* 一句＝この図の主題。大きく置き、墨のマーカーが引かれる */}
-              <p className={styles.keyLine}>
-                <Highlight className={styles.keyMark} delay={0.15}>点ではなく、線で。</Highlight>
-              </p>
-              <p className={styles.keyNote}>
-                一つの作業にだけ入れたAIは、想定外が起きたときに止まります。集めて、揃えて、出すまでの一連の流れを、まるごと任せられる形に組みます。
-              </p>
+              <div className={styles.pillarMain}>
+                <span className={styles.label}>AI導入の設計・教育</span>
+                <ul className={styles.pillarList} aria-label="AI導入の設計・教育で行うこと">
+                  {EDUCATION_POINTS.map((point) => (
+                    <li key={point} className={styles.pillarItem}>{point}</li>
+                  ))}
+                </ul>
 
-              <Disclose className={styles.disclose} label="詳しく読む">
-                <Detail paragraphs={EDUCATION_DETAIL} />
-              </Disclose>
+                <PhotoFigure
+                  photo={inventoryPhoto}
+                  tone="dark"
+                  sizes="(max-width: 767px) calc(100vw - 80px), (max-width: 1023px) calc(100vw - 140px), 360px"
+                  className={styles.pillarPhoto}
+                />
+
+                {/* 一句＝この図の主題。大きく置き、墨のマーカーが引かれる */}
+                <p className={styles.keyLine}>
+                  <Highlight className={styles.keyMark} delay={0.15}>点ではなく、線で。</Highlight>
+                </p>
+                <p className={styles.keyNote}>
+                  一つの作業にだけ入れたAIは、想定外が起きたときに止まります。集めて、揃えて、出すまでの一連の流れを、まるごと任せられる形に組みます。
+                </p>
+
+                <Disclose className={styles.disclose} label="詳しく読む">
+                  <Detail paragraphs={EDUCATION_DETAIL} />
+                </Disclose>
+              </div>
             </div>
           </ScrollReveal>
 

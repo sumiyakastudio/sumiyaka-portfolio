@@ -6,6 +6,8 @@ import CasesFV from "@/components/cases/CasesFV";
 import CaseCard from "@/components/cases/CaseCard";
 import MeasureDiagram from "@/components/cases/MeasureDiagram";
 import HashLanding from "@/components/cases/HashLanding";
+import PhotoFigure from "@/components/photo/PhotoFigure";
+import { observePhoto, reviewPhoto } from "@/data/photos";
 import { getAllCases, getFdeIntro } from "@/lib/caseCatalog";
 import { SITE_ORIGIN } from "@/lib/site";
 import styles from "./page.module.css";
@@ -20,10 +22,22 @@ import styles from "./page.module.css";
  * ⚠ 文言・数字は data/cases.ts と lib/caseCatalog.ts だけを通す。
  *   件数もここでハードコードしない（事例を足せば自動で追従する）。
  * ⚠ 開示の線＝数字と業務の名前まで。仕組みは書かない。
+ *
+ * 本人写真は2枚だけ（ロードマップ 4-13・契約＝data/photos.ts）。
+ *   C-2 observePhoto … 「FDEとは」の右（PC は2カラム・写真の上端を h2 の上端にそろえる）
+ *   C-5 reviewPhoto  … 「人が決めるところ」の見出しの右に1枚だけ
+ * 紙の地なので額は tone="paper"（沈み込みなし・髪の毛ほどの縁）。
  */
 
 const intro = getFdeIntro();
 const caseCount = getAllCases().length;
+
+/** C-2 の実表示幅。PC＝右カラム 414px から額のオフセット罫ぶん 14px を引いた 400px。
+ *  1023px 以下は版面いっぱい（上限 560px＝左右 20px 余白で 600px から頭打ち） */
+const LEAD_PHOTO_SIZES = "(min-width: 1024px) 400px, (min-width: 600px) 560px, calc(100vw - 40px)";
+
+/** C-5 の実表示幅。PC＝見出し帯の右端に 240px。1023px 以下は上限 420px */
+const KEEPS_PHOTO_SIZES = "(min-width: 1024px) 240px, (min-width: 460px) 420px, calc(100vw - 40px)";
 
 export const metadata: Metadata = {
   // 型は /tools・/works・/about と同じ「{ページ名} — AKASHIKI | {日本語}」
@@ -74,22 +88,32 @@ export default function CasesPage() {
       {/* ============ FDEとは＝説明＋仕事の3段 ============ */}
       <section className={styles.lead} aria-label="FDEとは">
         <div className={styles.leadInner}>
-          <ScrollReveal>
-            <p className={styles.leadEyebrow}>{intro.pageTitleEn}</p>
-            <h2 className={styles.leadTitle}>FDEとは</h2>
-          </ScrollReveal>
+          {/* PC は2カラム（左＝言葉／右＝観察の写真）。1023px 以下は縦積み */}
+          <div className={styles.leadGrid}>
+            <div className={styles.leadText}>
+              <ScrollReveal>
+                <p className={styles.leadEyebrow}>{intro.pageTitleEn}</p>
+                <h2 className={styles.leadTitle}>FDEとは</h2>
+              </ScrollReveal>
 
-          <ScrollReveal delay={0.06}>
-            <p className={styles.leadBody}>{intro.explain}</p>
-          </ScrollReveal>
+              <ScrollReveal delay={0.06}>
+                <p className={styles.leadBody}>{intro.explain}</p>
+              </ScrollReveal>
 
-          {/* 結びの1文＝少し目立たせる（2026-09-16 あおきさん指示） */}
-          <ScrollReveal delay={0.12}>
-            <p className={styles.leadClose}>
-              <span className={styles.leadCloseRule} aria-hidden="true" />
-              {intro.closing}
-            </p>
-          </ScrollReveal>
+              {/* 結びの1文＝少し目立たせる（2026-09-16 あおきさん指示） */}
+              <ScrollReveal delay={0.12}>
+                <p className={styles.leadClose}>
+                  <span className={styles.leadCloseRule} aria-hidden="true" />
+                  {intro.closing}
+                </p>
+              </ScrollReveal>
+            </div>
+
+            {/* 文字が先・絵が後（入場は ScrollReveal 側だけに持たせる） */}
+            <ScrollReveal className={styles.leadPhoto} delay={0.18}>
+              <PhotoFigure photo={observePhoto} sizes={LEAD_PHOTO_SIZES} tone="paper" />
+            </ScrollReveal>
+          </div>
 
           <ol className={styles.steps}>
             {intro.steps.map((s, i) => (
@@ -161,6 +185,11 @@ export default function CasesPage() {
             <span className={styles.keepsCount}>
               {caseCount} CASE{caseCount > 1 ? "S" : ""}
             </span>
+
+            {/* 最終確認の1枚。PC は見出し帯の右端・1023px 以下は見出しの下へ回り込む */}
+            <ScrollReveal className={styles.keepsPhoto} delay={0.12}>
+              <PhotoFigure photo={reviewPhoto} sizes={KEEPS_PHOTO_SIZES} tone="paper" />
+            </ScrollReveal>
           </div>
 
           <ul className={styles.keepsList}>

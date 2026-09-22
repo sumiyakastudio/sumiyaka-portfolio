@@ -136,6 +136,54 @@
   }
 }
 
+/* ---- C-2 観察の写真（data/photos.ts の observePhoto・3:2）----
+   PC は「左＝言葉／右＝写真」の2カラム。3段（.steps）はこのグリッドの外＝これまで通り全幅。
+   1023px 以下は .leadGrid がただのブロック＝結びの1文の下・3段の上に縦積みで入る。 */
+.leadGrid {
+  min-width: 0;
+}
+
+.leadText {
+  min-width: 0;
+}
+
+.leadPhoto {
+  /* 額のトークン（既定値と同値。紙の地の純度をページ側から明示する） */
+  --photo-edge: var(--cs-line-strong);
+  --photo-caption: var(--cs-ink-3);
+  min-width: 0;
+  width: 100%;
+  max-width: 560px;
+  margin-top: 2.4rem;
+}
+
+@media (min-width: 1024px) {
+  .leadGrid {
+    display: grid;
+    /* 右列 414px のうち 14px は額のオフセット罫（右下へ 14px）の逃げ＝写真の実幅は 400px */
+    grid-template-columns: minmax(0, 1fr) 414px;
+    /* 1024〜1199px は溝を詰め、結びの1文（20字）が1行に収まる幅を左カラムに残す */
+    column-gap: 2rem;
+    align-items: start;
+  }
+
+  .leadPhoto {
+    max-width: none;
+    margin-top: 0;
+    /* 眉（.leadEyebrow＝0.68rem × 1.6）と h2 の上マージン 0.75rem ぶん下げ、
+       写真の上端を「FDEとは」の上端にそろえる */
+    padding-top: calc(0.68rem * 1.6 + 0.75rem);
+    /* オフセット罫が版面の外へ出ないよう、右に 14px 残す */
+    padding-right: 14px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .leadGrid {
+    column-gap: 3rem;
+  }
+}
+
 /* ---- 3段（01 現場に入る → 02 教え込む → 03 回せる状態にする） ---- */
 .steps {
   list-style: none;
@@ -354,6 +402,7 @@
 
 .keepsHead {
   display: flex;
+  flex-wrap: wrap; /* 1023px 以下＝写真を見出しの下の行へ回り込ませる */
   align-items: center;
   gap: 1.2rem;
   padding-top: 1.6rem;
@@ -379,6 +428,18 @@
   color: var(--cs-ink-2);
   background: var(--cs-paper);
   border: 1px solid var(--cs-line-strong);
+}
+
+/* ---- C-5 最終確認の写真（data/photos.ts の reviewPhoto・4:3）----
+   「見出しの横に1枚だけ」。1023px 以下は flex の折り返しで見出しの下・一覧の上に入る。 */
+.keepsPhoto {
+  --photo-edge: var(--cs-line-strong);
+  --photo-caption: var(--cs-ink-3);
+  flex: 0 0 100%;
+  min-width: 0;
+  width: 100%;
+  max-width: 420px;
+  margin-top: 0.6rem;
 }
 
 .keepsList {
@@ -429,6 +490,31 @@
   .keepsList {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     column-gap: 3rem;
+  }
+
+  /* 見出し帯を「見出し｜件数｜（余白）写真」の4つ目の列まで持つグリッドに変える。
+     align-items: start＝見出しと件数タグは罫のすぐ下（従来の位置）に残し、写真は右端に掛ける。
+     ⚠ end にすると見出しが写真の下辺まで落ち、罫と見出しの間に 220px の空きが出る（1920 実測・2026-09-22） */
+  .keepsHead {
+    display: grid;
+    grid-template-columns: auto auto minmax(0, 1fr);
+    column-gap: 1.2rem;
+    align-items: start;
+  }
+
+  /* 見出しと件数タグは写真の上辺の高さに（1行の中で中央にそろえる） */
+  .keepsTitle,
+  .keepsCount {
+    align-self: center;
+    margin-top: 0.35rem;
+  }
+
+  .keepsPhoto {
+    justify-self: end;
+    /* 254px のうち 14px はオフセット罫の逃げ＝写真の実幅は 240px */
+    max-width: 254px;
+    margin-top: 0;
+    padding-right: 14px;
   }
 }
 
