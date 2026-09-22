@@ -8,6 +8,7 @@ import tb from "@/components/fv/top-body/top-body.module.css";
 import { whoCopy, whoPhoto } from "@/data/pillars";
 import { getFdeIntro } from "@/lib/caseCatalog";
 import { getPillars } from "@/lib/pillarCatalog";
+import HandoffDiagram from "./HandoffDiagram";
 import styles from "./Who.module.css";
 
 /**
@@ -125,6 +126,10 @@ export default function Who() {
             </ScrollReveal>
           ))}
         </ol>
+
+        {/* 3段を1枚の絵にした図＝「手を離すまで」。3列の続きに見えるよう横軸を 1/3 ずつに割る。
+            ⚠ ScrollReveal で包まない（transform の二重掛け）＝入場は図が自分で持つ */}
+        <HandoffDiagram />
 
         {/* しないこと（1行）。他者は名指ししない＝立場を言い切るだけ */}
         <ScrollReveal delay={0.1}>

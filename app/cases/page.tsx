@@ -5,6 +5,7 @@ import ScrollReveal from "@/components/animation/ScrollReveal";
 import CasesFV from "@/components/cases/CasesFV";
 import CaseCard from "@/components/cases/CaseCard";
 import MeasureDiagram from "@/components/cases/MeasureDiagram";
+import DecideDiagram from "@/components/cases/DecideDiagram";
 import HashLanding from "@/components/cases/HashLanding";
 import PhotoFigure from "@/components/photo/PhotoFigure";
 import { observePhoto, reviewPhoto } from "@/data/photos";
@@ -180,11 +181,21 @@ export default function CasesPage() {
       {/* ============ 人が決めるところ（12件ぶん・正直さの根拠） ============ */}
       <section className={styles.keeps} aria-label="人が決めるところ">
         <div className={styles.keepsInner}>
+          {/* PC は2列（左＝見出し行／その下に図・右＝写真が2行を縦断）。
+              1023px 以下は DOM の順のまま縦に積む＝見出し行→図→写真→一覧 */}
           <div className={styles.keepsHead}>
-            <h2 className={styles.keepsTitle}>人が決めるところ</h2>
-            <span className={styles.keepsCount}>
-              {caseCount} CASE{caseCount > 1 ? "S" : ""}
-            </span>
+            <div className={styles.keepsTitleRow}>
+              <h2 className={styles.keepsTitle}>人が決めるところ</h2>
+              <span className={styles.keepsCount}>
+                {caseCount} CASE{caseCount > 1 ? "S" : ""}
+              </span>
+            </div>
+
+            {/* 「機械が出し、人が決める」の図。自前の入場を持つので ScrollReveal では包まない
+                （transform の二重掛けを避ける） */}
+            <div className={styles.keepsFigure}>
+              <DecideDiagram />
+            </div>
 
             {/* 最終確認の1枚。PC は見出し帯の右端・1023px 以下は見出しの下へ回り込む */}
             <ScrollReveal className={styles.keepsPhoto} delay={0.12}>

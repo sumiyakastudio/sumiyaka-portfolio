@@ -402,11 +402,28 @@
 
 .keepsHead {
   display: flex;
-  flex-wrap: wrap; /* 1023px 以下＝写真を見出しの下の行へ回り込ませる */
+  flex-wrap: wrap; /* 1023px 以下＝見出し行→図→写真の順に縦へ積む */
   align-items: center;
   gap: 1.2rem;
   padding-top: 1.6rem;
   border-top: 1px solid var(--cs-line-strong);
+}
+
+/* 見出しと件数タグを1行に束ねる包み（1024px 以上ではグリッドの左列・1行目になる） */
+.keepsTitleRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.2rem;
+  flex: 0 0 100%;
+  min-width: 0;
+}
+
+/* 図「機械が出し、人が決める」の置き場所（見た目は components/cases/DecideDiagram.module.css） */
+.keepsFigure {
+  flex: 0 0 100%;
+  min-width: 0;
+  width: 100%;
 }
 
 .keepsTitle {
@@ -492,14 +509,26 @@
     column-gap: 3rem;
   }
 
-  /* 見出し帯を「見出し｜件数｜（余白）写真」の4つ目の列まで持つグリッドに変える。
-     align-items: start＝見出しと件数タグは罫のすぐ下（従来の位置）に残し、写真は右端に掛ける。
-     ⚠ end にすると見出しが写真の下辺まで落ち、罫と見出しの間に 220px の空きが出る（1920 実測・2026-09-22） */
+  /* 見出し帯を2列に組む＝左列（1行目 見出し行／2行目 図）と右列（写真・2行を縦断）。
+     align-items: start＝見出し行は罫のすぐ下（従来の位置）に残し、写真だけ縦中央に掛ける。
+     ⚠ 写真を align-self: start にすると、左列が図のぶん伸びたときに上へ取り残される */
   .keepsHead {
     display: grid;
-    grid-template-columns: auto auto minmax(0, 1fr);
-    column-gap: 1.2rem;
+    grid-template-columns: minmax(0, 1fr) 334px;
+    grid-template-rows: auto auto;
+    column-gap: 2.4rem;
+    row-gap: 1.1rem;
     align-items: start;
+  }
+
+  .keepsTitleRow {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .keepsFigure {
+    grid-column: 1;
+    grid-row: 2;
   }
 
   /* 見出しと件数タグは写真の上辺の高さに（1行の中で中央にそろえる） */
@@ -510,6 +539,9 @@
   }
 
   .keepsPhoto {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    align-self: center;
     justify-self: end;
     /* 334px のうち 14px はオフセット罫の逃げ＝写真の実幅は 320px（2026-09-22 あおき指示で 240→320） */
     max-width: 334px;

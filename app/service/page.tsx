@@ -18,6 +18,7 @@ import Steps from "@/components/home/Steps";
 import Trust from "@/components/home/Trust";
 import Way from "@/components/home/Way";
 import PhotoFigure from "@/components/photo/PhotoFigure";
+import InsideDiagram from "@/components/service/InsideDiagram";
 import UnifyDiagram from "@/components/service/UnifyDiagram";
 import styles from "./page.module.css";
 
@@ -733,6 +734,12 @@ export default function ServicePage() {
               </div>
             </ScrollReveal>
           </div>
+
+          {/* 上の一句「データは御社のパソコンから外に出ません。」を図にする＝FIG. 08-A
+              （線画・入場で1回描かれ、以後は光の点が周期で流れて境界の内側で止まる）。
+              版面いっぱいの図なので .dataGrid（2列）の外＝本文と統計の下に置く。
+              自前で発火するため ScrollReveal で包まない（transform の二重掛けを避ける）。 */}
+          <InsideDiagram />
         </div>
       </section>
 

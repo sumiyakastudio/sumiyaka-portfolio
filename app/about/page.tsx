@@ -15,6 +15,7 @@ import InkMotes from "@/components/fv/about/InkMotes";
 import InkTimeline from "@/components/about/InkTimeline";
 import InkStroke from "@/components/about/InkStroke";
 import AboutProgress from "@/components/about/AboutProgress";
+import ScopeDiagram from "@/components/about/ScopeDiagram";
 import PhotoFigure from "@/components/photo/PhotoFigure";
 import { stanceFull, stanceTitle } from "@/data/pillars";
 import { scopePhoto, stancePhoto } from "@/data/photos";
@@ -452,6 +453,9 @@ export default function AboutPage() {
                   Works に載せているものは、すべてこの体制で手がけたものです。
                 </p>
               </ScrollReveal>
+              {/* 動く線画の図解（図解の憲法 §8-B・2026-09-22）＝一本の線に5つの駅、点は1つ。
+                  入場は図が自分で持つので ScrollReveal では包まない（transform の二重掛け） */}
+              <ScopeDiagram />
             </div>
 
             <ScrollReveal className={`${styles.reveal} ${styles.scopePhoto}`} delay={0.18}>

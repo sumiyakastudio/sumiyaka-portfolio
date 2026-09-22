@@ -1,0 +1,337 @@
+/* ==========================================================================
+   /about 05 SCOPE OF WORK ＝「途中で担当が変わることはありません」（2026-09-22）
+   濃（のう）＝墨の面の上に置く線画。色は墨のトークンだけ（--color-foreground /
+   --color-foreground-muted / --sumi-rule）。金 --color-accent は使わない。
+   枠は付けない（墨の洗いの上に枠を置くと硬くなる＝憲法 §8-B）。
+
+   既定（クラス無し＝SSR・JS 無し）＝完成形の静止表示（点は消えている）。
+   JS が載ると .armed が初期状態を被せ、画面に入ると .play が入場を流す。
+   常時演出（点が進む・駅が明るくなる）は InViewGate の .live が付いているあいだだけ
+   running（既定 animation-play-state: paused）。
+
+   互換：transform(2D)・opacity・stroke-dashoffset だけを動かす。
+         filter / backdrop-filter / mix-blend-mode / 3D / SMIL / offset-path は不使用。
+         線は pathLength="100" で正規化（＝どの長さの線も同じ尺で引ける）。
+         太さは vector-effect: non-scaling-stroke で拡大率に依らず一定。
+         ただし「私」の点（.runner）だけは駅の円と同じ比率で縮めたいので除外する。
+   ========================================================================== */
+
+.fig {
+  --sc-ink: var(--color-foreground, #f1eaec);
+  --sc-dim: var(--color-foreground-muted, #a9a0a2);
+  /* 線＝描かれた後の明るさ（--color-foreground の 0.5） */
+  --sc-rail: rgba(241, 234, 236, 0.5);
+  --sc-station: rgba(241, 234, 236, 0.55);
+  --sc-label: rgba(241, 234, 236, 0.72);
+  --sc-rule: var(--sumi-rule, rgba(241, 234, 236, 0.16));
+  --sc-cycle: 6s;
+
+  /* 上下の余白はページ側（.scopeDiagram）が持つ＝部品は位置を主張しない */
+  margin: 0;
+  padding: 0;
+}
+
+/* ---- 図題（図番なし＝一行の図名 ＋ 右へ伸びる罫） ---- */
+.head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.figLabel {
+  font-family: var(--font-noto-sans-jp), sans-serif;
+  font-weight: 400;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  line-height: 1.2;
+  color: var(--sc-dim);
+  white-space: nowrap;
+}
+
+.rule {
+  flex: 1 1 auto;
+  height: 1px;
+  min-width: 12px;
+  background: var(--sc-rule);
+}
+
+.gate,
+.stage {
+  display: block;
+}
+
+/* PC＝右カラム 416px を除いた左の空き（1080 − 416 − 48 ＝ 616px）にちょうど収まる */
+.svgPc {
+  display: block;
+  width: 100%;
+  max-width: 620px;
+  height: auto;
+  overflow: visible;
+}
+
+/* SP＝2カラムが解ける 1023px から下。
+   max-width は「文字が大きくなりすぎない」ための上限＝
+   viewBox 420 が 280〜380px で出る（縮小率 0.67〜0.90）＝下の 16.2px が実寸 10.8〜14.7px になる。 */
+.svgSp {
+  display: none;
+  width: 100%;
+  max-width: 380px;
+  height: auto;
+  overflow: visible;
+}
+
+@media (max-width: 1023px) {
+  .svgPc {
+    display: none;
+  }
+
+  .svgSp {
+    display: block;
+  }
+}
+
+/* ========================================
+   線の種類（太さは 1px の一段だけ＝この図に 2px の線は無い）
+   ======================================== */
+.rail,
+.tick,
+.station,
+.flash,
+.halo {
+  fill: none;
+  vector-effect: non-scaling-stroke;
+}
+
+.rail {
+  stroke: var(--sc-rail);
+  stroke-width: 1;
+  stroke-linecap: butt;
+}
+
+.tick {
+  stroke: var(--sc-rule);
+  stroke-width: 1;
+  stroke-linecap: butt;
+}
+
+.station {
+  stroke: var(--sc-station);
+  stroke-width: 1;
+}
+
+/* SVG 内の文字（日本語＝Noto 12px・字間 0.08em） */
+.me {
+  font-family: var(--font-noto-sans-jp), sans-serif;
+  font-weight: 500;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  fill: var(--sc-ink);
+  text-anchor: middle;
+}
+
+.label {
+  font-family: var(--font-noto-sans-jp), sans-serif;
+  font-weight: 400;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  fill: var(--sc-label);
+  text-anchor: middle;
+}
+
+/* SP 用の viewBox は約 0.83 倍に縮んで出るので、文字だけ 1.35 倍にして実寸を保つ */
+.svgSp .me,
+.svgSp .label {
+  font-size: 16.2px;
+  letter-spacing: 0.07em;
+}
+
+/* ========================================
+   入場（1回だけ）
+   既定＝完成形。.armed で初期状態、.play で再生。
+   ======================================== */
+.d {
+  stroke-dasharray: 100; /* pathLength=100 ＝ 線の長さに依らず同じ尺で引ける */
+  stroke-dashoffset: 0;
+}
+
+.armed .d {
+  stroke-dashoffset: 100;
+}
+
+.armed .fade {
+  opacity: 0;
+}
+
+.play .d {
+  animation: scDraw 0.5s linear both;
+}
+
+.play .dFast {
+  animation-duration: 0.3s;
+}
+
+.play .dSlow {
+  animation-duration: 0.8s;
+}
+
+.play .fade {
+  animation: scFade 0.42s ease-out both;
+}
+
+@keyframes scDraw {
+  from {
+    stroke-dashoffset: 100;
+  }
+
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes scFade {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+/* ========================================
+   常時演出：「私」の点が 企画 → 公開 へ進む（6 秒周期・走るのは 2.22 秒だけ）
+   同じ線に重ねた短いダッシュを stroke-dashoffset で流す（offset-path を使わない）。
+   点は駅の円（r=4）と同じ比率で縮めたいので vector-effect を付けない＝
+   線幅 7 は user unit ＝ 直径 7（＝憲法 §8-B の r=3.5）。
+   ======================================== */
+.runner {
+  fill: none;
+  stroke: var(--sc-ink);
+  stroke-width: 7;
+  stroke-linecap: round;
+  stroke-dasharray: 0.3 99.7;
+  stroke-dashoffset: 100;
+  opacity: 0; /* 既定＝見えない（静止状態では点は消えている） */
+}
+
+.flash {
+  stroke: var(--sc-ink);
+  stroke-width: 1;
+  opacity: 0;
+}
+
+.halo {
+  stroke: var(--sc-ink);
+  stroke-width: 1;
+  opacity: 0;
+}
+
+.play .runner {
+  animation: scRun var(--sc-cycle) linear infinite;
+  animation-play-state: paused;
+}
+
+.play .flash {
+  animation: scFlash var(--sc-cycle) linear infinite;
+  animation-play-state: paused;
+}
+
+.play .halo {
+  animation: scHalo var(--sc-cycle) linear infinite;
+  animation-play-state: paused;
+}
+
+/* 画面内かつ前面タブのあいだだけ動かす（InViewGate）。上の規則より後に置いて上書きする */
+.live .runner,
+.live .flash,
+.live .halo {
+  animation-play-state: running;
+}
+
+/* 0〜37%（＝2.22 秒）で 企画 → 公開。右端で消え、残り 63% は休んでから左端から出直す */
+@keyframes scRun {
+  0% {
+    stroke-dashoffset: 100;
+    opacity: 0;
+  }
+
+  1.5% {
+    opacity: 1;
+  }
+
+  36% {
+    opacity: 1;
+  }
+
+  37% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+}
+
+/* 駅の円が一瞬明るくなる（0.55 → 1.0）。点が着く時刻を animationDelay で渡す */
+@keyframes scFlash {
+  0% {
+    opacity: 0;
+  }
+
+  3% {
+    opacity: 1;
+  }
+
+  10% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+/* 駅の外側の輪がふっとともる（scale を使わない＝WebKit 安全） */
+@keyframes scHalo {
+  0% {
+    opacity: 0;
+  }
+
+  4% {
+    opacity: 0.3;
+  }
+
+  13% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+/* ========================================
+   動きを減らす設定＝完成形で静止（線も駅も全部出た状態・点は消えたまま）
+   ======================================== */
+@media (prefers-reduced-motion: reduce) {
+  .d {
+    stroke-dashoffset: 0 !important;
+    animation: none !important;
+  }
+
+  .fade {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+  }
+
+  .runner,
+  .flash,
+  .halo {
+    animation: none !important;
+    opacity: 0 !important;
+  }
+}

@@ -1,0 +1,497 @@
+/* ==========================================================================
+   DecideDiagram — /cases「人が決めるところ」の図「機械が出し、人が決める」
+
+   器は MeasureDiagram と同じ＝紙（--cs-paper）の板＋罫（--cs-line）の枠。
+   色は /cases の紙のトークンだけ（朱 --cs-seal は「実測」の印だけの決まりなので使わない）。
+
+   既定（クラス無し・SSR・JS 無し）＝完成形の静止表示（「✓」も描かれた状態）。
+   JS が載ると .armed が初期状態を被せ、画面に入ると .play が入場を流す。
+   常時演出（光の点・輪・✓）は InViewGate の .live が付いているあいだだけ running
+   （既定は animation-play-state: paused＝画面外と背面タブでは本当に止まる）。
+
+   互換：transform(2D)・opacity・stroke-dashoffset だけを動かす。
+         filter / backdrop-filter / mix-blend-mode / 3D / SMIL / offset-path は不使用。
+         線は pathLength="100" で正規化（＝どの長さの線も同じ尺で引ける）。
+         太さは vector-effect: non-scaling-stroke で拡大率に依らず一定。
+         輪は scale ではなく opacity で光らせる（WebKit で線が太るため）。
+   ========================================================================== */
+
+.fig {
+  --dd-ink: var(--cs-ink, #171717);
+  --dd-ink-2: var(--cs-ink-2, #3d3c39);
+  --dd-ink-3: var(--cs-ink-3, #6a6862);
+  --dd-line: var(--cs-line, #dcd8d0);
+  --dd-line-strong: var(--cs-line-strong, #c7c2b8);
+  /* 常時演出の周期。動くのは前半の半分だけで、残りは休む */
+  --dd-cycle: 5.5s;
+
+  margin: 0;
+  padding: 1.2rem 1.6rem 1.35rem;
+  background: var(--cs-paper, #fbfaf7);
+  border: 1px solid var(--dd-line);
+}
+
+/* ---- 図題＝一行の図名＋右へ伸びる罫（このページには図番の体系が無いので図番は付けない） ---- */
+.head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 1rem;
+}
+
+.figLabel {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  line-height: 1.7;
+  letter-spacing: 0.16em;
+  color: var(--dd-ink-3);
+  white-space: nowrap;
+}
+
+.rule {
+  flex: 1 1 auto;
+  height: 1px;
+  min-width: 12px;
+  background: var(--dd-line);
+}
+
+.gate,
+.stage {
+  display: block;
+}
+
+.svgPc {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.svgSp {
+  display: none;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+/* ========================================
+   線の種類（太さは 1px / 2px の二段だけ）
+   ======================================== */
+.brace,
+.wire,
+.box,
+.node,
+.check,
+.spark {
+  fill: none;
+  vector-effect: non-scaling-stroke;
+  stroke-linecap: butt;
+}
+
+/* 機械の受け持ちを囲う括弧線＝いちばん細く、いちばん薄い */
+.brace {
+  stroke: var(--dd-line-strong);
+  stroke-width: 1;
+  stroke-linejoin: miter;
+}
+
+.wire {
+  stroke: var(--dd-line-strong);
+  stroke-width: 1;
+  stroke-linejoin: round;
+}
+
+/* 駅＝小さな四角 */
+.box {
+  stroke: var(--dd-ink-2);
+  stroke-width: 1;
+  stroke-linejoin: miter;
+}
+
+/* 節点＝ひし形（この図でいちばん強い線） */
+.node {
+  stroke: var(--dd-ink);
+  stroke-width: 1;
+  stroke-linejoin: miter;
+}
+
+/* 人が通した印＝ひし形の中の「✓」 */
+.check {
+  stroke: var(--dd-ink);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 100; /* pathLength=100＝全長ぶんの1本のダッシュ */
+  stroke-dashoffset: 0; /* 既定＝描かれた状態 */
+}
+
+/* 同心の輪＝決まった瞬間だけふっと明るくなる。既定は見えない */
+.ring {
+  fill: none;
+  stroke: var(--dd-ink-2);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+  opacity: 0;
+}
+
+/* ========================================
+   SVG 内の文字
+   ⚠ この図は置かれる幅（左列 520〜890px）で 0.65〜1.05 倍に伸び縮みするので、
+     画面上の実寸が 10px を割らないよう、幅の段ごとに user unit を調整する。
+   ======================================== */
+.tag {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  text-anchor: middle;
+  fill: var(--dd-ink-3);
+}
+
+.st {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: 13.5px;
+  letter-spacing: 0.08em;
+  text-anchor: middle;
+  fill: var(--dd-ink-2);
+}
+
+.nodeName {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 15px;
+  letter-spacing: 0.08em;
+  text-anchor: middle;
+  fill: var(--dd-ink);
+}
+
+/* 1024〜1139px＝左列がいちばん狭い（約520〜630px＝0.65〜0.79倍） */
+@media (min-width: 1024px) and (max-width: 1139px) {
+  .svgPc .tag {
+    font-size: 15.5px;
+    letter-spacing: 0.14em;
+  }
+
+  .svgPc .st {
+    font-size: 17px;
+  }
+
+  .svgPc .nodeName {
+    font-size: 19px;
+  }
+}
+
+/* 1140〜1279px＝左列 約630〜795px（0.79〜0.99倍） */
+@media (min-width: 1140px) and (max-width: 1279px) {
+  .svgPc .tag {
+    font-size: 13.5px;
+    letter-spacing: 0.16em;
+  }
+
+  .svgPc .st {
+    font-size: 15px;
+  }
+
+  .svgPc .nodeName {
+    font-size: 16.5px;
+  }
+}
+
+/* ========================================
+   1023px 以下＝2段に折った SP 用の図に差し替える（このページの境）。
+   viewBox 420 を素のまま伸ばすと文字が肥大するので、板と図に上限を置く。
+   390px 端末では約 0.75 倍（mono 10.1px／駅 12.3px／節点 13.4px）。
+   ======================================== */
+@media (max-width: 1023px) {
+  .fig {
+    max-width: 540px;
+    padding: 1.1rem 1.1rem 1.2rem;
+  }
+
+  .svgPc {
+    display: none;
+  }
+
+  .svgSp {
+    display: block;
+    max-width: 460px;
+    margin: 0 auto;
+  }
+
+  .svgSp .tag {
+    font-size: 13.5px;
+    letter-spacing: 0.16em;
+  }
+
+  .svgSp .st {
+    font-size: 16.5px;
+  }
+
+  .svgSp .nodeName {
+    font-size: 18px;
+  }
+}
+
+/* ==========================================================================
+   入場（画面に入ったら1回）
+   既定＝完成形。.armed で初期状態、.play で再生。
+   ========================================================================== */
+.d {
+  stroke-dasharray: 100; /* pathLength=100 ＝ 線の長さに依らず同じ尺で引ける */
+  stroke-dashoffset: 0;
+}
+
+.armed .d {
+  stroke-dashoffset: 100;
+}
+
+.armed .fade {
+  opacity: 0;
+}
+
+.armed .check {
+  stroke-dashoffset: 100;
+}
+
+.play .d {
+  animation: ddDraw 0.5s linear both;
+}
+
+.play .dFast {
+  animation-duration: 0.35s;
+}
+
+.play .dSlow {
+  animation-duration: 0.8s;
+}
+
+.play .fade {
+  animation: ddFade 0.4s ease-out both;
+}
+
+@keyframes ddDraw {
+  from {
+    stroke-dashoffset: 100;
+  }
+
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes ddFade {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+/* ==========================================================================
+   常時演出（周期 5.5s）
+     0.0〜1.2s  光の点が 集める→揃える→出す を走り、ひし形の手前に着く
+     1.2〜2.0s  そこで止まる。輪が一度ふっと明るくなり、ひし形の中に「✓」が描かれる
+     2.0〜2.6s  「使う」へ進んで消える
+     2.6〜5.5s  休む
+   光の点は「同じ経路に重ねた短いダッシュを stroke-dashoffset で流す」方式
+   （offset-path を使わない）。
+   ========================================================================== */
+.spark {
+  stroke: var(--dd-ink);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-dasharray: 1.6 98.4;
+  stroke-dashoffset: 1.6;
+  opacity: 0;
+}
+
+.play .sparkRun {
+  animation: ddRun var(--dd-cycle) linear infinite both;
+  animation-play-state: paused;
+}
+
+.play .sparkExit {
+  animation: ddExit var(--dd-cycle) linear infinite both;
+  animation-play-state: paused;
+}
+
+.play .ring1 {
+  animation: ddRing1 var(--dd-cycle) ease-out infinite both;
+  animation-play-state: paused;
+}
+
+.play .ring2 {
+  animation: ddRing2 var(--dd-cycle) ease-out infinite both;
+  animation-play-state: paused;
+}
+
+.play .check {
+  animation: ddCheck var(--dd-cycle) linear infinite both;
+  animation-play-state: paused;
+}
+
+/* 画面内かつ前面タブのあいだだけ動かす（InViewGate）。上の規則より後に置いて上書きする */
+.live .sparkRun,
+.live .sparkExit,
+.live .ring1,
+.live .ring2,
+.live .check {
+  animation-play-state: running;
+}
+
+/* 集める→ひし形の手前（0〜21.8%＝1.2秒）。着いたらそこで待つ */
+@keyframes ddRun {
+  0% {
+    stroke-dashoffset: 100;
+    opacity: 0;
+  }
+
+  3% {
+    opacity: 1;
+  }
+
+  21.8% {
+    stroke-dashoffset: 1.6;
+    opacity: 1;
+  }
+
+  34% {
+    stroke-dashoffset: 1.6;
+    opacity: 1;
+  }
+
+  36.4% {
+    stroke-dashoffset: 1.6;
+    opacity: 0;
+  }
+
+  100% {
+    stroke-dashoffset: 1.6;
+    opacity: 0;
+  }
+}
+
+/* ひし形→使う（36.4%〜48%）。着くと同時に消える */
+@keyframes ddExit {
+  0%,
+  36.4% {
+    stroke-dashoffset: 100;
+    opacity: 0;
+  }
+
+  38% {
+    opacity: 1;
+  }
+
+  46% {
+    opacity: 1;
+  }
+
+  48% {
+    stroke-dashoffset: 1.6;
+    opacity: 0;
+  }
+
+  100% {
+    stroke-dashoffset: 1.6;
+    opacity: 0;
+  }
+}
+
+/* 止まっているあいだに輪が一度だけ光る（内→外） */
+@keyframes ddRing1 {
+  0%,
+  22% {
+    opacity: 0;
+  }
+
+  26% {
+    opacity: 0.5;
+  }
+
+  35% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes ddRing2 {
+  0%,
+  25% {
+    opacity: 0;
+  }
+
+  30% {
+    opacity: 0.28;
+  }
+
+  40% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+/* 「✓」＝止まっているあいだに描かれ、次の周が来る直前に静かに消える
+   （消える瞬間は opacity 0 なので、描き戻しは見えない） */
+@keyframes ddCheck {
+  0%,
+  24% {
+    stroke-dashoffset: 100;
+    opacity: 1;
+  }
+
+  33% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+
+  92% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+
+  99% {
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+
+  100% {
+    stroke-dashoffset: 100;
+    opacity: 0;
+  }
+}
+
+/* ==========================================================================
+   動きを減らす設定＝完成形で静止（線は全部引かれ、「✓」も描かれた状態）
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  .d,
+  .check {
+    stroke-dashoffset: 0 !important;
+    animation: none !important;
+  }
+
+  .fade {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+  }
+
+  .check {
+    opacity: 1 !important;
+  }
+
+  .spark,
+  .ring {
+    animation: none !important;
+    opacity: 0 !important;
+  }
+}

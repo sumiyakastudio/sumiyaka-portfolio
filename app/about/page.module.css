@@ -991,6 +991,13 @@
   min-width: 0;
 }
 
+/* 動く線画の図解（components/about/ScopeDiagram）の置き場所＝要約の直後。
+   部品側は余白を持たない（margin: 0）ので、上下の空きだけここで取る。
+   上は .scopeLead の margin-bottom 28px ＝ 二重に足さない（2026-09-22・図解 §8-B） */
+.scopeMain [data-scope-diagram] {
+  margin: 0 0 24px;
+}
+
 .scopePhoto {
   /* .scopeLead の margin-bottom 28px と合わせて 32px 空ける */
   margin: 4px 0 32px;
