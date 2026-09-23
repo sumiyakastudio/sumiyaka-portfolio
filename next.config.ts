@@ -48,6 +48,16 @@ const nextConfig: NextConfig = {
         ],
       },
       {
+        // /docs＝応募・商談で個別にお渡しする資料（PDF）。サイト内からはリンクしない非公開URL。
+        // 検索に載せない（noindex）。同じURLのまま差し替えるので、端末に古い版を残さない（毎回再検証）。
+        // ⚠ robots.txt では塞がない（塞ぐと noindex のヘッダーをクローラーが読めなくなる）
+        source: "/docs/:path*",
+        headers: [
+          { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive, noai, noimageai" },
+          { key: "Cache-Control", value: "public, max-age=0, must-revalidate" },
+        ],
+      },
+      {
         source: "/tools",
         headers: [
           { key: "tdm-reservation", value: "1" },
