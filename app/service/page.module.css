@@ -1543,3 +1543,153 @@
     transform: none;
   }
 }
+
+/* ==========================================================================
+   LOCAL AI（FIG. 09・2026-10-01 追加）
+   骨組みは既存の部品をそのまま使う：要約と計測の板＝DATA（.dataGrid／.brief／.stat*）、
+   板の番号・題・本文＝WHAT I DO（.doNum／.doName／.doDesc）、寸法バーの表＝PRICING（.priceTable／.priceRow ほか）。
+   ここに足すのは、この節だけの部品：計測の板の単位／小見出しの塊／板4枚の並び／参考の行／表の注記。
+   色は --svc-* のみ。動きは既存の ScrollReveal・DrawRule だけ（この塊で新しく動かす物は無い）。
+   ⚠ 既存の宣言は書き換えない。レスポンシブもこの塊の中で完結させる。
+   ========================================================================== */
+
+/* 計測の板：「0」の右に添える単位。数字の書体に寄せず、本文の書体で小さく置く */
+.localStatUnit {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 0.32em;
+  letter-spacing: 0.06em;
+  margin-left: 0.22em;
+}
+
+/* 小見出しの塊（図解の下に2つ続く）。間隔は図解（56px）・3段階ブロック（.stage）と同じ拍 */
+.localBlock {
+  margin-top: 56px;
+}
+
+/* 小見出し＝.subTitle／.stageTitle と同じ組み（上の余白は .localBlock が持つ） */
+.localSubTitle {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 19px;
+  line-height: 1.7;
+  letter-spacing: 0.02em;
+  color: var(--svc-ink);
+  margin: 0 0 12px;
+}
+
+/* 板4枚：PC 4列／1279px 以下 2列／767px 以下 1列。板は .plate（四隅のトンボ・落ち影） */
+.localMerits {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px;
+  margin: 16px 0 0;
+  padding: 0;
+}
+
+.localMerit {
+  padding: 24px 22px 26px;
+}
+
+/* 題・本文の書体は .doName／.doDesc（WHAT I DO の3項目）をそのまま使う。
+   ここでは折り返しの保険だけ足す：題が2行になる時は均して折り、本文は最後の行に1〜2字だけ残さない
+   （どちらも非対応ブラウザは従来どおり折り返す＝進行的強化） */
+.localMeritName {
+  text-wrap: balance;
+}
+
+.localMeritDesc {
+  text-wrap: pretty;
+}
+
+/* 語のまとまり（「、」「。」「・」まで）の途中では折らない。
+   掛けているのは3か所：計測の板の添え書き／板4枚の本文／表の行名（PC では .priceLabel が nowrap なので SP でだけ効く）。
+   まとまりが1行より長くなる幅では素の折り返しに戻す（下の @media：4列の板の本文／359px 以下） */
+.localPhrase {
+  display: inline-block;
+}
+
+/* 参考の行（同じ課題を、外のAIで）＝一段淡く。値も行名も注記の色へ、寸法バーは罫の濃さへ落とす */
+.localRowRef .priceLabel,
+.localRowRef .priceAmount {
+  color: var(--svc-muted);
+}
+
+.localRowRef .priceFill,
+.localRowRef .priceFill::after {
+  background: var(--svc-rule-strong);
+}
+
+/* 表の注記（.note と同じ組み。幅は表の外枠に揃える） */
+.localSplitNote {
+  font-family: var(--font-body);
+  font-size: 13px;
+  line-height: 1.95;
+  color: var(--svc-muted);
+  max-width: 680px;
+  margin: 14px 0 0;
+}
+
+/* 4列の時だけ（版面 1080px 固定＝板1枚 258px）：文字を一段小さい組み（SP と同じ 16px／13.5px）にし、
+   板の内側を 222px 取る。
+   ＝いちばん長い題「外部のAIが使えない会社でも」が1行に収まり、4枚の題と本文の書き出しが横一線に揃う。
+   ＝本文は1行16字になり、「…サービス終／了・」「…されませ／ん。」のような語の途中の折れが出ない（2026-10-01 実測） */
+@media (min-width: 1280px) {
+  .localMerits {
+    gap: 16px;
+  }
+
+  .localMerit {
+    padding: 24px 18px 26px;
+  }
+
+  .localMeritName {
+    font-size: 16px;
+  }
+
+  .localMeritDesc {
+    font-size: 13.5px;
+  }
+
+  /* 1行16字の幅では、まとまり（最長20字）が1行に収まらない＝素の折り返しのほうが整う */
+  .localMeritDesc .localPhrase {
+    display: inline;
+  }
+}
+
+@media (max-width: 1279px) {
+  .localMerits {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 767px) {
+  .localBlock {
+    margin-top: 44px;
+  }
+
+  .localSubTitle {
+    font-size: 17px;
+  }
+
+  .localMerits {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px;
+  }
+
+  .localMerit {
+    padding: 22px 20px 24px;
+  }
+
+  .localSplitNote {
+    font-size: 12.5px;
+  }
+}
+
+/* ごく狭い画面（359px 以下）：まとまりが1行に収まらなくなるので、素の折り返しに戻す */
+@media (max-width: 359px) {
+  .localPhrase {
+    display: inline;
+  }
+}

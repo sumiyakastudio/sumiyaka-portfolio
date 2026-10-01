@@ -19,6 +19,7 @@ import Trust from "@/components/home/Trust";
 import Way from "@/components/home/Way";
 import PhotoFigure from "@/components/photo/PhotoFigure";
 import InsideDiagram from "@/components/service/InsideDiagram";
+import LocalAiDiagram from "@/components/service/LocalAiDiagram";
 import UnifyDiagram from "@/components/service/UnifyDiagram";
 import styles from "./page.module.css";
 
@@ -33,7 +34,7 @@ import styles from "./page.module.css";
  * 構成：FV → 言い当て（INSIGHT）→ 働き方（THE WAY）
  *       → できること（第1の柱＝AI導入の設計・教育／第2の柱＝業務の自動化・ツール開発）
  *       → 三段の梯子（THREE STEPS）→ できないこと → 安心（ASSURANCE）
- *       → AIへの不安（TRUST） → データの扱い → 進め方 → 料金の考え方 → FAQ → CTA
+ *       → AIへの不安（TRUST） → データの扱い → ローカルAI（LOCAL AI） → 進め方 → 料金の考え方 → FAQ → CTA
  *
  * P17（2026-09-20・トップのハブ化）＝トップにあった4節を、文言を一言一句変えずに移設した。
  *   INSIGHT＝components/home/Atari／THE WAY＝同 Way（+WaySteps）／
@@ -47,6 +48,9 @@ import styles from "./page.module.css";
  *   見積図面の表（PRICING）・索引カード（TRUST/FAQ）・破線枠（引き受けないこと）。
  * 2026-09-06 読み進める装置：左端の図番の進捗線（FigRail・PC のみ）、3段階は現在地の段が灯り
  *   「私がすること」が段ごとに着地する（StageSteps）。演出は transform/opacity/stroke のみ。金は使わない。
+ * 2026-10-01 ローカルAIの節を追加：FIG. 09 LOCAL AI（#local-ai）を DATA の直後に差し込んだ（以降の図番は1つずつ後ろへ）。
+ *   文言の正本＝`ローカルAI節_指示書_2026-10-01.md` §1（一言一句不変）。骨組みは DATA（要約＋計測の板＋裏面）と
+ *   PRICING（寸法バーの表）を再利用し、図解は components/service/LocalAiDiagram（FIG. 09-A）。FAQ に1問（計10問）。
  */
 
 // /api/og は日本語フォント搭載済み。sub は日本語のまま渡す（URL用に符号化するだけ）
@@ -55,7 +59,7 @@ const OG_URL = `/api/og?title=SERVICE&sub=${encodeURIComponent("AI導入支援�
 export const metadata: Metadata = {
   title: "SERVICE — AKASHIKI | AI導入支援・業務の自動化",
   description:
-    "墨家 / SUMIYAKA のサービス。御社の仕事のやり方をAIに教え込み、社員の方が自分で回せる状態まで伴走するAI導入の設計・教育と、Excel・CSV・PDFのあいだの転記をなくす業務の自動化・ツール開発。できること・できないこと、AIへの不安に対する答え、進め方、料金の考え方をご案内します。",
+    "墨家 / SUMIYAKA のサービス。御社の仕事のやり方をAIに教え込み、社員の方が自分で回せる状態まで伴走するAI導入の設計・教育と、Excel・CSV・PDFのあいだの転記をなくす業務の自動化・ツール開発。できること・できないこと、AIへの不安に対する答え、社内のパソコンの中だけで動くAI（ローカルAI）の構築、進め方、料金の考え方をご案内します。",
   openGraph: {
     images: [{ url: OG_URL, width: 1200, height: 630 }],
   },
@@ -64,9 +68,10 @@ export const metadata: Metadata = {
 /* ---------- 図番（FIG.）＝本文セクションの並び。FV のティック数・見出しの番号・進捗線はここから作る
    P17（2026-09-20）＝トップから移した4節（INSIGHT／THE WAY／THREE STEPS／ASSURANCE）を
    この並びに差し込んだ。読む順＝問題提起 → 働き方 → できること（現在地①②③）→ 提供の三段 →
-   できないこと → 安心（問い）→ AIへの不安（答え）→ データ → 進め方 → 料金 → FAQ。
+   できないこと → 安心（問い）→ AIへの不安（答え）→ データ → ローカルAI → 進め方 → 料金 → FAQ。
    ⚠ ASSURANCE（#trust-top）は既存の TRUST（#trust）と対になる節。図番ナビで同名が並ばないよう
-     英字ラベルだけ分けている（可視の日本語は移設前と一言一句同じ）。 ---------- */
+     英字ラベルだけ分けている（可視の日本語は移設前と一言一句同じ）。
+   2026-10-01＝DATA の直後に LOCAL AI を足した（計12本。以降の番号は自動で1つずつ後ろへ）。 ---------- */
 const FIGURES = [
   { id: "insight", label: "INSIGHT" },
   { id: "way", label: "THE WAY" },
@@ -76,6 +81,7 @@ const FIGURES = [
   { id: "trust-top", label: "ASSURANCE" },
   { id: "trust", label: "TRUST" },
   { id: "data", label: "DATA" },
+  { id: "local-ai", label: "LOCAL AI" },
   { id: "process", label: "PROCESS" },
   { id: "pricing", label: "PRICING" },
   { id: "faq", label: "FAQ" },
@@ -212,6 +218,59 @@ const DATA_DETAIL = [
   "AI導入でも、考え方は同じです。御社の環境の中で動く形を優先し、外に出す必要があるデータは、何をどこまで出すかを、出す前に必ず一緒に決めます。",
 ];
 
+/* ---------- A-4b ローカルAI（LOCAL AI・2026-10-01）：詳細・計測の板・板4枚・寸法バーの表
+   文言の正本＝`ローカルAI節_指示書_2026-10-01.md` §1-1（一言一句不変）。数字はここの1か所だけに置く ---------- */
+const LOCAL_DETAIL = [
+  "顧客名簿や契約書のように、外へ出せないデータがあります。社内の決まりで、外部のAIサービスを使えない会社もあります。その場合は、AIそのものを御社のパソコンに置き、インターネットに繋がずに動かします。いわゆるローカルAIです。",
+  "私自身、この形を自分の環境に組み、実際の業務で使っています。文章の要約・項目の抜き出し・分類のほか、画像・動画・音楽・音声の生成まで、1台のパソコンの中で完結させています。入れているのは、商用に使えることをライセンスの原文で確かめたものだけです。",
+  "架空の問い合わせメール200通から項目を抜き出す試験は、3分51秒で終わりました。このうち8通で誤りが出たため、機械の検品で検出し、作りを直して解消しています。AIの出した結果は、必ず検品の工程を通します。",
+  "大手美容外科クリニックで、院内システムの導入・運用・障害対応を7年担当しました。外に出さず、止めずに回す。社内で動くAIは、その延長にある仕事です。機材の選び方から、組み込み、通信の確認、手順書まで対応します。",
+];
+
+/* 計測の板（DATA の 30.0% の板と同じ型）。value は 0＝数え上げず静止で出し、寸法バーも塗らない（目盛りだけ） */
+const LOCAL_STAT = {
+  value: 0,
+  unit: "件",
+  label: "パソコンの外への通信",
+  note: "AIの読み込みから応答までのあいだ、0.5秒おきに45秒間、通信を監視した結果です。外向きの通信は、設定でも遮断しています。",
+  src: "私の環境で計測（2026年9月）",
+};
+
+/* 小見出し1「社内で動かすと、変わること。」の板4枚 */
+const LOCAL_MERITS = [
+  {
+    num: "01",
+    title: "データが外に出ない",
+    desc: "名簿も契約書も、御社のパソコンの中だけで処理します。",
+  },
+  {
+    num: "02",
+    title: "利用料がかからない",
+    desc: "機材を揃えた後は、月額も従量課金もありません。かかるのは電気代だけです。",
+  },
+  {
+    num: "03",
+    title: "外の都合で止まらない",
+    desc: "値上げ・仕様変更・サービス終了・回線の不調に左右されません。",
+  },
+  {
+    num: "04",
+    title: "外部のAIが使えない会社でも",
+    desc: "社内や業界の決まりで外に出せない場合の、選択肢になります。",
+  },
+];
+
+/* 小見出し2「任せる作業と、残す判断。」の表（value＝%。寸法バーの長さはここから。
+   reference＝参考の行＝外のAIで同じ課題を解いた値。一段淡く出す） */
+type LocalSplitRow = { label: string; score: string; value: number; reference?: boolean };
+
+const LOCAL_SPLIT_ROWS: LocalSplitRow[] = [
+  { label: "抜き出し・分類・検品・整形", score: "93〜95%", value: 93 },
+  { label: "多段の計算・規則の優先順位・条件の組み合わせ", score: "49〜67%", value: 49 },
+  { label: "同じ課題を、外のAIで", score: "99〜100%", value: 99, reference: true },
+];
+const LOCAL_SPLIT_FULL = 100;
+
 /* ---------- A-5 進め方 ---------- */
 const PROCESS = [
   { num: "01", title: "ヒアリング", desc: "実際に作業している場所で、業務の流れとお使いのファイルを拝見します" },
@@ -231,7 +290,7 @@ const PRICE_ROWS = [
 ];
 const PRICE_MAX = Math.max(...PRICE_ROWS.map((r) => r.value));
 
-/* ---------- A-7 FAQ（可視・JSON-LD 共通の正本・計9問） ----------
+/* ---------- A-7 FAQ（可視・JSON-LD 共通の正本・計10問） ----------
    link を持つ項目は、可視側で回答文中の phrase を Link 化する。
    JSON-LD 側は a のテキストのみ（リンク無し）。 */
 type FaqItem = {
@@ -260,6 +319,10 @@ const FAQ: FaqItem[] = [
   {
     q: "データは外部に送られますか？",
     a: "お渡しする仕組みは、ブラウザの中だけで完結する設計です。データは御社のパソコンから外に出ません。AI導入で外に出す必要があるデータは、何をどこまで出すかを、出す前に必ず一緒に決めます。",
+  },
+  {
+    q: "社内の決まりで、外部のAIサービスを使えません。それでも頼めますか？",
+    a: "はい。AIそのものを御社のパソコンに置き、インターネットに繋がずに動かす形で組めます。外の最上位のAIより精度は落ちるため、任せる作業と、人が確認する作業の切り分けを、最初に一緒に決めます。",
   },
   {
     q: "AIに詳しい社員がいなくても使えますか？",
@@ -296,6 +359,27 @@ function renderAnswer(item: FaqItem) {
       {after}
     </>
   );
+}
+
+/** 区切りの字（breakAfter）の直後でだけ折り返せるよう、語のまとまりごとに分けて返す（文言は不変・分割のみ）。
+    表の行名が「優先順／位」、計測の板の添え書きが「45秒／間」、板の本文が「選択／肢」のように、
+    語や数字の途中で折れるのを防ぐ。効かせる幅は CSS（.localPhrase）が決める */
+function renderPhrases(text: string, breakAfter: string) {
+  const parts: string[] = [];
+  let buf = "";
+  for (const ch of text) {
+    buf += ch;
+    if (breakAfter.includes(ch)) {
+      parts.push(buf);
+      buf = "";
+    }
+  }
+  if (buf) parts.push(buf);
+  return parts.map((part, i) => (
+    <span key={`${i}:${part}`} className={styles.localPhrase}>
+      {part}
+    </span>
+  ));
 }
 
 /** 図番見出し：FIG. 0N（装飾）＋ 英字ラベル ＋ 右へ引かれる罫。id はラベル側に付ける（FAQ の aria-labelledby 用） */
@@ -740,6 +824,130 @@ export default function ServicePage() {
               版面いっぱいの図なので .dataGrid（2列）の外＝本文と統計の下に置く。
               自前で発火するため ScrollReveal で包まない（transform の二重掛けを避ける）。 */}
           <InsideDiagram />
+        </div>
+      </section>
+
+      {/* ========== A-4b ローカルAI（LOCAL AI・2026-10-01）— DATA と同じ骨組み：
+           要約＋計測プレート＋裏面 → 図解（FIG. 09-A）→ 板4枚 → 寸法バーの表 ========== */}
+      <section id="local-ai" className={styles.section} aria-labelledby="service-local-ai-title">
+        <div className={styles.inner}>
+          <ScrollReveal className={styles.reveal}>
+            <FigHead figure="local-ai" />
+          </ScrollReveal>
+
+          <div className={styles.dataGrid}>
+            <div className={styles.dataText}>
+              <ScrollReveal className={styles.reveal}>
+                <h2 id="service-local-ai-title" className={styles.title}>
+                  AIも、御社の中で動かせます。
+                </h2>
+              </ScrollReveal>
+              <ScrollReveal className={styles.reveal} delay={0.1}>
+                <Brief
+                  extra={
+                    <Disclose className={styles.disclose} label="詳しく読む">
+                      <Detail paragraphs={LOCAL_DETAIL} />
+                    </Disclose>
+                  }
+                >
+                  外のAIにデータを送れない会社には、
+                  {/* SP だけ：マーカーの句を行頭から始める（「…会社には、社／内のパソコン…」と1字で折れるのを防ぐ） */}
+                  <br className={styles.brSp} />
+                  <Highlight delay={0.2}>社内のパソコンの中だけで動くAI</Highlight>
+                  を組みます。通信していないことは、測って確かめます。
+                </Brief>
+              </ScrollReveal>
+            </div>
+
+            {/* 計測の板：値は 0。数え上げると「0 のまま動かない」ので CountUp は使わず静止で置く */}
+            <ScrollReveal className={styles.reveal} delay={0.15}>
+              <div className={`${styles.plate} ${styles.stat}`}>
+                <p className={styles.statNum}>
+                  {LOCAL_STAT.value}
+                  <span className={styles.localStatUnit}>{LOCAL_STAT.unit}</span>
+                </p>
+                {/* 寸法バー：長さは LOCAL_STAT.value から＝0%。塗りは置かず、両端の目盛りだけが残る（0 の絵） */}
+                <span
+                  className={styles.statTrack}
+                  aria-hidden="true"
+                  style={{ "--pct": `${LOCAL_STAT.value}%` } as CSSProperties}
+                />
+                <p className={styles.statLabel}>{LOCAL_STAT.label}</p>
+                <p className={styles.statNote}>{renderPhrases(LOCAL_STAT.note, "、。")}</p>
+                <p className={styles.statSrc}>{LOCAL_STAT.src}</p>
+              </div>
+            </ScrollReveal>
+          </div>
+
+          {/* 上の一句「社内のパソコンの中だけで動くAI」を図にする＝FIG. 09-A。
+              FIG. 08-A（InsideDiagram）と同じく版面いっぱいの図なので .dataGrid の外に置き、
+              自前で発火するため ScrollReveal で包まない（transform の二重掛けを避ける）。 */}
+          <LocalAiDiagram />
+
+          {/* 小見出し1＝板4枚（PC 4列／1279px 以下 2列／767px 以下 1列） */}
+          <ScrollReveal className={styles.reveal}>
+            <div className={styles.localBlock}>
+              <h3 id="service-local-ai-merits-title" className={styles.localSubTitle}>
+                社内で動かすと、変わること。
+              </h3>
+              <ol
+                className={styles.localMerits}
+                aria-labelledby="service-local-ai-merits-title"
+                data-local-merits
+              >
+                {LOCAL_MERITS.map((item) => (
+                  <li key={item.num} className={`${styles.plate} ${styles.localMerit}`}>
+                    <span className={styles.doNum}>{item.num}</span>
+                    <h4 className={`${styles.doName} ${styles.localMeritName}`}>{item.title}</h4>
+                    <p className={`${styles.doDesc} ${styles.localMeritDesc}`}>
+                      {renderPhrases(item.desc, "、。・")}
+                    </p>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          </ScrollReveal>
+
+          {/* 小見出し2＝寸法バーの表（PRICING の見積図面の表と同じ意匠）。3行目は参考の行＝一段淡く */}
+          <ScrollReveal className={styles.reveal}>
+            <div className={styles.localBlock}>
+              <h3 id="service-local-ai-split-title" className={styles.localSubTitle}>
+                任せる作業と、残す判断。
+              </h3>
+              <p className={styles.text}>
+                社内で動くAIは、外の最上位のAIより精度が落ちます。だから、全部は置き換えません。
+              </p>
+              <div className={styles.localSplit} data-local-split>
+                <ul className={styles.priceTable} aria-labelledby="service-local-ai-split-title">
+                  {LOCAL_SPLIT_ROWS.map((row, i) => (
+                    <li
+                      key={row.label}
+                      className={
+                        row.reference ? `${styles.priceRow} ${styles.localRowRef}` : styles.priceRow
+                      }
+                    >
+                      <span className={styles.priceMain}>
+                        <span className={styles.priceLabel}>{renderPhrases(row.label, "・")}</span>
+                        <span className={styles.priceLeader} aria-hidden="true" />
+                        <span className={styles.priceAmount}>{row.score}</span>
+                      </span>
+                      {/* 寸法バー：長さは value / 100（データから） */}
+                      <span
+                        className={styles.priceBar}
+                        aria-hidden="true"
+                        style={{ "--pct": `${(row.value / LOCAL_SPLIT_FULL) * 100}%` } as CSSProperties}
+                      >
+                        <DrawRule className={styles.priceFill} duration={0.9} delay={0.1 * i} />
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                <p className={styles.localSplitNote}>
+                  同じ12の課題を機械採点で比べた結果です（2026年9月・私の環境で計測）。量の多い定型の作業と、外に出せないデータは社内のAIに。金額や契約のような重い判断は、人か、外のAIに残します。最後は必ず人の目で確認します。
+                </p>
+              </div>
+            </div>
+          </ScrollReveal>
         </div>
       </section>
 

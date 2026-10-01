@@ -1,0 +1,687 @@
+/* ==========================================================================
+   FIG. 09-A ＝「AIも、御社のパソコンの中で動く」（2026-10-01・ローカルAI節 指示書 §3）
+   同じページの FIG. 08-A（InsideDiagram.module.css）を土台に写した。
+     ・器は「パソコン本体」＝箱（角丸10）＋室（箱より 8 内側・角丸4）＝壁の厚みが見える断面
+     ・中は 書類（紙片3枚）→ AI のチップ → 結果（紙1枚と ✓）
+     ・外へのケーブルは境界の手前でプラグで終わり、雲から垂れた差し込み口とは離れている
+
+   /service の重（じゅう）＝線・図面に合わせ、線画だけで描く。色は白・灰のみ。
+
+   既定（クラス無し）＝完成形の静止表示。JS が載ると .armed が初期状態を被せ、
+   画面に入ると .play が入場アニメを流す。常時演出（光の点・チップの輪・✓ の輪・プラグの縁）は
+   InViewGate の .live が付いているあいだだけ running（既定 paused）。
+
+   互換：transform(2D)・opacity・stroke-dashoffset だけを動かす。
+         filter / backdrop-filter / mix-blend-mode / 3D / SMIL / offset-path は不使用。
+         線は pathLength="100" で正規化（＝どの長さの線も同じ尺で引ける）。
+         太さは vector-effect: non-scaling-stroke で拡大率に依らず一定（1px と 2px の二段）。
+         境界の破線は stroke-dasharray を描線に使うため、短い線分の並びとして持つ。
+   ========================================================================== */
+
+.fig {
+  --l-ink: var(--svc-ink, #f1eaec);
+  --l-case: rgba(241, 234, 236, 0.5);
+  --l-strong: rgba(241, 234, 236, 0.4);
+  --l-line: rgba(241, 234, 236, 0.32);
+  --l-soft: rgba(241, 234, 236, 0.14);
+  --l-dim: var(--svc-muted, rgba(241, 234, 236, 0.56));
+  --l-cycle: 5s;
+
+  /* 節の中での配置（page.module.css は触らない）。上の .dataGrid との間 */
+  margin: 56px 0 0;
+  padding: 0;
+}
+
+/* ---- 図題（FIG. 09-A ＋ 一行の図名 ＋ 右へ伸びる罫） ---- */
+.head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.figNo {
+  font-family: var(--font-ibm-plex-mono), "Consolas", monospace;
+  font-weight: 300;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  line-height: 1;
+  color: var(--l-dim);
+  white-space: nowrap;
+}
+
+.figLabel {
+  font-family: var(--font-ibm-plex-mono), var(--font-noto-sans-jp), monospace;
+  font-weight: 400;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  line-height: 1;
+  color: var(--l-dim);
+  white-space: nowrap;
+}
+
+.rule {
+  flex: 1 1 auto;
+  height: 1px;
+  min-width: 12px;
+  background: var(--svc-rule, rgba(241, 234, 236, 0.16));
+}
+
+/* ---- 図版の枠 ---- */
+.frame {
+  border: 1px solid var(--svc-rule-soft, rgba(241, 234, 236, 0.08));
+  padding: 16px 14px;
+}
+
+.gate,
+.stage {
+  display: block;
+}
+
+.svgPc {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.svgSp {
+  display: none;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+@media (max-width: 860px) {
+  .svgPc {
+    display: none;
+  }
+
+  .svgSp {
+    display: block;
+  }
+}
+
+@media (max-width: 767px) {
+  .fig {
+    margin-top: 40px;
+  }
+}
+
+/* ========================================
+   線の種類（太さは 1px / 2px の二段だけ）
+   ======================================== */
+.trim,
+.case,
+.chamber,
+.foot,
+.groove,
+.paper,
+.grid,
+.data,
+.dataStrong,
+.cell,
+.wire,
+.chipFrame,
+.chipInner,
+.leg,
+.check,
+.cable,
+.plug,
+.blade,
+.border,
+.cloud,
+.cord,
+.socket,
+.block,
+.spark {
+  fill: none;
+  vector-effect: non-scaling-stroke;
+}
+
+.trim {
+  stroke: var(--l-soft);
+  stroke-width: 1;
+}
+
+/* ---- パソコン本体（御社のパソコン） ---- */
+/* 箱＝筐体の外形。ここが「内と外」の境目なので少しだけ明るい（08-A のベゼルと同じ階調） */
+.case {
+  stroke: var(--l-case);
+  stroke-width: 1;
+  stroke-linejoin: round;
+  stroke-linecap: butt;
+}
+
+/* 室＝箱の内側の線（08-A の画面と同じ階調）。壁の口のコの字もこの線 */
+.chamber {
+  stroke: var(--l-strong);
+  stroke-width: 1;
+  stroke-linejoin: round;
+  stroke-linecap: butt;
+}
+
+/* 足＝幅の広い 2px の横線（08-A のスタンドの台と同じ） */
+.foot {
+  stroke: var(--l-case);
+  stroke-width: 2;
+  stroke-linecap: butt;
+}
+
+/* 前面の帯：電源の丸・灯・横の溝 */
+.power {
+  fill: none;
+  stroke: var(--l-strong);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.led {
+  fill: rgba(241, 234, 236, 0.7);
+  stroke: none;
+}
+
+.groove {
+  stroke: var(--l-line);
+  stroke-width: 2;
+  stroke-linecap: butt;
+}
+
+/* ---- 紙（書類・結果） ---- */
+.paper {
+  stroke: var(--l-strong);
+  stroke-width: 1;
+  stroke-linejoin: miter;
+}
+
+.grid {
+  stroke: var(--l-soft);
+  stroke-width: 1;
+}
+
+.data {
+  stroke: var(--l-line);
+  stroke-width: 2;
+  stroke-linecap: butt;
+}
+
+.dataStrong {
+  stroke: rgba(241, 234, 236, 0.62);
+  stroke-width: 2;
+  stroke-linecap: butt;
+}
+
+.cell {
+  stroke: var(--l-line);
+  stroke-width: 2;
+  stroke-linecap: butt;
+}
+
+/* ✓＝結果の印（2px・角は丸めてつなぐ） */
+.check {
+  stroke: rgba(241, 234, 236, 0.85);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: butt;
+}
+
+/* ---- 配線 ---- */
+.wire {
+  stroke: var(--l-line);
+  stroke-width: 1;
+  stroke-linejoin: round;
+  stroke-linecap: butt;
+}
+
+.pin {
+  fill: none;
+  stroke: var(--l-line);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+/* ---- AI のチップ ---- */
+.chipFrame {
+  stroke: rgba(241, 234, 236, 0.7);
+  stroke-width: 1;
+  stroke-linejoin: miter;
+}
+
+.chipInner {
+  stroke: var(--l-strong);
+  stroke-width: 1;
+  stroke-linejoin: miter;
+}
+
+/* 足＝短い 2px の線（四辺に5本ずつ） */
+.leg {
+  stroke: var(--l-case);
+  stroke-width: 2;
+  stroke-linecap: butt;
+}
+
+/* ---- 外へのケーブル（箱の側） ---- */
+.cable {
+  stroke: var(--l-case);
+  stroke-width: 2;
+  stroke-linecap: butt;
+}
+
+.plug {
+  stroke: rgba(241, 234, 236, 0.62);
+  stroke-width: 1;
+  stroke-linejoin: miter;
+}
+
+/* プラグの刃＝2px・明るい（抜けている先端を読ませる） */
+.blade {
+  stroke: rgba(241, 234, 236, 0.7);
+  stroke-width: 2;
+  stroke-linecap: butt;
+}
+
+/* ---- 境界と外（08-A と同じ階調） ---- */
+.border {
+  stroke: var(--l-strong);
+  stroke-width: 1;
+  stroke-linecap: butt;
+}
+
+.cloud {
+  stroke: var(--l-strong);
+  stroke-width: 1;
+  stroke-linejoin: round;
+  stroke-linecap: butt;
+}
+
+/* 雲から垂れる線（ケーブルと同じ 2px・雲と同じ階調） */
+.cord {
+  stroke: var(--l-strong);
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: butt;
+}
+
+.socket {
+  stroke: var(--l-case);
+  stroke-width: 1;
+  stroke-linejoin: miter;
+}
+
+/* プラグの先でともる縁（既定＝消えている） */
+.block {
+  stroke: var(--l-ink);
+  stroke-width: 2;
+  stroke-linecap: butt;
+  opacity: 0;
+}
+
+/* チップと ✓ の同心の輪（既定＝見えない。静止状態でも消えている） */
+.ring {
+  fill: none;
+  stroke: rgba(241, 234, 236, 0.5);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+  opacity: 0;
+}
+
+/* SVG 内の文字 */
+.name {
+  font-family: var(--font-noto-sans-jp), sans-serif;
+  font-weight: 500;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  fill: var(--l-ink);
+}
+
+/* チップの中の「AI」＝mono */
+.chipText {
+  font-family: var(--font-ibm-plex-mono), "Consolas", monospace;
+  font-weight: 400;
+  font-size: 17px;
+  letter-spacing: 0.1em;
+  fill: var(--l-ink);
+}
+
+/* ========================================
+   入場（1回だけ）
+   既定＝完成形。.armed で初期状態、.play で再生。
+   ======================================== */
+/* ⚠ 破線の長さは「線1本ぶん（100）」ではなく **2本ぶん（200）** にしてある。
+   vector-effect: non-scaling-stroke が付いた線は、Chromium では破線を画面の px で数える一方、
+   pathLength の正規化は拡大前の長さで行う。そのため図が 1 倍より大きく表示されると
+   （PC＝約1.05倍・860px 付近の SP 用＝約1.9倍）、長さ 100 の破線では線の末尾が届かず、
+   **完成形でも角や終端が欠ける**（2026-10-01 実測＝箱の右下・紙の左上・雲の左下が約5%欠けた）。
+   200 にすれば 2 倍まで欠けない。描線は 200→0 を送る＝線は尺の前半ほどで引き終わるので、
+   尺を約 1.9 倍にして見た目の速さを 08-A と揃えている。 */
+.d {
+  stroke-dasharray: 200; /* pathLength=100 ＝ 線の長さに依らず同じ尺で引ける（200＝線2本ぶん） */
+  stroke-dashoffset: 0;
+}
+
+.armed .d {
+  stroke-dashoffset: 200;
+}
+
+.armed .fade,
+.armed .row {
+  opacity: 0;
+}
+
+/* 尺は「見た目で引き終わるまで」の約 1.9 倍（上の注記）。見た目＝0.5s／0.35s／0.75s／雲 0.6s（08-A と同じ） */
+.play .d {
+  animation: lDraw 0.95s linear both;
+}
+
+.play .dFast {
+  animation-duration: 0.66s;
+}
+
+.play .dSlow {
+  animation-duration: 1.42s;
+}
+
+.play .dCloud {
+  animation-duration: 1.14s;
+}
+
+.play .fade {
+  animation: lFade 0.4s ease-out both;
+}
+
+.play .row {
+  animation: lRow 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes lDraw {
+  from {
+    stroke-dashoffset: 200;
+  }
+
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes lFade {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes lRow {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ========================================
+   常時演出（周期 5s・動くのは合わせて約 1/3、残りは休む）
+   ① 主の流れ（delay＝T.spark）
+       0〜11%   書類 → チップ
+       9〜20%   チップの輪が順にふっと明るくなる
+    13.5〜18.5% チップ → 結果
+      18〜22.5% ✓ の輪が一度明るくなる（delay を 1 周期ぶん遅らせる＝初回は ✓ を描き終えてから）
+   ② ケーブルの組（delay＝T.spark＋半周期＝位相が半周期ずれる）
+       0〜3.5%  口 → プラグの胴の先（＝境界の手前で止まる）
+       3〜11%   刃と胴の縁が 0.4s ともって消える（＝外へ出ない）
+   光の点は「同じ線に重ねた短いダッシュ」を stroke-dashoffset で流す（offset-path 不使用）。
+   点の間隔は線4本ぶん（400）＝図が拡大表示されても、1本の線に点が2つ出ない（上の注記と同じ理由）。
+   送りは 400→300＝線の始点から終点まで。
+   ======================================== */
+.spark {
+  stroke: var(--l-ink);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-dasharray: 1.6 398.4;
+  stroke-dashoffset: 400;
+  opacity: 0;
+}
+
+.play .sparkIn {
+  animation: lSparkIn var(--l-cycle) linear infinite;
+  animation-play-state: paused;
+}
+
+.play .sparkOut {
+  animation: lSparkOut var(--l-cycle) linear infinite;
+  animation-play-state: paused;
+}
+
+.play .sparkCable {
+  animation: lSparkCable var(--l-cycle) linear infinite;
+  animation-play-state: paused;
+}
+
+.play .block {
+  animation: lBlock var(--l-cycle) ease-out infinite;
+  animation-play-state: paused;
+}
+
+.play .ring1 {
+  animation: lRing1 var(--l-cycle) ease-out infinite;
+  animation-play-state: paused;
+}
+
+.play .ring2 {
+  animation: lRing2 var(--l-cycle) ease-out infinite;
+  animation-play-state: paused;
+}
+
+.play .ringCheck {
+  animation: lRingCheck var(--l-cycle) ease-out infinite;
+  animation-play-state: paused;
+}
+
+/* 画面内かつ前面タブのあいだだけ動かす（InViewGate）。上の規則より後に置いて上書きする */
+.live .sparkIn,
+.live .sparkOut,
+.live .sparkCable,
+.live .block,
+.live .ring1,
+.live .ring2,
+.live .ringCheck {
+  animation-play-state: running;
+}
+
+/* 書類 → チップ（0〜11%＝約0.55秒で走り切る） */
+@keyframes lSparkIn {
+  0% {
+    stroke-dashoffset: 400;
+    opacity: 0;
+  }
+
+  1.5% {
+    opacity: 1;
+  }
+
+  9.5% {
+    opacity: 1;
+  }
+
+  11% {
+    stroke-dashoffset: 300;
+    opacity: 0;
+  }
+
+  100% {
+    stroke-dashoffset: 300;
+    opacity: 0;
+  }
+}
+
+/* チップ → 結果（13.5〜18.5%） */
+@keyframes lSparkOut {
+  0%,
+  13.5% {
+    stroke-dashoffset: 400;
+    opacity: 0;
+  }
+
+  14.5% {
+    opacity: 1;
+  }
+
+  17.5% {
+    opacity: 1;
+  }
+
+  18.5% {
+    stroke-dashoffset: 300;
+    opacity: 0;
+  }
+
+  100% {
+    stroke-dashoffset: 300;
+    opacity: 0;
+  }
+}
+
+/* チップがともる＝同心の輪が順にふっと明るくなる（scale を使わない＝WebKit 安全） */
+@keyframes lRing1 {
+  0%,
+  9% {
+    opacity: 0;
+  }
+
+  12.5% {
+    opacity: 0.55;
+  }
+
+  18% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes lRing2 {
+  0%,
+  11% {
+    opacity: 0;
+  }
+
+  15% {
+    opacity: 0.3;
+  }
+
+  20% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+/* ✓ の輪（18〜22.5%） */
+@keyframes lRingCheck {
+  0%,
+  18% {
+    opacity: 0;
+  }
+
+  19.5% {
+    opacity: 0.6;
+  }
+
+  22.5% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+/* 口 → プラグの胴の先（0〜3.5%）。線の終点＝境界の手前で消える＝外へ出ない */
+@keyframes lSparkCable {
+  0% {
+    stroke-dashoffset: 400;
+    opacity: 0;
+  }
+
+  0.6% {
+    opacity: 0.95;
+  }
+
+  2.8% {
+    opacity: 0.9;
+  }
+
+  3.5% {
+    stroke-dashoffset: 300;
+    opacity: 0;
+  }
+
+  100% {
+    stroke-dashoffset: 300;
+    opacity: 0;
+  }
+}
+
+/* プラグの刃と胴の縁がともって消える（3〜11%＝5秒周期のうち 0.4 秒） */
+@keyframes lBlock {
+  0%,
+  3% {
+    opacity: 0;
+  }
+
+  5.5% {
+    opacity: 0.95;
+  }
+
+  11% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 0;
+  }
+}
+
+/* ========================================
+   動きを減らす設定＝完成形で静止（描線も行も全部出た状態）
+   ======================================== */
+@media (prefers-reduced-motion: reduce) {
+  .d {
+    stroke-dashoffset: 0 !important;
+    animation: none !important;
+  }
+
+  .fade,
+  .row {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+  }
+
+  .spark,
+  .ring,
+  .block {
+    animation: none !important;
+    opacity: 0 !important;
+  }
+}
+
+/* SP 用の SVG は viewBox 420 を約320pxに縮めて出す（約0.76倍）ので、
+   文字だけ user unit を大きくして、画面上で約12px に保つ（08-A の SP と同じ＝名称 16.5px） */
+.svgSp .name {
+  font-size: 16.5px;
+}
+
+.svgSp .chipText {
+  font-size: 21px;
+}
