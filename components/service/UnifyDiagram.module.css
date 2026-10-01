@@ -203,13 +203,21 @@
    入場（1回だけ）
    既定＝完成形。.armed で初期状態、.play で再生。
    ======================================== */
+/* ⚠ 破線の長さは「線1本ぶん（100）」ではなく **2本ぶん（200）** にしてある（2026-10-01）。
+   vector-effect: non-scaling-stroke が付いた線は、Chromium では破線を画面の px で数える一方、
+   pathLength の正規化は拡大前の長さで行う。そのため図が 1 倍より大きく表示されると
+   （実測＝SP 用は 820 幅で 1.55 倍・860 幅で 1.64 倍。PC 用は 1920 幅で 0.97 倍＝欠けない）、
+   長さ 100 の破線では線の末尾が届かず、**完成形でも角や終端が欠ける**
+   （紙片と管理表の枠が閉じない・配線が節点に届かない・節点のひし形が半分になる）。
+   200 にすれば 2 倍まで欠けない。描線は 200→0 を送る＝線は尺の前半ほどで引き終わるので、
+   尺を約 1.9 倍にして、引き始めの時刻と見た目の速さを元のまま保っている。 */
 .d {
-  stroke-dasharray: 100; /* pathLength=100 ＝ 線の長さに依らず同じ尺で引ける */
+  stroke-dasharray: 200; /* pathLength=100 ＝ 線の長さに依らず同じ尺で引ける（200＝線2本ぶん） */
   stroke-dashoffset: 0;
 }
 
 .armed .d {
-  stroke-dashoffset: 100;
+  stroke-dashoffset: 200;
 }
 
 .armed .fade,
@@ -217,16 +225,17 @@
   opacity: 0;
 }
 
+/* 尺は「見た目で引き終わるまで」の約 1.9 倍（上の注記）。見た目＝0.5s／0.35s／0.75s */
 .play .d {
-  animation: uDraw 0.5s linear both;
+  animation: uDraw 0.95s linear both;
 }
 
 .play .dFast {
-  animation-duration: 0.35s;
+  animation-duration: 0.66s;
 }
 
 .play .dSlow {
-  animation-duration: 0.75s;
+  animation-duration: 1.42s;
 }
 
 .play .fade {
@@ -239,7 +248,7 @@
 
 @keyframes uDraw {
   from {
-    stroke-dashoffset: 100;
+    stroke-dashoffset: 200;
   }
 
   to {
@@ -272,13 +281,15 @@
 /* ========================================
    常時演出：光の点が線の上を走り、節点へ集まる
    同じ配線に重ねた短いダッシュを stroke-dashoffset で流す（offset-path を使わない）。
+   点の間隔は線4本ぶん（400）＝図が拡大表示されても、1本の線に点が2つ出ない（入場の注記と同じ理由）。
+   送りは 400→300＝線の始点から終点まで（速さは元の 100→0 と同じ）。
    ======================================== */
 .spark {
   stroke: var(--u-ink);
   stroke-width: 3;
   stroke-linecap: round;
-  stroke-dasharray: 1.6 98.4;
-  stroke-dashoffset: 100;
+  stroke-dasharray: 1.6 398.4;
+  stroke-dashoffset: 400;
   opacity: 0;
 }
 
@@ -313,7 +324,7 @@
 /* 入力→節点（0〜26%＝約1.2秒で走り切り、残りは休む） */
 @keyframes uSparkIn {
   0% {
-    stroke-dashoffset: 100;
+    stroke-dashoffset: 400;
     opacity: 0;
   }
 
@@ -326,12 +337,12 @@
   }
 
   26% {
-    stroke-dashoffset: 0;
+    stroke-dashoffset: 300;
     opacity: 0;
   }
 
   100% {
-    stroke-dashoffset: 0;
+    stroke-dashoffset: 300;
     opacity: 0;
   }
 }
@@ -340,7 +351,7 @@
 @keyframes uSparkOut {
   0%,
   26% {
-    stroke-dashoffset: 100;
+    stroke-dashoffset: 400;
     opacity: 0;
   }
 
@@ -353,12 +364,12 @@
   }
 
   42% {
-    stroke-dashoffset: 0;
+    stroke-dashoffset: 300;
     opacity: 0;
   }
 
   100% {
-    stroke-dashoffset: 0;
+    stroke-dashoffset: 300;
     opacity: 0;
   }
 }

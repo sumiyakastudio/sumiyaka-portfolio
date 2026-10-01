@@ -225,26 +225,37 @@
    既定＝完成形。.armed で初期状態、.play で再生。
    一本の線 → 届いた順にカードの枠 → 中の絵 → 工程名。
    ======================================== */
+/* ⚠ 破線の長さは「線1本ぶん（100）」ではなく **2本ぶん（200）** にしてある（2026-10-01）。
+   vector-effect: non-scaling-stroke が付いた線は、Chromium では破線を画面の px で数える一方、
+   pathLength の正規化は拡大前の長さで行う。そのため図が 1 倍より大きく表示されると、
+   長さ 100 の破線では線の末尾が届かず、完成形でも角や終端が欠ける（FIG. 08-A ほかで実測）。
+   この図は .svgPc／.svgSp の max-width で 1 倍を超えない（実測＝PC 1920 幅で 0.99 倍・
+   SP 用は 820 幅で 0.90 倍）ので、100 のままでも欠けは出ていなかった。ほかの図と同じ作りに
+   揃えてあるのは、max-width を広げた時に欠けないようにするための予防。
+   200 にすれば 2 倍まで欠けない。描線は 200→0 を送る＝線は尺の前半ほどで引き終わるので、
+   尺を約 1.9 倍にして、引き始めの時刻と見た目の速さを元のまま保っている。 */
 .d {
-  stroke-dasharray: 100; /* pathLength=100 ＝ 線の長さに依らず同じ尺で引ける */
+  stroke-dasharray: 200; /* pathLength=100 ＝ 線の長さに依らず同じ尺で引ける（200＝線2本ぶん） */
   stroke-dashoffset: 0;
 }
 
 .armed .d {
-  stroke-dashoffset: 100;
+  stroke-dashoffset: 200;
 }
 
 .armed .fade {
   opacity: 0;
 }
 
+/* 尺は「見た目で引き終わるまで」の約 1.9 倍（上の注記）。見た目＝0.38s／中の絵 0.3s */
 .play .d {
-  animation: scDraw 0.38s linear both;
+  animation: scDraw 0.72s linear both;
 }
 
-/* 中の絵は枠より速く描く。一本の線は区間ごとに長さが違うので尺をインラインで渡す */
+/* 中の絵は枠より速く描く。一本の線は区間ごとに長さが違うので尺をインラインで渡す
+   （インラインの尺も tsx 側で同じ倍率を掛けてある＝DRAW_STRETCH） */
 .play .dFast {
-  animation-duration: 0.3s;
+  animation-duration: 0.57s;
 }
 
 .play .fade {
@@ -253,7 +264,7 @@
 
 @keyframes scDraw {
   from {
-    stroke-dashoffset: 100;
+    stroke-dashoffset: 200;
   }
 
   to {
@@ -278,6 +289,8 @@
    「後ろを通り抜けた」姿になる。
    点は絵と同じ比率で縮めたいので vector-effect を付けない＝線幅 5 は user unit
    （丸い線端なので、見える直径 ＝ 5。カードの間の空き 16 の 1/3 ほど）。
+   vector-effect が無い＝破線も絵と一緒に伸び縮みするので、点の間隔は線1本ぶん（100）のままで正しい
+   （上の .d の注記の話は、non-scaling-stroke の付いた線だけに起きる）。
    ======================================== */
 .spark {
   fill: none;

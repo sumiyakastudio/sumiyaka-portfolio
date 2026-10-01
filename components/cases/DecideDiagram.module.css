@@ -162,12 +162,12 @@
   stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
-  /* pathLength=100＝全長ぶんの1本のダッシュ。
-     ⚠ 空きを 100 にすると（dasharray: 100 だけにすると）模様の周期が 200 になり、
-     未描画（dashoffset: 100）のときに線の終点＝ちょうど次のダッシュの頭に当たる。
-     線端が round なので、そこに長さ0の丸が1つ描かれてしまう（印の右上に点だけ残る）。
-     空きを 120 にして周期を 220 にすると、線の上に次のダッシュの頭が来ない＝完全に消える。 */
-  stroke-dasharray: 100 120;
+  /* pathLength=100。ダッシュは線2本ぶん（200）＝拡大表示でも末尾が欠けない（下の「入場」の注記）。
+     ⚠ 空きは、未描画（dashoffset: 200）のときに次のダッシュの頭が線の終点に当たらない長さにする。
+     線端が round なので、当たるとそこに長さ0の丸が1つ描かれてしまう（印の右上に点だけ残る）。
+     元は「100 120」（空きを 100 にすると、等倍の表示で次の頭がちょうど終点に来た）。
+     いまは空き 240＝次の頭は線 2.4 本ぶん先＝2.4 倍の表示まで線の上に来ない＝完全に消える。 */
+  stroke-dasharray: 200 240;
   stroke-dashoffset: 0; /* 既定＝描かれた状態 */
 }
 
@@ -290,13 +290,21 @@
    入場（画面に入ったら1回・総尺 約3.7秒）
    既定＝完成形。.armed で初期状態、.play で再生。
    ========================================================================== */
+/* ⚠ 破線の長さは「線1本ぶん（100）」ではなく **2本ぶん（200）** にしてある（2026-10-01）。
+   vector-effect: non-scaling-stroke が付いた線は、Chromium では破線を画面の px で数える一方、
+   pathLength の正規化は拡大前の長さで行う。そのため図が 1 倍より大きく表示されると
+   （実測＝PC 1920 幅で 1.02 倍・SP 用は 820 幅で上限の 460px に達して 1.10 倍）、長さ 100 の破線では
+   線の末尾が届かず、**完成形でも角や終端が欠ける**（紙や表の左上の角が閉じない・
+   配線が次の物に届かない・「✓」の先が短い）。
+   200 にすれば 2 倍まで欠けない。描線は 200→0 を送る＝線は尺の前半ほどで引き終わるので、
+   尺を約 1.9 倍にして、引き始めの時刻と見た目の速さを元のまま保っている。 */
 .d {
-  stroke-dasharray: 100; /* pathLength=100 ＝ 線の長さに依らず同じ尺で引ける */
+  stroke-dasharray: 200; /* pathLength=100 ＝ 線の長さに依らず同じ尺で引ける（200＝線2本ぶん） */
   stroke-dashoffset: 0;
 }
 
 .armed .d {
-  stroke-dashoffset: 100;
+  stroke-dashoffset: 200;
 }
 
 .armed .fade {
@@ -304,19 +312,20 @@
 }
 
 .armed .check {
-  stroke-dashoffset: 100;
+  stroke-dashoffset: 200;
 }
 
+/* 尺は「見た目で引き終わるまで」の約 1.9 倍（上の注記）。見た目＝0.5s／0.35s／0.8s／✓ 0.45s */
 .play .d {
-  animation: ddDraw 0.5s linear both;
+  animation: ddDraw 0.95s linear both;
 }
 
 .play .dFast {
-  animation-duration: 0.35s;
+  animation-duration: 0.66s;
 }
 
 .play .dSlow {
-  animation-duration: 0.8s;
+  animation-duration: 1.52s;
 }
 
 .play .fade {
@@ -326,12 +335,12 @@
 /* 「✓」は入場で1回だけ描かれ、そのあとはずっと描かれたまま残る
    （常時演出では消さない・描き直さない＝印が空に見える時間を作らない） */
 .play .check {
-  animation: ddDraw 0.45s linear both;
+  animation: ddDraw 0.86s linear both;
 }
 
 @keyframes ddDraw {
   from {
-    stroke-dashoffset: 100;
+    stroke-dashoffset: 200;
   }
 
   to {
@@ -363,13 +372,16 @@
    輪と退出はインラインの animation-delay を 0.63 秒ずらして位相を合わせる。
    光の点は「同じ経路に重ねた短いダッシュを stroke-dashoffset で流す」方式
    （offset-path を使わない）。
+   点の間隔は線4本ぶん（400）＝図が拡大表示されても、1本の線に点が2つ出ない（入場の注記と同じ理由）。
+   送りは 400→301.6＝線の始点から、終点の手前（点の長さ 1.6 ぶん内側）まで。
+   速さは元の 100→1.6 と同じ。
    ========================================================================== */
 .spark {
   stroke: var(--dd-ink);
   stroke-width: 3;
   stroke-linecap: round;
-  stroke-dasharray: 1.6 98.4;
-  stroke-dashoffset: 1.6;
+  stroke-dasharray: 1.6 398.4;
+  stroke-dashoffset: 301.6;
   opacity: 0;
 }
 
@@ -410,7 +422,7 @@
 /* 1区間（物と物のあいだ）を 0.36 秒で走る＝6.6% */
 @keyframes ddRun {
   0% {
-    stroke-dashoffset: 100;
+    stroke-dashoffset: 400;
     opacity: 0;
   }
 
@@ -423,12 +435,12 @@
   }
 
   6.6% {
-    stroke-dashoffset: 1.6;
+    stroke-dashoffset: 301.6;
     opacity: 0;
   }
 
   100% {
-    stroke-dashoffset: 1.6;
+    stroke-dashoffset: 301.6;
     opacity: 0;
   }
 }
@@ -436,7 +448,7 @@
 /* SP の折り返しだけ＝0.99 秒（18%）。道のりが長いぶん尺を伸ばして速さをそろえる */
 @keyframes ddRunLong {
   0% {
-    stroke-dashoffset: 100;
+    stroke-dashoffset: 400;
     opacity: 0;
   }
 
@@ -449,12 +461,12 @@
   }
 
   18% {
-    stroke-dashoffset: 1.6;
+    stroke-dashoffset: 301.6;
     opacity: 0;
   }
 
   100% {
-    stroke-dashoffset: 1.6;
+    stroke-dashoffset: 301.6;
     opacity: 0;
   }
 }
@@ -463,7 +475,7 @@
 @keyframes ddExit {
   0%,
   45% {
-    stroke-dashoffset: 100;
+    stroke-dashoffset: 400;
     opacity: 0;
   }
 
@@ -476,12 +488,12 @@
   }
 
   51.6% {
-    stroke-dashoffset: 1.6;
+    stroke-dashoffset: 301.6;
     opacity: 0;
   }
 
   100% {
-    stroke-dashoffset: 1.6;
+    stroke-dashoffset: 301.6;
     opacity: 0;
   }
 }

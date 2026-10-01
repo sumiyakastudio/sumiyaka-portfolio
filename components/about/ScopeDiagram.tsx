@@ -58,6 +58,14 @@ const atd = (sec: number, dur: number): CSSProperties => ({
   animationDuration: `${dur}s`,
 });
 
+/**
+ * 描線の尺に掛ける倍率。破線を「線2本ぶん（200）」にしてあるので（CSS の .d の注記）、
+ * 線は尺の前半ほどで引き終わる。時刻表の dur は「見た目で引き終わるまで」の秒のまま持ち、
+ * 渡すときにこの倍率を掛ける＝見た目の速さは元のまま（CSS 側の 0.38s→0.72s・0.3s→0.57s と同じ倍率）。
+ */
+const DRAW_STRETCH = 1.9;
+const drawDur = (sec: number) => Math.round(sec * DRAW_STRETCH * 1000) / 1000;
+
 /** 入場と周期の時刻表（秒） */
 const T = {
   /** カードの枠が引かれたあと、中の絵が描かれるまで */
@@ -168,6 +176,7 @@ function art(kind: number, X: number, Y: number): readonly Piece[] {
    版面
    ====================================================================== */
 
+/** dur＝見た目で引き終わるまでの秒（渡すときに drawDur で倍率を掛ける） */
 type Rail = { d: string; delay: number; dur: number };
 type Spark = { d: string; delay: number; long: boolean };
 type Pin = { cx: number; cy: number; delay: number };
@@ -282,7 +291,7 @@ function Plot({ lay, svgClass }: { lay: Layout; svgClass: string }) {
             key={r.d}
             className={`${styles.d} ${styles.railLine}`}
             pathLength={100}
-            style={atd(r.delay, r.dur)}
+            style={atd(r.delay, drawDur(r.dur))}
             d={r.d}
           />
         ))}
