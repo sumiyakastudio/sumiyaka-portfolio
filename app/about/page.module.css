@@ -309,16 +309,20 @@
   align-items: start;
 }
 
-/* ---- 写真（800×766・原比率・CSS filter 不使用） ---- */
+/* ---- 写真（2026-10-01〜 ループ動画 512×768＝2:3・原比率・CSS filter 不使用。
+   旧 800×766 の時は 420px。縦に長くなった分、幅を 360px に詰めて高さを抑える） ---- */
 .portrait {
   margin: 0;
-  width: min(100%, 420px);
+  width: min(100%, 360px);
   /* 台（右下 +22px）がグリッド外へはみ出さないよう余白を確保 */
   padding: 0 22px 22px 0;
 }
 
 .portraitFrame {
   position: relative;
+  /* LoopVideo の動画を、静止画（.portraitImg＝relative・z-index 1）と同じ層へ */
+  --loop-pos: relative;
+  --loop-z: 1;
 }
 
 /* 台＝右下へずらした墨の面（重）。わずかに傾け、落ち影で写真を浮かせる */
@@ -1298,7 +1302,7 @@
     grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
     gap: 48px;
   }
-  .portrait { width: min(100%, 360px); }
+  .portrait { width: min(100%, 300px); }
 
   .stanceTitle { font-size: 42px; }
   .stanceBlock { padding-left: 28px; }
@@ -1372,7 +1376,7 @@
     gap: 40px;
   }
   .portrait {
-    width: min(100%, 360px);
+    width: min(100%, 300px);
     padding: 0 16px 16px 0;
   }
   .portraitFrame::before { inset: 16px -16px -16px 16px; }

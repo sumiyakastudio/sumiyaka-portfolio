@@ -1,5 +1,7 @@
 import Image from "next/image";
 import type { SitePhoto } from "@/data/photos";
+import type { LoopClip } from "@/data/photoLoops";
+import LoopVideo from "./LoopVideo";
 import styles from "./PhotoFigure.module.css";
 
 /**
@@ -10,6 +12,7 @@ import styles from "./PhotoFigure.module.css";
  * 写真の文言・寸法は data/photos.ts（契約ファイル）から渡す。ここに文言を直書きしない。
  *
  * - 動きは持たない。入場は外側で <ScrollReveal> に包む（この figure に transform を書かない）。
+ *   loop を渡すと、同じ構図のループ動画を静止画の上へ重ねる（LoopVideo・2026-10-01）。
  * - 写真はモノクロを焼き込み済み＝CSS filter は当てない（iOS/WebKit の滲み事故を踏まない）。
  * - 原比率のまま（width/height 指定・object-fit で切り抜かない）。
  * - 地色はページ側が custom property で渡す（PhotoFigure.module.css の冒頭を参照）。
@@ -27,6 +30,8 @@ type Props = {
   /** 外側の figure に足すクラス（幅・グリッド配置はページ側の CSS で決める） */
   className?: string;
   priority?: boolean;
+  /** 同じ構図のループ動画（data/photoLoops.ts）。無ければ静止画だけ */
+  loop?: LoopClip;
 };
 
 export default function PhotoFigure({
@@ -36,6 +41,7 @@ export default function PhotoFigure({
   captionAlign = "left",
   className,
   priority,
+  loop,
 }: Props) {
   const figureClass = [styles.figure, tone === "paper" ? styles.paper : styles.dark, className]
     .filter(Boolean)
@@ -44,18 +50,22 @@ export default function PhotoFigure({
     .filter(Boolean)
     .join(" ");
 
+  const image = (
+    <Image
+      src={photo.src}
+      alt={photo.alt}
+      width={photo.width}
+      height={photo.height}
+      sizes={sizes}
+      priority={priority}
+      className={styles.img}
+    />
+  );
+
   return (
     <figure className={figureClass}>
       <span className={styles.frame}>
-        <Image
-          src={photo.src}
-          alt={photo.alt}
-          width={photo.width}
-          height={photo.height}
-          sizes={sizes}
-          priority={priority}
-          className={styles.img}
-        />
+        {loop ? <LoopVideo clip={loop}>{image}</LoopVideo> : image}
       </span>
       <figcaption className={captionClass}>{photo.caption}</figcaption>
     </figure>

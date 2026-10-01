@@ -1,4 +1,6 @@
 import Image from "next/image";
+import LoopVideo from "@/components/photo/LoopVideo";
+import { photoLoops } from "@/data/photoLoops";
 import Link from "next/link";
 import ScrollReveal from "@/components/animation/ScrollReveal";
 import DrawRule from "@/components/animation/DrawRule";
@@ -67,14 +69,16 @@ export default function Person() {
           </div>
           <ScrollReveal as="figure" className={styles.portrait} delay={0.2}>
             <div className={styles.portraitFrame}>
-              <Image
-                src="/home/portrait-tall.webp"
-                alt="墨家 / SUMIYAKA ポートレート"
-                width={869}
-                height={1086}
-                sizes="(max-width: 860px) 86vw, 440px"
-                className={styles.portraitImg}
-              />
+              <LoopVideo clip={photoLoops.portraitTall}>
+                <Image
+                  src="/home/portrait-tall.webp"
+                  alt="墨家 / SUMIYAKA ポートレート"
+                  width={869}
+                  height={1086}
+                  sizes="(max-width: 860px) 86vw, 440px"
+                  className={styles.portraitImg}
+                />
+              </LoopVideo>
             </div>
             <figcaption className={styles.portraitCaption}>SUMIYAKA</figcaption>
           </ScrollReveal>

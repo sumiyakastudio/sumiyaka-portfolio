@@ -1,0 +1,37 @@
+/* LoopVideo — 静止画と同じ升目にループ動画を重ねる（2026-10-01）
+   重なり順を静止画の時と同じに保つため、position ではなく grid の同じ升目で重ねる。
+   ページ側が渡す custom property：
+     --loop-pos … 動画の position（既定 static）。静止画が position を持つ額で relative を渡す
+     --loop-z   … 動画の z-index（既定 auto）。静止画が z-index を持つ額で同じ値を渡す
+   互換：動かすのは opacity だけ。filter・backdrop-filter・mix-blend-mode・3D は使わない。 */
+.stack {
+  display: grid;
+}
+
+.stack > * {
+  grid-area: 1 / 1;
+}
+
+.video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* 動画の寸法で升目を広げない＝枠は静止画の大きさのまま（縦横比の差は約1.5%以内） */
+  contain: size;
+  position: var(--loop-pos, static);
+  z-index: var(--loop-z, auto);
+  opacity: 0;
+  transition: opacity 0.6s ease;
+  pointer-events: none;
+}
+
+.shown {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .video {
+    display: none;
+  }
+}

@@ -1,4 +1,6 @@
 import Image from "next/image";
+import LoopVideo from "@/components/photo/LoopVideo";
+import { photoLoops } from "@/data/photoLoops";
 import Link from "next/link";
 import ScrollReveal from "@/components/animation/ScrollReveal";
 import DrawRule from "@/components/animation/DrawRule";
@@ -93,14 +95,16 @@ export default function Who() {
           <ScrollReveal className={styles.photo} delay={0.18}>
             <figure className={styles.photoFigure}>
               <span className={styles.photoFrame}>
-                <Image
-                  src={whoPhoto.src}
-                  alt={whoPhoto.alt}
-                  width={whoPhoto.width}
-                  height={whoPhoto.height}
-                  sizes={PHOTO_SIZES}
-                  className={styles.photoImg}
-                />
+                <LoopVideo clip={photoLoops.teaching}>
+                  <Image
+                    src={whoPhoto.src}
+                    alt={whoPhoto.alt}
+                    width={whoPhoto.width}
+                    height={whoPhoto.height}
+                    sizes={PHOTO_SIZES}
+                    className={styles.photoImg}
+                  />
+                </LoopVideo>
               </span>
               <figcaption className={styles.photoCaption}>{whoPhoto.caption}</figcaption>
             </figure>

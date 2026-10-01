@@ -8,6 +8,7 @@ import MeasureDiagram from "@/components/cases/MeasureDiagram";
 import DecideDiagram from "@/components/cases/DecideDiagram";
 import HashLanding from "@/components/cases/HashLanding";
 import PhotoFigure from "@/components/photo/PhotoFigure";
+import { photoLoops } from "@/data/photoLoops";
 import { observePhoto, reviewPhoto } from "@/data/photos";
 import { getAllCases, getFdeIntro } from "@/lib/caseCatalog";
 import { SITE_ORIGIN } from "@/lib/site";
@@ -112,7 +113,7 @@ export default function CasesPage() {
 
             {/* 文字が先・絵が後（入場は ScrollReveal 側だけに持たせる） */}
             <ScrollReveal className={styles.leadPhoto} delay={0.18}>
-              <PhotoFigure photo={observePhoto} sizes={LEAD_PHOTO_SIZES} tone="paper" />
+              <PhotoFigure photo={observePhoto} sizes={LEAD_PHOTO_SIZES} tone="paper" loop={photoLoops.observe} />
             </ScrollReveal>
           </div>
 
@@ -199,7 +200,7 @@ export default function CasesPage() {
 
             {/* 最終確認の1枚。PC は見出し帯の右端・1023px 以下は見出しの下へ回り込む */}
             <ScrollReveal className={styles.keepsPhoto} delay={0.12}>
-              <PhotoFigure photo={reviewPhoto} sizes={KEEPS_PHOTO_SIZES} tone="paper" />
+              <PhotoFigure photo={reviewPhoto} sizes={KEEPS_PHOTO_SIZES} tone="paper" loop={photoLoops.review} />
             </ScrollReveal>
           </div>
 

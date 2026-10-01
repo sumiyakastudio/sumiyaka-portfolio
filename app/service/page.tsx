@@ -18,6 +18,7 @@ import Steps from "@/components/home/Steps";
 import Trust from "@/components/home/Trust";
 import Way from "@/components/home/Way";
 import PhotoFigure from "@/components/photo/PhotoFigure";
+import { photoLoops } from "@/data/photoLoops";
 import InsideDiagram from "@/components/service/InsideDiagram";
 import LocalAiDiagram from "@/components/service/LocalAiDiagram";
 import UnifyDiagram from "@/components/service/UnifyDiagram";
@@ -536,6 +537,7 @@ export default function ServicePage() {
                   tone="dark"
                   sizes="(max-width: 767px) calc(100vw - 80px), (max-width: 1023px) calc(100vw - 140px), 360px"
                   className={styles.pillarPhoto}
+                  loop={photoLoops.inventory}
                 />
 
                 {/* 一句＝この図の主題。大きく置き、墨のマーカーが引かれる */}

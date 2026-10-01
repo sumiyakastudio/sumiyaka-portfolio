@@ -17,6 +17,8 @@ import InkStroke from "@/components/about/InkStroke";
 import AboutProgress from "@/components/about/AboutProgress";
 import ScopeDiagram from "@/components/about/ScopeDiagram";
 import PhotoFigure from "@/components/photo/PhotoFigure";
+import LoopVideo from "@/components/photo/LoopVideo";
+import { photoLoops } from "@/data/photoLoops";
 import { stanceFull, stanceTitle } from "@/data/pillars";
 import { scopePhoto, stancePhoto } from "@/data/photos";
 import styles from "./page.module.css";
@@ -224,16 +226,20 @@ export default function AboutPage() {
           <div className={styles.profileGrid}>
             <ScrollReveal as="figure" className={`${styles.reveal} ${styles.portrait}`} delay={0.1}>
               {/* 墨の縁＝四辺に内へ向かう墨のグラデ（overlay の疑似要素・CSS filter 不使用）＋台からの落ち影 */}
+              {/* 2026-10-01 ループ動画へ差し替え＝全身→胸上へ寄る 2:3。静止画は動画の最初のコマ
+                  （元の profile.webp は構図が違うので使わない・ファイルは残す） */}
               <div className={styles.portraitFrame}>
-                <Image
-                  src="/about/profile.webp"
-                  alt="SUMIYAKA"
-                  width={800}
-                  height={766}
-                  sizes="(max-width: 767px) 92vw, (max-width: 1279px) 34vw, 420px"
-                  className={styles.portraitImg}
-                  priority
-                />
+                <LoopVideo clip={photoLoops.profile}>
+                  <Image
+                    src={photoLoops.profile.poster}
+                    alt="SUMIYAKA"
+                    width={photoLoops.profile.width}
+                    height={photoLoops.profile.height}
+                    sizes="(max-width: 767px) 72vw, (max-width: 1279px) 30vw, 360px"
+                    className={styles.portraitImg}
+                    priority
+                  />
+                </LoopVideo>
               </div>
               <figcaption className={styles.portraitCaption}>SUMIYAKA — 墨家</figcaption>
             </ScrollReveal>
@@ -346,7 +352,7 @@ export default function AboutPage() {
 
             {/* 文字が先・絵が後（トップ 01 Who と同じ作法）。figure 自体に transform は書かない */}
             <ScrollReveal className={`${styles.reveal} ${styles.stancePhoto}`} delay={0.2}>
-              <PhotoFigure photo={stancePhoto} sizes={STANCE_PHOTO_SIZES} tone="dark" />
+              <PhotoFigure photo={stancePhoto} sizes={STANCE_PHOTO_SIZES} tone="dark" loop={photoLoops.stance} />
             </ScrollReveal>
           </div>
 
@@ -464,7 +470,7 @@ export default function AboutPage() {
             </div>
 
             <ScrollReveal className={`${styles.reveal} ${styles.scopePhoto}`} delay={0.18}>
-              <PhotoFigure photo={scopePhoto} sizes={SCOPE_PHOTO_SIZES} tone="dark" />
+              <PhotoFigure photo={scopePhoto} sizes={SCOPE_PHOTO_SIZES} tone="dark" loop={photoLoops.scope} />
             </ScrollReveal>
           </div>
 

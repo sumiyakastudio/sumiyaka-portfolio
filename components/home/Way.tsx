@@ -1,4 +1,6 @@
 import Image from "next/image";
+import LoopVideo from "@/components/photo/LoopVideo";
+import { photoLoops } from "@/data/photoLoops";
 import ScrollReveal from "@/components/animation/ScrollReveal";
 import DrawRule from "@/components/animation/DrawRule";
 import Highlight from "@/components/animation/Highlight";
@@ -67,14 +69,16 @@ export default function Way({ titleId }: Props) {
         {/* 写真は実写（原比率1264×948・トリミングなし・CSSフィルタ不使用） */}
         <ScrollReveal as="figure" className={styles.fig} delay={0.15}>
           <div className={styles.frame}>
-            <Image
-              src="/home/teaching.webp"
-              alt="クライアント先での導入指導の様子"
-              width={1264}
-              height={948}
-              sizes="(max-width: 860px) 86vw, 420px"
-              className={styles.img}
-            />
+            <LoopVideo clip={photoLoops.teaching}>
+              <Image
+                src="/home/teaching.webp"
+                alt="クライアント先での導入指導の様子"
+                width={1264}
+                height={948}
+                sizes="(max-width: 860px) 86vw, 420px"
+                className={styles.img}
+              />
+            </LoopVideo>
           </div>
           <figcaption className={styles.caption}>クライアント先での導入指導</figcaption>
         </ScrollReveal>
