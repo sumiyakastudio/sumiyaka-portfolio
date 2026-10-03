@@ -21,17 +21,26 @@ import styles from "./LoopVideo.module.css";
  * - 画面外・背面タブでは止める（IntersectionObserver＋visibilitychange）。
  *   読み込みは preload="none"＝画面に入るまで1バイトも取らない。
  * - 自動再生が拒まれた時（iOS の低電力モード等）は何も出さない＝静止画のまま。
- * - 動かすのは opacity だけ（filter・blend・3D は使わない）。操作パネルは出さない。
+ * - 動かすのは opacity と transform だけ（filter・blend・3D は使わない）。操作パネルは出さない。
+ * - 再生の進み（2026-10-03 動画 v2）＝額の下辺の内側に高さ 1px の線。currentTime / duration を
+ *   scaleX で表す。requestAnimationFrame で線の style.transform へ直接書く（毎フレーム setState しない）。
+ *   再生中（playing 以降）だけ出す＝静止画のまま（reduced-motion・省データ・再生拒否）の時は出ない。
+ *   線も同じ升目の grid item（position を使わない）。z-index だけ持たせ、額の縁（::after）の上に乗せる
+ *   ＝罫・縁・静止画・動画の重なり順は変えない。色はページ側が --loop-line で渡す（既定は白の半透明）。
+ *   progress={false} で線を出さない（場面の目盛りなど、別の表示を持つ置き場所向け）。
  */
 type Props = {
   clip: LoopClip;
   children: ReactNode;
   className?: string;
+  /** 再生の進みを示す 1px の線を出すか（既定 true） */
+  progress?: boolean;
 };
 
-export default function LoopVideo({ clip, children, className }: Props) {
+export default function LoopVideo({ clip, children, className, progress = true }: Props) {
   const motion = useMotionAllowed();
   const ref = useRef<HTMLVideoElement>(null);
+  const lineRef = useRef<HTMLSpanElement>(null);
   const [shown, setShown] = useState(false);
 
   useEffect(() => {
@@ -43,6 +52,26 @@ export default function LoopVideo({ clip, children, className }: Props) {
     v.muted = true;
     v.defaultMuted = true;
     let inView = false;
+
+    // 再生の進み：再生中だけ毎フレーム線へ書く（止まったら rAF も止める）
+    let raf = 0;
+    const tick = () => {
+      const line = lineRef.current;
+      const d = v.duration;
+      if (line && d > 0 && Number.isFinite(d)) {
+        line.style.transform = `scaleX(${Math.min(1, Math.max(0, v.currentTime / d))})`;
+      }
+      raf = requestAnimationFrame(tick);
+    };
+    const startTick = () => {
+      if (progress && !raf) raf = requestAnimationFrame(tick);
+    };
+    const stopTick = () => {
+      if (raf) cancelAnimationFrame(raf);
+      raf = 0;
+    };
+    v.addEventListener("playing", startTick);
+    v.addEventListener("pause", stopTick);
 
     const play = () => {
       if (!inView || document.visibilityState !== "visible") return;
@@ -73,9 +102,12 @@ export default function LoopVideo({ clip, children, className }: Props) {
     return () => {
       io.disconnect();
       document.removeEventListener("visibilitychange", onVis);
+      v.removeEventListener("playing", startTick);
+      v.removeEventListener("pause", stopTick);
+      stopTick();
       pause();
     };
-  }, [motion]);
+  }, [motion, progress]);
 
   return (
     <span className={[styles.stack, className].filter(Boolean).join(" ")}>
@@ -97,6 +129,13 @@ export default function LoopVideo({ clip, children, className }: Props) {
         >
           <source src={clip.src} type="video/mp4" />
         </video>
+      )}
+      {motion && progress && (
+        <span
+          ref={lineRef}
+          className={`${styles.line} ${shown ? styles.lineShown : ""}`}
+          aria-hidden="true"
+        />
       )}
     </span>
   );

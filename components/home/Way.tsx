@@ -54,33 +54,56 @@ export default function Way({ titleId }: Props) {
 
       {/* 要約の板＋現場写真（PC＝2カラム／SP＝縦積み） */}
       <div className={styles.proof}>
+        {/* 板の中は文節でだけ折る（word-break: keep-all＋<wbr>）。文言は不変＝<wbr> は折り目の候補を足すだけ。
+            PC で板が 528px に狭まり「教え込／む。」「手を離／します。」と語の途中で折れたため（2026-10-03） */}
         <ScrollReveal className={`${sv.plate} ${styles.plate}`} delay={0.05}>
-          <p className={sv.summary}>
-            AIを「入れる」のではなく、御社の仕事のやり方を教え込む。社員の方が自分で回せるようになったら、私は手を離します。
+          <p className={`${sv.summary} ${styles.phrased}`}>
+            AIを<wbr />
+            「入れる」のでは<wbr />
+            なく、<wbr />
+            御社の<wbr />
+            仕事の<wbr />
+            やり方を<wbr />
+            教え込む。<wbr />
+            社員の方が<wbr />
+            自分で<wbr />
+            回せるように<wbr />
+            なったら、<wbr />
+            私は手を離します。
           </p>
-          <p className={styles.kicker}>
-            <Highlight delay={0.2}>コンサルティングでは、ありません。</Highlight>
+          <p className={`${styles.kicker} ${styles.phrased}`}>
+            <Highlight delay={0.2}>
+              コンサルティングでは、<wbr />
+              ありません。
+            </Highlight>
           </p>
-          <p className={`${sv.body} ${styles.sub}`}>
-            助言や資料を納めて終わりにせず、社員の方と一緒に手を動かします。
+          <p className={`${sv.body} ${styles.sub} ${styles.phrased}`}>
+            助言や<wbr />
+            資料を<wbr />
+            納めて<wbr />
+            終わりにせず、<wbr />
+            社員の方と<wbr />
+            一緒に<wbr />
+            手を動かします。
           </p>
         </ScrollReveal>
 
-        {/* 写真は実写（原比率1264×948・トリミングなし・CSSフィルタ不使用） */}
+        {/* 写真は実写（原比率1264×948・トリミングなし・CSSフィルタ不使用）。
+            2026-10-03：PC は写真が主役の比率（最大 520px・板と上端そろえ）／1023px 以下は板の下に縦積み */}
         <ScrollReveal as="figure" className={styles.fig} delay={0.15}>
           <div className={styles.frame}>
-            <LoopVideo clip={photoLoops.teaching}>
+            <LoopVideo clip={photoLoops.teaching} className={styles.media}>
               <Image
-                src="/home/teaching.webp"
-                alt="クライアント先での導入指導の様子"
+                src="/service/teaching.webp"
+                alt="少人数の勉強会でモニターを指して説明する導入指導の様子"
                 width={1264}
                 height={948}
-                sizes="(max-width: 860px) 86vw, 420px"
+                sizes="(max-width: 767px) calc(100vw - 40px), (max-width: 1023px) 640px, 520px"
                 className={styles.img}
               />
             </LoopVideo>
           </div>
-          <figcaption className={styles.caption}>クライアント先での導入指導</figcaption>
+          <figcaption className={styles.caption}>クライアント先での導入指導（少人数の勉強会）</figcaption>
         </ScrollReveal>
       </div>
 

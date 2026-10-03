@@ -310,12 +310,15 @@
 }
 
 /* ---- 写真（2026-10-01〜 ループ動画 512×768＝2:3・原比率・CSS filter 不使用。
-   旧 800×766 の時は 420px。縦に長くなった分、幅を 360px に詰めて高さを抑える） ---- */
+   旧 800×766 の時は 420px。縦に長くなった分、幅を 360px に詰めて高さを抑えた）
+   2026-10-03 動画 v2＝「紙焼きの写真」。幅 400px（台の逃げ 22px ＋紙の余白 7px×2 を含む＝写真 364px）。
+   左列の下端（添え書き）が右列の下端（SNS の行）とそろう高さ＝節の高さはほぼ据え置き ---- */
 .portrait {
   margin: 0;
-  width: min(100%, 360px);
-  /* 台（右下 +22px）がグリッド外へはみ出さないよう余白を確保 */
-  padding: 0 22px 22px 0;
+  width: min(100%, 400px);
+  /* 台（右下 +22px）がグリッド外へはみ出さないよう右に余白を確保。
+     下は添え書き（margin-top 30px）が台の下に来るので、下の余白は持たない（2026-10-03） */
+  padding: 0 22px 0 0;
 }
 
 .portraitFrame {
@@ -323,6 +326,17 @@
   /* LoopVideo の動画を、静止画（.portraitImg＝relative・z-index 1）と同じ層へ */
   --loop-pos: relative;
   --loop-z: 1;
+}
+
+/* 紙焼き＝写真の外に紙色の細い余白（--sumi-sei-paper＝既存の紙の面）。
+   LoopVideo の升目（.stack＝grid）そのものに当てる＝静止画・動画・進みの線はこの内側に収まる。
+   z-index 1 で台（::before・z-index 0）より手前。落ち影は写真でなくこの紙に付ける */
+.portraitPrint {
+  position: relative;
+  z-index: 1;
+  padding: 7px;
+  background: var(--sumi-sei-paper);
+  box-shadow: 0 22px 44px -14px rgba(10, 8, 8, 0.8);
 }
 
 /* 台＝右下へずらした墨の面（重）。わずかに傾け、落ち影で写真を浮かせる */
@@ -338,20 +352,8 @@
   pointer-events: none;
 }
 
-/* 墨の縁＝四辺から内へ向かう墨のグラデ（overlay・通常合成のみ）＋内側の影 */
-.portraitFrame::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  pointer-events: none;
-  background:
-    linear-gradient(to top,    rgba(20, 18, 18, 0.92) 0%, rgba(20, 18, 18, 0) 30%),
-    linear-gradient(to bottom, rgba(20, 18, 18, 0.8)  0%, rgba(20, 18, 18, 0) 20%),
-    linear-gradient(to right,  rgba(20, 18, 18, 0.85) 0%, rgba(20, 18, 18, 0) 18%),
-    linear-gradient(to left,   rgba(20, 18, 18, 0.85) 0%, rgba(20, 18, 18, 0) 18%);
-  box-shadow: inset 0 0 48px 10px rgba(20, 18, 18, 0.55);
-}
+/* 墨の縁（四辺から内へ向かう墨のグラデ＋内側の影の ::after）は 2026-10-03 に廃止＝
+   紙焼きの写真として、写真の色をそのまま見せる */
 
 .portraitImg {
   position: relative;
@@ -359,7 +361,6 @@
   width: 100%;
   height: auto; /* 原比率維持＝object-fit による切り抜きをしない */
   display: block;
-  box-shadow: 0 22px 44px -14px rgba(10, 8, 8, 0.8);
 }
 
 .portraitCaption {
@@ -370,6 +371,14 @@
   letter-spacing: 0.2em;
   color: var(--color-secondary);
   text-align: left;
+}
+
+/* 添え書きの2行目＝撮った場所（1行目より一段小さく・字間を詰める） */
+.portraitPlace {
+  display: block;
+  margin-top: 6px;
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
 }
 
 /* ---- 本文 ---- */
@@ -1302,7 +1311,7 @@
     grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
     gap: 48px;
   }
-  .portrait { width: min(100%, 300px); }
+  .portrait { width: min(100%, 320px); } /* 紙の余白 7px×2 のぶん 300→320（写真 284px） */
 
   .stanceTitle { font-size: 42px; }
   .stanceBlock { padding-left: 28px; }
@@ -1375,11 +1384,14 @@
     grid-template-columns: minmax(0, 1fr);
     gap: 40px;
   }
+  /* 額は中央・幅は 72vw 相当（390 で写真 ≒ 270px）。台の逃げ（右下 16px）ごと中央へ置く */
   .portrait {
     width: min(100%, 300px);
+    margin: 0 auto;
     padding: 0 16px 16px 0;
   }
   .portraitFrame::before { inset: 16px -16px -16px 16px; }
+  .portraitPrint { padding: 6px; }
   .portraitCaption { margin-top: 24px; }
   .profileLead {
     font-size: 17px;

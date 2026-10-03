@@ -12,6 +12,8 @@
      --photo-edge    … 罫線の色。既定＝theme-top.css の --edge（#3a3335）／paper は #c7c2b8
      --photo-caption … キャプションの色。既定＝--color-foreground-muted／paper は #6a6862
      --photo-line    … paper のとき写真の縁の髪の毛線。既定＝rgba(23,23,23,0.14)
+     --photo-loop-line … paper のとき、ループ動画の「再生の進み」の線の色（LoopVideo の --loop-line へ渡す）。
+                       既定＝キャプションと同じ濃色（罫 #c7c2b8 と同じ暖灰の系列）。dark は LoopVideo の既定（白の半透明）
 
    互換：filter・backdrop-filter・mix-blend-mode・3D transform・clip-path・vw 単位は使わない。
    動きは持たない（入場は外側の ScrollReveal）。
@@ -32,6 +34,8 @@
   --pf-edge: var(--photo-edge, #c7c2b8);
   --pf-caption: var(--photo-caption, #6a6862);
   --pf-line: var(--photo-line, rgba(23, 23, 23, 0.14));
+  /* 紙の地＝白の線は写真の明るい所で沈む。罫と同じ暖灰の濃色で引く */
+  --loop-line: var(--photo-loop-line, var(--pf-caption));
 }
 
 .frame {

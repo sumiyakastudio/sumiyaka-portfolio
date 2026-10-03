@@ -157,14 +157,33 @@
   margin-top: 2.4rem;
 }
 
+/* 2026-10-03 動画 v2＝写真を 400→480px に拡大し、左の言葉と上下の端で組む。
+   ・写真の上端＝「FDEとは」の上端（.leadPhoto の padding-top）
+   ・写真の下端＝結びの1文の下端（左列を行の高さまで伸ばし、結びの1文を列の下端へ送る。
+     左列の padding-bottom＝写真の下のキャプション（margin 1.2rem＋11px×1.8）ぶん）
+   ・写真の右端＝下の3段（1000px）の右端。額のオフセット罫（右下へ 14px）は版面の外の余白
+     （.leadInner の padding 40px の中）へ出す
+   左列は結びの1文（20字・実測 460px）が1行に収まる幅を必ず残す：
+     1080px 以上＝版面 1000 − 写真 480 − 溝 40 ＝ 480px
+     1024〜1079px＝版面 944〜999 − 写真 420 − 溝 40 ＝ 484〜539px */
 @media (min-width: 1024px) {
   .leadGrid {
     display: grid;
-    /* 右列 414px のうち 14px は額のオフセット罫（右下へ 14px）の逃げ＝写真の実幅は 400px */
-    grid-template-columns: minmax(0, 1fr) 414px;
-    /* 1024〜1199px は溝を詰め、結びの1文（20字）が1行に収まる幅を左カラムに残す */
-    column-gap: 2rem;
+    grid-template-columns: minmax(0, 1fr) 420px;
+    column-gap: 2.5rem;
     align-items: start;
+  }
+
+  .leadText {
+    align-self: stretch;
+    display: flex;
+    flex-direction: column;
+    padding-bottom: calc(1.2rem + 11px * 1.8);
+  }
+
+  /* 結びの1文の包み（ScrollReveal）。上の余白は中の .leadClose の margin-top が最低限を持つ */
+  .leadCloseWrap {
+    margin-top: auto;
   }
 
   .leadPhoto {
@@ -173,14 +192,12 @@
     /* 眉（.leadEyebrow＝0.68rem × 1.6）と h2 の上マージン 0.75rem ぶん下げ、
        写真の上端を「FDEとは」の上端にそろえる */
     padding-top: calc(0.68rem * 1.6 + 0.75rem);
-    /* オフセット罫が版面の外へ出ないよう、右に 14px 残す */
-    padding-right: 14px;
   }
 }
 
-@media (min-width: 1200px) {
+@media (min-width: 1080px) {
   .leadGrid {
-    column-gap: 3rem;
+    grid-template-columns: minmax(0, 1fr) 480px;
   }
 }
 

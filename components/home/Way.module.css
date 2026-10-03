@@ -50,22 +50,57 @@
   max-width: 30em;
 }
 
-/* ---- 要約の板＋写真 ---- */
+/* ---- 要約の板＋写真（2026-10-03 動画v2：写真が主役の比率へ） ----
+   1023px 以下＝縦積み（板→写真）。1024px 以上＝2カラム・上端そろえ。
+   版面（.inner 1080px）の左端＝板の左端、右端＝写真本体の右端（ずらし罫は外へ 14px 出る）。
+   写真の列＝min(520px, 100% − 560px)：板の列が 528px を下回らない＝対比の一句（27px・約475px）が
+   1行に収まる幅を先に確保し、残りを写真へ渡す（1140px 以上で 520px＝4:3 で高さ 390px）。 */
 .proof {
   margin-top: clamp(2.6rem, 5vw, 4rem);
   display: grid;
   gap: 2.8rem 4rem;
-  align-items: center;
+  align-items: start;
 }
 
-@media (min-width: 861px) {
+@media (min-width: 1024px) {
   .proof {
-    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+    grid-template-columns: minmax(0, 1fr) min(520px, calc(100% - 560px));
+    column-gap: 32px;
+  }
+
+  /* 板の列 528px で一句の幅を確保するため、この板だけ左右の余白を詰める（上下は共通の板のまま） */
+  .proof > .plate {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+
+  /* 一句は折らない（列幅は上の min() で確保済み。エンジン差の 1〜2px は右の余白が吸う） */
+  .kicker {
+    white-space: nowrap;
   }
 }
 
 .plate {
   max-width: 40em;
+}
+
+/* 写真が 520×390 になる幅では、板の高さを写真にそろえる（板の下の空きをなくす）。
+   中の文は上下の中央へ */
+@media (min-width: 1140px) {
+  .proof > .plate {
+    min-height: 390px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+}
+
+/* 板の中の文は文節（Way.tsx の <wbr>）でだけ折る。keep-all は WebKit/Blink/Gecko 共通。
+   万一 1 文節が行より長い時だけ字の途中で折る（はみ出し防止） */
+.phrased {
+  word-break: keep-all;
+  overflow-wrap: break-word; /* anywhere 非対応の旧 Safari 向け */
+  overflow-wrap: anywhere;
 }
 
 /* 対比＝墨のマーカーで引かれる一行（/service の一句 .keyLine と同じ骨格）。
@@ -86,14 +121,17 @@
   max-width: 34em;
 }
 
+/* 縦積みでは板（最大 40em）と同じ幅まで。SP は版面いっぱい */
 .fig {
   margin: 0;
-  width: min(100%, 420px);
+  width: 100%;
+  max-width: 40em;
+  min-width: 0;
 }
 
-@media (min-width: 861px) {
+@media (min-width: 1024px) {
   .fig {
-    justify-self: end;
+    max-width: none;
   }
 }
 
@@ -101,13 +139,20 @@
   position: relative;
 }
 
-/* 後ろへずらした罫の額 */
+/* 後ろへずらした罫の額。罫は写真の「後ろ」に置く（カラーの絵の上に線を走らせない）＝
+   写真の層（.media）を一段上げ、罫は右と下へはみ出た 14px だけが見える */
 .frame::before {
   content: "";
   position: absolute;
   inset: 14px -14px -14px 14px;
   border: 1px solid var(--edge);
   pointer-events: none;
+}
+
+/* LoopVideo の升目（静止画と動画が同じ升目に重なる）ごと、罫より上の層へ */
+.media {
+  position: relative;
+  z-index: 1;
 }
 
 .img {
@@ -123,7 +168,7 @@
   letter-spacing: 0.22em;
   line-height: 1.8;
   color: var(--color-foreground-muted);
-  text-align: right;
+  text-align: left; /* 添え書きは写真の左下（PhotoFigure の既定と同じ） */
 }
 
 /* ---- 中見出し（3工程の頭）。短い罫で転を示す ---- */

@@ -3,7 +3,10 @@
    ページ側が渡す custom property：
      --loop-pos … 動画の position（既定 static）。静止画が position を持つ額で relative を渡す
      --loop-z   … 動画の z-index（既定 auto）。静止画が z-index を持つ額で同じ値を渡す
-   互換：動かすのは opacity だけ。filter・backdrop-filter・mix-blend-mode・3D は使わない。 */
+     --loop-line   … 再生の進みの線の色（既定 rgba(255,255,255,.7)。紙の地では濃色を渡す）
+     --loop-line-z … 線の z-index（既定 1＝額の縁の疑似要素（z-index なし）より上）。
+                     縁に z-index を持つ額では、それより大きい値を渡す
+   互換：動かすのは opacity と transform（線の scaleX）だけ。filter・backdrop-filter・mix-blend-mode・3D は使わない。 */
 .stack {
   display: grid;
 }
@@ -30,8 +33,29 @@
   opacity: 1;
 }
 
+/* 再生の進み＝額の下辺の内側に高さ 1px（SP も 1px）。同じ升目の下端に置く grid item。
+   scaleX は LoopVideo が rAF で style.transform へ直接書く（ここは始点の 0 だけ）。
+   grid item は position なしでも z-index が効く＝重なり順のために position を足さない。 */
+.line {
+  display: block;
+  align-self: end;
+  height: 1px;
+  background: var(--loop-line, rgba(255, 255, 255, 0.7));
+  transform: scaleX(0);
+  transform-origin: left center;
+  z-index: var(--loop-line-z, 1);
+  opacity: 0;
+  transition: opacity 0.6s ease;
+  pointer-events: none;
+}
+
+.lineShown {
+  opacity: 0.55;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .video {
+  .video,
+  .line {
     display: none;
   }
 }

@@ -61,11 +61,11 @@ export const whoCopy = {
 /** 01 に大きく置く写真（2026-09-20 あおき指示）。/service THE WAY と同じ1枚。
  *  alt と caption は components/home/Way.tsx の文言と同じ（一言一句そろえる） */
 export const whoPhoto = {
-  src: "/home/teaching.webp",
+  src: "/home/who-sequence.webp",
   width: 1264,
   height: 948,
-  alt: "クライアント先での導入指導の様子",
-  caption: "クライアント先での導入指導",
+  alt: "クライアント先での導入指導・倉庫での業務観察・事務所での聞き取りの様子",
+  caption: "クライアント先での導入指導・業務観察・聞き取り",
 };
 
 /** 02 実測 */

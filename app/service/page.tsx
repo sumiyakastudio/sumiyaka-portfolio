@@ -535,7 +535,7 @@ export default function ServicePage() {
                 <PhotoFigure
                   photo={inventoryPhoto}
                   tone="dark"
-                  sizes="(max-width: 767px) calc(100vw - 80px), (max-width: 1023px) calc(100vw - 140px), 360px"
+                  sizes="(max-width: 767px) calc(100vw - 80px), (max-width: 1023px) calc(100vw - 140px), 400px"
                   className={styles.pillarPhoto}
                   loop={photoLoops.inventory}
                 />

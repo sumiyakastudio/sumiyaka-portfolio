@@ -34,9 +34,11 @@ import styles from "./page.module.css";
 const intro = getFdeIntro();
 const caseCount = getAllCases().length;
 
-/** C-2 の実表示幅。PC＝右カラム 414px から額のオフセット罫ぶん 14px を引いた 400px。
+/** C-2 の実表示幅（2026-10-03 動画 v2 で拡大）。PC＝右カラムそのもの＝写真の右端を3段の右端にそろえる
+ *  （額のオフセット罫 14px は版面の外の余白へ出す）。1080px 以上は 480px、1024〜1079px は 420px。
  *  1023px 以下は版面いっぱい（上限 560px＝左右 20px 余白で 600px から頭打ち） */
-const LEAD_PHOTO_SIZES = "(min-width: 1024px) 400px, (min-width: 600px) 560px, calc(100vw - 40px)";
+const LEAD_PHOTO_SIZES =
+  "(min-width: 1080px) 480px, (min-width: 1024px) 420px, (min-width: 600px) 560px, calc(100vw - 40px)";
 
 /** C-5 の実表示幅。PC＝見出し帯の右端に 320px。1023px 以下は上限 480px（2026-09-22 あおき指示で拡大） */
 const KEEPS_PHOTO_SIZES = "(min-width: 1024px) 320px, (min-width: 520px) 480px, calc(100vw - 40px)";
@@ -102,8 +104,9 @@ export default function CasesPage() {
                 <p className={styles.leadBody}>{intro.explain}</p>
               </ScrollReveal>
 
-              {/* 結びの1文＝少し目立たせる（2026-09-16 あおきさん指示） */}
-              <ScrollReveal delay={0.12}>
+              {/* 結びの1文＝少し目立たせる（2026-09-16 あおきさん指示）。
+                  PC は列の下端へ送り、写真の下端とそろえる（.leadCloseWrap） */}
+              <ScrollReveal className={styles.leadCloseWrap} delay={0.12}>
                 <p className={styles.leadClose}>
                   <span className={styles.leadCloseRule} aria-hidden="true" />
                   {intro.closing}

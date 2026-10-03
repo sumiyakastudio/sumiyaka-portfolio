@@ -11,7 +11,8 @@
    互換：filter・backdrop-filter のアニメ／mix-blend-mode／3D transform／
    複雑な clip-path／素の vw フォント／100vw・100vh 単独指定は使わない。
    動くのは transform と opacity だけ。prefers-reduced-motion で終端値に置く。
-   ⚠ 写真は既にモノクロへ焼き込み済み＝CSS filter は当てない。
+   ⚠ 写真・動画はカラー（2026-10-03 動画 v2）＝CSS filter は当てない。
+     額・動画・場面の目次の見た目は ./WhoFilm.module.css（ここは配置だけ）。
    ============================================================= */
 .section {
   /* 帖の切り替えを自前の罫で見せるので、上下の border は持たせない */
@@ -56,47 +57,15 @@
   width: min(100%, 900px);
 }
 
-.photoFrame {
-  position: relative;
-  display: block;
-}
-
-/* オフセットの罫線フレーム（右下へずらした枠）＝Person／Way の額と同じ作法 */
-.photoFrame::before {
-  content: "";
-  position: absolute;
-  inset: 14px -14px -14px 14px;
-  border: 1px solid var(--edge);
-  pointer-events: none;
-}
-
-/* 縁を地色に沈める（通常合成のみ・blend 不使用） */
-.photoFrame::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background:
-    linear-gradient(to top, var(--paper) 0%, transparent 22%),
-    linear-gradient(to bottom, var(--paper) 0%, transparent 16%),
-    linear-gradient(to right, var(--paper) 0%, transparent 14%),
-    linear-gradient(to left, var(--paper) 0%, transparent 14%);
-  opacity: 0.85;
-}
-
 .photoImg {
   display: block;
   width: 100%;
   height: auto; /* 原比率維持＝object-fit による切り抜きをしない */
 }
 
-.photoCaption {
-  margin-top: 1.4rem;
-  font-family: var(--font-heading, sans-serif);
-  font-size: 0.7rem;
-  letter-spacing: 0.3em;
-  color: var(--neutral);
-  text-align: left; /* 左下配置（Person の額と揃える） */
+/* 場面の目次は PC の左列だけ（SP・タブレットは動画の直下に目盛りを出す＝WhoFilm） */
+.sceneIndex {
+  display: none;
 }
 
 /* ---- PC＝2カラム。写真は本文カラムの外へ出し、画面の右端の近くまで見せる ---- */
@@ -110,8 +79,7 @@
     display: grid;
     grid-template-columns: minmax(0, clamp(18rem, 33%, 25rem)) minmax(0, 1fr);
     column-gap: clamp(2rem, 4%, 4.5rem);
-    /* 左列を写真と同じ高さまで伸ばし、見出しは上・説明は写真の下端にそろえる
-       （写真より文字が短いぶんの空きを、意図のある配置に変える） */
+    /* 左列を写真と同じ高さまで伸ばし、見出しは上・目次は中ほど・説明は写真の下端にそろえる */
     align-items: stretch;
   }
 
@@ -120,10 +88,16 @@
     flex-direction: column;
   }
 
-  /* 説明の包み（ScrollReveal）を下端へ送る。キャプションの高さぶんだけ持ち上げて
-     写真の下辺とそろえる */
-  .headText > :last-child {
-    margin-top: auto;
+  /* 場面の目次＝h2 と説明の間の空きの中ほど（上下の auto で残りを等分）。
+     padding は空きが無い幅でも最低限あける間 */
+  .sceneIndex {
+    display: block;
+    margin-block: auto;
+    padding-block: 0.8rem;
+  }
+
+  /* 説明の包み（ScrollReveal）は下端。キャプションの高さぶんだけ持ち上げて写真の下辺とそろえる */
+  .explainWrap {
     padding-bottom: 2.4rem;
   }
 
@@ -138,6 +112,18 @@
     margin-top: 0;
     /* 見出しの高さぶんだけ下げて、写真の上端を h2 の高さに合わせる */
     padding-top: 0.4rem;
+  }
+}
+
+/* 1100〜1279：写真が低くなるぶん、左列の間を詰めて写真の高さに収める
+   （説明の文字サイズは変えない。説明の下端は写真の下辺と添え書きの間に来る） */
+@media (min-width: 1100px) and (max-width: 1279px) {
+  .sceneIndex {
+    padding-block: 0.45rem;
+  }
+
+  .explainWrap {
+    padding-bottom: 1.1rem;
   }
 }
 

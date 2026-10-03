@@ -25,19 +25,33 @@ const clip = (base: string, width: number, height: number): LoopClip => ({
 
 export const photoLoops = {
   /** /about PROFILE（2:3・全身→胸上へ寄る。元の profile.webp とは構図が違う） */
-  profile: clip("/about/profile", 512, 768),
+  profile: clip("/about/profile-v2", 512, 768),
   /** /about 02 STANCE（stance.webp と同じ構図） */
   stance: clip("/about/stance", 736, 544),
   /** /about 05 SCOPE（scope-color.webp と同じ構図） */
   scope: clip("/about/scope-color", 768, 512),
   /** /cases FDEとは（observe.webp と同じ構図） */
-  observe: clip("/cases/observe", 768, 512),
+  observe: clip("/cases/observe-v3", 768, 512),
   /** /cases 人が決めるところ（review-color.webp と同じ構図） */
   review: clip("/cases/review-color", 736, 544),
   /** トップ 04（portrait-tall.webp と同じ構図） */
   portraitTall: clip("/home/portrait-tall", 560, 704),
-  /** トップ 01／/service THE WAY（teaching.webp と同じ構図） */
-  teaching: clip("/home/teaching", 736, 544),
+  /** トップ 01（3場面×引き・寄りの約27秒。場面の区切りは whoScenes） */
+  whoSequence: clip("/home/who-sequence", 736, 544),
+  /** /service THE WAY（/service/teaching.webp と同じ構図・約20秒） */
+  teaching: clip("/service/teaching", 736, 544),
   /** /service 第1の柱（inventory.webp と同じ構図） */
-  inventory: clip("/service/inventory", 768, 512),
+  inventory: clip("/service/inventory-v2", 768, 512),
 } as const;
+
+/**
+ * トップ 01 の動画（whoSequence）の場面割り（2026-10-03 動画 v2）。
+ * start/end＝秒。動画は 27.375 秒で、最後→最初もクロスフェード済み（<video loop> で継ぎ目なし）。
+ * 目盛りと添え書きの切り替えはこの表だけを見る。
+ */
+export const whoSequenceDuration = 27.375;
+export const whoScenes = [
+  { no: "01", start: 0, end: 9.125, caption: "オフィスでの導入指導" },
+  { no: "02", start: 9.125, end: 18.25, caption: "倉庫での業務観察" },
+  { no: "03", start: 18.25, end: 27.375, caption: "事務所での聞き取り" },
+] as const;

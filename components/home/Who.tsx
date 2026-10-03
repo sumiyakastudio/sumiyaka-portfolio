@@ -1,6 +1,4 @@
 import Image from "next/image";
-import LoopVideo from "@/components/photo/LoopVideo";
-import { photoLoops } from "@/data/photoLoops";
 import Link from "next/link";
 import ScrollReveal from "@/components/animation/ScrollReveal";
 import DrawRule from "@/components/animation/DrawRule";
@@ -11,6 +9,7 @@ import { whoCopy, whoPhoto } from "@/data/pillars";
 import { getFdeIntro } from "@/lib/caseCatalog";
 import { getPillars } from "@/lib/pillarCatalog";
 import HandoffDiagram from "./HandoffDiagram";
+import WhoFilm, { WhoFilmFigure, WhoSceneIndex } from "./WhoFilm";
 import styles from "./Who.module.css";
 
 /**
@@ -24,12 +23,14 @@ import styles from "./Who.module.css";
  *   ・ラベル／しないこと／3本柱の前置き／写真 … data/pillars.ts の whoCopy・whoPhoto
  *   ・3本柱（数字・代表画像） … lib/pillarCatalog.ts の getPillars()
  *
- * 型（2026-09-20 改版）：
- *   [帖1の頭] 2カラム＝左（章番号 → h2 → 説明）／右（導入指導の写真・右端へ張り出す）
+ * 型（2026-09-20 改版・2026-10-03 動画 v2 で帖1の頭を改版）：
+ *   [帖1の頭] 2カラム＝左（章番号 → h2 → 場面の目次 → 説明）／右（3場面の動画・右端へ張り出す）
+ *             動画と目次は ./WhoFilm（場面割りは data/photoLoops.ts の whoScenes）。
+ *             SP・タブレットは目次の代わりに、動画の直下へ目盛り3本＋現在の場面の添え書き。
  *   [帖1の続き] 仕事の3段 → しないこと1行 → **結論の大キャッチ**
  *   [帖2] 前置き → 3本柱の**目次**（箱を持たない・罫線だけの3行）
  * 地：暖黒 × 灯（左上の暈）。**色は使わない**（朱は 02 実測の1点だけ）。
- * 動き：既存の部品だけ（ScrollReveal／DrawRule／CountUp）。新しい機構は増やさない。
+ * 動き：既存の部品（ScrollReveal／DrawRule／CountUp）＋帖1の頭の動画と目次（./WhoFilm）だけ。
  *   ⚠ ホバーは ScrollReveal の載る <li> ではなく内側の <a> に当てる
  *     （同じ要素に重ねると GSAP の transform と食い合う）。
  *   ⚠ 目次のホバー画像は opacity だけで出す（filter はアニメさせない＝iOS/WebKit 安全）。
@@ -73,43 +74,45 @@ export default function Who() {
     >
       {/* ====== 帖1の頭＝左に章の言葉／右に導入指導の写真（PC は2カラム） ====== */}
       <div className={styles.headBand}>
-        <div className={styles.headGrid}>
-          <div className={styles.headText}>
-            <ScrollReveal>
-              <SectionMark no="01" label={whoCopy.labelEn} />
-            </ScrollReveal>
-
-            <h2 className={`${tb.h2} ${styles.title}`}>
-              <ScrollReveal as="span" className={tb.phrase}>
-                {whoCopy.label}
+        <WhoFilm>
+          <div className={styles.headGrid}>
+            <div className={styles.headText}>
+              <ScrollReveal>
+                <SectionMark no="01" label={whoCopy.labelEn} />
               </ScrollReveal>
-            </h2>
 
-            {/* FDE を知らない人向けの説明（1段落） */}
-            <ScrollReveal delay={0.08}>
-              <p className={`${tb.summary} ${styles.explain}`}>{fdeIntro.explain}</p>
+              <h2 className={`${tb.h2} ${styles.title}`}>
+                <ScrollReveal as="span" className={tb.phrase}>
+                  {whoCopy.label}
+                </ScrollReveal>
+              </h2>
+
+              {/* 場面の目次（PC のみ・罫線だけの3行）。押すとその場面へ頭出し */}
+              <ScrollReveal className={styles.sceneIndex} delay={0.04}>
+                <WhoSceneIndex />
+              </ScrollReveal>
+
+              {/* FDE を知らない人向けの説明（1段落） */}
+              <ScrollReveal delay={0.08} className={styles.explainWrap}>
+                <p className={`${tb.summary} ${styles.explain}`}>{fdeIntro.explain}</p>
+              </ScrollReveal>
+            </div>
+
+            {/* 写真は少し遅らせて入れる（文字が先・絵が後） */}
+            <ScrollReveal className={styles.photo} delay={0.18}>
+              <WhoFilmFigure caption={whoPhoto.caption} className={styles.photoFigure}>
+                <Image
+                  src={whoPhoto.src}
+                  alt={whoPhoto.alt}
+                  width={whoPhoto.width}
+                  height={whoPhoto.height}
+                  sizes={PHOTO_SIZES}
+                  className={styles.photoImg}
+                />
+              </WhoFilmFigure>
             </ScrollReveal>
           </div>
-
-          {/* 写真は少し遅らせて入れる（文字が先・絵が後） */}
-          <ScrollReveal className={styles.photo} delay={0.18}>
-            <figure className={styles.photoFigure}>
-              <span className={styles.photoFrame}>
-                <LoopVideo clip={photoLoops.teaching}>
-                  <Image
-                    src={whoPhoto.src}
-                    alt={whoPhoto.alt}
-                    width={whoPhoto.width}
-                    height={whoPhoto.height}
-                    sizes={PHOTO_SIZES}
-                    className={styles.photoImg}
-                  />
-                </LoopVideo>
-              </span>
-              <figcaption className={styles.photoCaption}>{whoPhoto.caption}</figcaption>
-            </figure>
-          </ScrollReveal>
-        </div>
+        </WhoFilm>
       </div>
 
       {/* ====== 帖1の続き＝3段 → しないこと → 結論 ====== */}

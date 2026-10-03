@@ -225,23 +225,27 @@ export default function AboutPage() {
 
           <div className={styles.profileGrid}>
             <ScrollReveal as="figure" className={`${styles.reveal} ${styles.portrait}`} delay={0.1}>
-              {/* 墨の縁＝四辺に内へ向かう墨のグラデ（overlay の疑似要素・CSS filter 不使用）＋台からの落ち影 */}
-              {/* 2026-10-01 ループ動画へ差し替え＝全身→胸上へ寄る 2:3。静止画は動画の最初のコマ
+              {/* 2026-10-03 動画 v2＝「紙焼きの写真」。墨の縁（四辺の内向きグラデ）はやめ、写真の色をそのまま見せる。
+                  写真の外に紙色の細い余白（.portraitPrint）を回し、少し傾いた裏の台紙（::before）に載せる。
+                  2026-10-01 ループ動画へ差し替え＝2:3。静止画は動画の最初のコマ
                   （元の profile.webp は構図が違うので使わない・ファイルは残す） */}
               <div className={styles.portraitFrame}>
-                <LoopVideo clip={photoLoops.profile}>
+                <LoopVideo clip={photoLoops.profile} className={styles.portraitPrint}>
                   <Image
-                    src={photoLoops.profile.poster}
-                    alt="SUMIYAKA"
-                    width={photoLoops.profile.width}
-                    height={photoLoops.profile.height}
-                    sizes="(max-width: 767px) 72vw, (max-width: 1279px) 30vw, 360px"
+                    src="/about/profile-v2.webp"
+                    alt="前職のクリニックで、サーバー室の配線をするSUMIYAKA"
+                    width={1024}
+                    height={1536}
+                    sizes="(max-width: 767px) 72vw, (max-width: 1279px) 284px, 364px"
                     className={styles.portraitImg}
                     priority
                   />
                 </LoopVideo>
               </div>
-              <figcaption className={styles.portraitCaption}>SUMIYAKA — 墨家</figcaption>
+              <figcaption className={styles.portraitCaption}>
+                SUMIYAKA — 墨家
+                <span className={styles.portraitPlace}>前職・クリニックのサーバー室にて</span>
+              </figcaption>
             </ScrollReveal>
 
             <div className={styles.profileText}>
