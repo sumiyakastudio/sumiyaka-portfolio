@@ -7,6 +7,7 @@ import Measured from "@/components/home/Measured";
 import PriceAnim from "@/components/home/PriceAnim";
 import PriceRunner from "@/components/home/PriceRunner";
 import BoundaryFigure from "@/components/home/BoundaryFigure";
+import Confidentiality from "@/components/home/Confidentiality";
 import Person from "@/components/home/Person";
 import CtaSection from "@/components/home/CtaSection";
 import { budgetLine } from "@/data/pillars";
@@ -42,7 +43,8 @@ export default function Home() {
           - 節は 5 つ（01 何をする人か → 02 実測 → 03 VALUE → 04 人 → 05 CONTACT）。
             THE WAY／TRUST／STEPS／INSIGHT／EXITS と制作実績の3デッキは /service・/cases・
             /tools・/works へ移した（部品ファイルは残してある）。
-          - 進捗線＝画面左端の細い縦線。[data-top-section] を持つセクションの並びが目盛（01…05）。
+          - 2026-10-04＝03 VALUE の後に 04 守秘（CONFIDENTIALITY）を足し、人 05・CONTACT 06 になった。
+          - 進捗線＝画面左端の細い縦線。[data-top-section] を持つセクションの並びが目盛（01…06）。
             PC（1280px 以上・マウス）だけ。FV のあいだは出ない。
           - 地は暖黒 × 灯 × 墨で通し、白転調（紙）は「いくら浮くか」(#value) だけ。
             **色は 02 実測の朱の印1点だけ**（P17 計画書§3）。 */}
@@ -125,11 +127,16 @@ export default function Home() {
 
       {/* 6. マーキー帯B＝削除（2026-08-17 あおきさん決定「帯は全廃」） */}
 
-      {/* 7. どんな人か（04 PERSON）＝P17 で章番号を 08 → 04。姿勢の宣言ブロックを足した */}
+      {/* 6b. 守秘（04 CONFIDENTIALITY・#confidentiality）＝2026-10-04 追加。
+          文言は data/confidentiality.ts（short 版）。全文は /service#confidentiality。
+          これに伴い PERSON 04 → 05・CONTACT 05 → 06（進捗線の目盛は 01…06） */}
+      <Confidentiality />
+
+      {/* 7. どんな人か（05 PERSON）＝P17 で章番号を 08 → 04、2026-10-04 に 04 → 05。姿勢の宣言ブロックを足した */}
       <Person />
 
-      {/* 8. CTA（05 CONTACT）＝共通部品（/about /service と共用）。進捗線の目盛のためだけに包む */}
-      <div data-top-section="05" data-top-label="CONTACT">
+      {/* 8. CTA（06 CONTACT）＝共通部品（/about /service と共用）。進捗線の目盛のためだけに包む */}
+      <div data-top-section="06" data-top-label="CONTACT">
         <CtaSection />
       </div>
     </main>

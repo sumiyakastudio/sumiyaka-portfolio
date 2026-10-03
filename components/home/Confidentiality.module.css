@@ -1,0 +1,235 @@
+/* =============================================================
+   04 守秘（CONFIDENTIALITY・#confidentiality）— 2026-10-04 追加
+
+   骨格＝章番号 → h2 → 要約 → 3列（罫・線画・小ラベル・h3・短文）→ 注記＋導線。
+   作法は 01 何をする人か（Who.module.css）にそろえる：
+     共通語彙は tb（top-body.module.css）・3列の間は .steps と同じ・罫は DrawRule。
+   地は暖黒（--paper）× 灯の暈（tb.washTop）。**この章では色を使わない**
+   （白・--neutral・--edge と罫だけ。金 --color-accent・朱は足さない）。箱（カード・塗りの板）は作らない。
+
+   互換：filter・backdrop-filter のアニメ／mix-blend-mode／3D transform／
+   複雑な clip-path／素の vw フォント／100vw・100vh 単独指定は使わない。
+   動くのは ScrollReveal・DrawRule の transform と opacity だけ（線画は静止）。
+   ============================================================= */
+.section {
+  position: relative;
+}
+
+/* 上下の余白＝01 の帖（.introBand・.pillarsBand の 2.8〜5rem）と同じ調子。
+   tb.inner の 8rem は詰める＝節の高さを 1920 で 800px 台に抑える */
+.inner {
+  padding-block: 4.5rem;
+}
+
+/* ---- 見出し：句（tb.phrase）で折り、句の中は文節（<wbr>）でだけ折る ----
+   ⚠ keep-all は見出しと h3 だけ（本文には掛けない）。1文節が行より長い時の保険が overflow-wrap */
+.title,
+.itemTitle {
+  word-break: keep-all;
+  overflow-wrap: break-word; /* anywhere 非対応の旧 Safari 向け */
+  overflow-wrap: anywhere;
+}
+
+/* 要約＝tb.summary の大きさを 01 の説明（.explain）と同じ段まで落とす。
+   PC（1100px 以上）は文ごとに inline-block で包み、2文目を必ず行頭から始める（.sentence）。
+   ⚠ 行長は 41em。38em だと第1文（実測 810px）が1行に入らず「なりま／す。」と割れる（1920 実測）。
+   SP・タブレットは文を普通に流す（inline-block だと各文の末尾に「す。」だけの行が残る＝390 実測） */
+.leadWrap {
+  margin-top: clamp(1.2rem, 1rem + 0.6vw, 1.5rem);
+}
+
+.lead {
+  max-width: 41em;
+  font-size: clamp(1.05rem, 0.98rem + 0.45vw, 1.28rem);
+  line-height: 1.95;
+  text-wrap: pretty; /* 最終行に1〜2字だけ残るのを均す（非対応ブラウザは従来どおり） */
+}
+
+.sentence {
+  display: inline;
+}
+
+/* ---- 3列（PC 1100px 以上）。列の間は 01 の .steps と同じ ---- */
+.items {
+  list-style: none;
+  margin: clamp(2rem, 1.5rem + 1.4vw, 2.3rem) 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2.2rem;
+}
+
+.item {
+  position: relative;
+  min-width: 0;
+  padding-top: 1.4rem;
+}
+
+/* 列の頭の一線（DrawRule＝左から引かれる） */
+.itemRule {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: block;
+  width: 100%;
+  height: 1px;
+  background: var(--rule);
+}
+
+/* SP・タブレット＝線画と小ラベルを横に並べる（PC は縦に積む） */
+.itemHead {
+  display: flex;
+  align-items: center;
+  gap: 0.95rem;
+}
+
+.icon {
+  display: block;
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  color: var(--ink);
+}
+
+.icon svg {
+  display: block;
+  width: 40px;
+  height: 40px;
+}
+
+/* 小ラベル＝等幅の数字＋何で守るか（--neutral の小さい字） */
+.by {
+  display: flex;
+  align-items: baseline;
+  gap: 0.9em;
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.8;
+  letter-spacing: 0.12em;
+  font-feature-settings: "palt" 1;
+  color: var(--neutral);
+}
+
+.byNo {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.76rem;
+  letter-spacing: 0.16em;
+  font-variant-numeric: tabular-nums;
+}
+
+.itemTitle {
+  margin: 0.7rem 0 0;
+  font-family: var(--font-display-washi, serif);
+  font-weight: 600;
+  font-size: clamp(1.08rem, 1.02rem + 0.22vw, 1.22rem);
+  line-height: 1.7;
+  letter-spacing: 0.05em;
+  font-feature-settings: "palt" 1;
+  color: var(--ink-deep);
+}
+
+.itemShort {
+  margin: 0.6rem 0 0;
+  font-size: clamp(0.86rem, 0.84rem + 0.12vw, 0.94rem);
+  line-height: 2;
+  letter-spacing: 0.02em;
+  font-feature-settings: "palt" 1;
+  color: var(--muted);
+  text-wrap: pretty; /* 「ん。」だけの最終行を避ける（非対応ブラウザは従来どおり） */
+}
+
+/* ---- 注記（左に1pxの縦罫・小さく・目立たせすぎない）＋導線 ---- */
+.foot {
+  margin-top: clamp(1.8rem, 1.5rem + 1vw, 2.2rem);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.6rem;
+}
+
+.note {
+  margin: 0;
+  max-width: 46em;
+  padding-left: clamp(0.9rem, 0.8rem + 0.4vw, 1.2rem);
+  border-left: 1px solid var(--edge);
+  font-size: 0.8rem;
+  line-height: 2;
+  letter-spacing: 0.02em;
+  font-feature-settings: "palt" 1;
+  color: var(--neutral);
+  text-wrap: pretty;
+}
+
+/* tb.more の上余白は .foot の gap が持つ */
+.more {
+  margin: 0;
+}
+
+/* SP・タブレットの縦積みは行長だけ詰める（文字の大きさは変えない） */
+@media (max-width: 1099px) {
+  .itemTitle,
+  .itemShort {
+    max-width: 34em;
+  }
+}
+
+/* ---- PC＝3列。線画 → 小ラベル → h3 → 短文 を縦に積む ---- */
+@media (min-width: 1100px) {
+  /* 要約は1文1行（第1文が 41em に収まる幅だけ） */
+  .sentence {
+    display: inline-block;
+  }
+
+  .items {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(1.6rem, 1rem + 2vw, 2.8rem);
+    align-items: start;
+  }
+
+  .item {
+    padding-top: 1.4rem;
+  }
+
+  .itemHead {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.8rem;
+  }
+
+  /* 注記は左、導線は右下（同じ段に置いて節の高さを抑える） */
+  .foot {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 2.4rem;
+  }
+
+  .more {
+    flex: 0 0 auto;
+  }
+}
+
+/* 狭幅：見出しの第1句「御社の情報を見る仕事だから、」を1行に収める寸法（01 の .title と同じ段）。
+   収まらない幅では文節（<wbr>）で折れる＝語の途中では折れない */
+@media (max-width: 640px) {
+  .title {
+    font-size: 1.42rem;
+    letter-spacing: 0.04em;
+  }
+
+  .lead {
+    max-width: none;
+  }
+}
+
+@media (max-width: 400px) {
+  .title {
+    font-size: 1.32rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .title {
+    font-size: 1.22rem;
+  }
+}

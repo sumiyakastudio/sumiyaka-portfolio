@@ -29,7 +29,7 @@ export default function Person() {
   return (
     <section
       className={styles.section}
-      data-top-section="04"
+      data-top-section="05"
       data-top-label="PERSON"
     >
       <div className={styles.wrap}>
@@ -37,7 +37,7 @@ export default function Person() {
           <div>
             <ScrollReveal as="p" className={styles.label}>
               <span className={styles.labelNo} aria-hidden="true">
-                04
+                05
               </span>
               どんな人か
             </ScrollReveal>

@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from "react";
+import { Fragment, type CSSProperties, type ReactNode } from "react";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -14,11 +14,13 @@ import StageSteps, { type Stage } from "@/components/fv/service/StageSteps";
 import WireSteps from "@/components/fv/service/WireSteps";
 import Atari from "@/components/home/Atari";
 import CtaSection from "@/components/home/CtaSection";
+import HashLanding from "@/components/cases/HashLanding";
 import Steps from "@/components/home/Steps";
 import Trust from "@/components/home/Trust";
 import Way from "@/components/home/Way";
 import PhotoFigure from "@/components/photo/PhotoFigure";
 import { photoLoops } from "@/data/photoLoops";
+import { confidentialityCopy, confidentialityItems } from "@/data/confidentiality";
 import InsideDiagram from "@/components/service/InsideDiagram";
 import LocalAiDiagram from "@/components/service/LocalAiDiagram";
 import UnifyDiagram from "@/components/service/UnifyDiagram";
@@ -52,6 +54,10 @@ import styles from "./page.module.css";
  * 2026-10-01 ローカルAIの節を追加：FIG. 09 LOCAL AI（#local-ai）を DATA の直後に差し込んだ（以降の図番は1つずつ後ろへ）。
  *   文言の正本＝`ローカルAI節_指示書_2026-10-01.md` §1（一言一句不変）。骨組みは DATA（要約＋計測の板＋裏面）と
  *   PRICING（寸法バーの表）を再利用し、図解は components/service/LocalAiDiagram（FIG. 09-A）。FAQ に1問（計10問）。
+ * 2026-10-04 守秘の節を追加：FIG. 08 CONFIDENTIALITY（#confidentiality）を TRUST の直後・DATA の前に差し込んだ
+ *   （以降の図番は1つずつ後ろへ＝DATA 09／LOCAL AI 10…）。文言の正本＝data/confidentiality.ts（一言一句不変・
+ *   /service は body を使う）。骨組みは TRUST（見出し＋要約の板）と WHAT I DO（番号・題・本文の板）を再利用。
+ *   トップからは /service#confidentiality で着地する。
  */
 
 // /api/og は日本語フォント搭載済み。sub は日本語のまま渡す（URL用に符号化するだけ）
@@ -72,7 +78,8 @@ export const metadata: Metadata = {
    できないこと → 安心（問い）→ AIへの不安（答え）→ データ → ローカルAI → 進め方 → 料金 → FAQ。
    ⚠ ASSURANCE（#trust-top）は既存の TRUST（#trust）と対になる節。図番ナビで同名が並ばないよう
      英字ラベルだけ分けている（可視の日本語は移設前と一言一句同じ）。
-   2026-10-01＝DATA の直後に LOCAL AI を足した（計12本。以降の番号は自動で1つずつ後ろへ）。 ---------- */
+   2026-10-01＝DATA の直後に LOCAL AI を足した（計12本。以降の番号は自動で1つずつ後ろへ）。
+   2026-10-04＝TRUST の直後に CONFIDENTIALITY を足した（計13本。ラベルは data/confidentiality.ts の labelEn）。 ---------- */
 const FIGURES = [
   { id: "insight", label: "INSIGHT" },
   { id: "way", label: "THE WAY" },
@@ -81,6 +88,7 @@ const FIGURES = [
   { id: "what-i-dont", label: "WHAT I DON'T" },
   { id: "trust-top", label: "ASSURANCE" },
   { id: "trust", label: "TRUST" },
+  { id: "confidentiality", label: confidentialityCopy.labelEn },
   { id: "data", label: "DATA" },
   { id: "local-ai", label: "LOCAL AI" },
   { id: "process", label: "PROCESS" },
@@ -383,6 +391,33 @@ function renderPhrases(text: string, breakAfter: string) {
   ));
 }
 
+/* 文節の切れ目（ひらがな・「、」「。」の直後に、ひらがな・閉じの記号以外が来る所）に <wbr> を足す。
+   CSS 側（.confName）の word-break: keep-all と組み、題をそこでだけ折る（文言は不変・折り目の候補を足すだけ）。
+   例：「インターネットにつながない<wbr>AIを<wbr>使います。」＝「つな／がない」の折れを防ぐ */
+const BUNSETSU_HEAD = /[ぁ-ゟ、。]/;
+const BUNSETSU_STAY = /[ぁ-ゟ、。，．）」』】！？ー]/;
+
+function renderBunsetsu(text: string) {
+  const parts: string[] = [];
+  let buf = "";
+  let prev = "";
+  for (const ch of text) {
+    if (buf && BUNSETSU_HEAD.test(prev) && !BUNSETSU_STAY.test(ch)) {
+      parts.push(buf);
+      buf = "";
+    }
+    buf += ch;
+    prev = ch;
+  }
+  if (buf) parts.push(buf);
+  return parts.map((part, i) => (
+    <Fragment key={`${i}:${part}`}>
+      {i > 0 && <wbr />}
+      {part}
+    </Fragment>
+  ));
+}
+
 /** 図番見出し：FIG. 0N（装飾）＋ 英字ラベル ＋ 右へ引かれる罫。id はラベル側に付ける（FAQ の aria-labelledby 用） */
 function FigHead({ figure, id }: { figure: FigureId; id?: string }) {
   return (
@@ -461,6 +496,12 @@ export default function ServicePage() {
 
       {/* 図番の進捗線（左端・PC のみ・fixed） */}
       <FigRail figures={RAIL_FIGURES} />
+
+      {/* トップの「守り方を詳しく読む」（/service#confidentiality）の着地（2026-10-04）。
+          読み込み直後はページ高が FV ぶんしか無く、ブラウザ標準のハッシュ移動が空振りする
+          （実測＝scrollY 0 のまま・/cases と同じ症状）ため、/cases の着地部品をそのまま使う。
+          対象はこの節だけ（他の節の挙動は変えない） */}
+      <HashLanding slugs={["confidentiality"]} />
 
       {/* ========== P17-1 言い当て（INSIGHT）— トップから移設。中身は components/home/Atari ========== */}
       <section
@@ -763,6 +804,66 @@ export default function ServicePage() {
             <p className={styles.trustClose}>
               ほかに不安に思うことがあれば、最初のご相談でそのままお聞かせください。
             </p>
+          </ScrollReveal>
+        </div>
+      </section>
+
+      {/* ========== A-3c 守秘（CONFIDENTIALITY・2026-10-04）— TRUST と同じ見出し（h2＋要約の板）→
+           板3枚（PC 横3列／1023px 以下は縦積み・板ごとに入場を遅らせる）→ 左に縦罫の注記。
+           文言はすべて data/confidentiality.ts から（一言一句不変・short／more はトップ用＝ここでは使わない） ========== */}
+      <section
+        id="confidentiality"
+        className={styles.section}
+        aria-labelledby="service-confidentiality-title"
+      >
+        <div className={styles.inner}>
+          <ScrollReveal className={styles.reveal}>
+            <FigHead figure="confidentiality" />
+          </ScrollReveal>
+
+          <div className={styles.headGrid}>
+            <ScrollReveal className={styles.reveal}>
+              {/* 句の切れ目（「、」の後）でだけ折る＝「御社の情報を見る仕事だから、／守り方を先に決めます。」 */}
+              <h2 id="service-confidentiality-title" className={styles.title}>
+                {renderPhrases(confidentialityCopy.title, "、")}
+              </h2>
+            </ScrollReveal>
+
+            <ScrollReveal className={styles.reveal} delay={0.1}>
+              <Brief>{confidentialityCopy.lead}</Brief>
+            </ScrollReveal>
+          </div>
+
+          <ol className={styles.confList}>
+            {confidentialityItems.map((item, i) => (
+              <ScrollReveal
+                as="li"
+                key={item.no}
+                className={`${styles.reveal} ${styles.plate} ${styles.confItem}`}
+                delay={0.1 * i}
+              >
+                <div className={styles.confHead}>
+                  <span className={styles.doNum}>{item.no}</span>
+                  <span className={`${styles.label} ${styles.confBy}`}>{item.by}</span>
+                </div>
+                <h3 className={`${styles.doName} ${styles.confName}`}>{renderBunsetsu(item.title)}</h3>
+                <p className={`${styles.doDesc} ${styles.confBody}`}>{item.body}</p>
+                {/* 03（仕組みで守る）の末尾にだけ、同じページのローカルAIの節への導線 */}
+                {item.no === "03" && (
+                  <a
+                    href={confidentialityCopy.localAiLink.href}
+                    className={`${styles.arrowLink} ${styles.confLink}`}
+                  >
+                    {confidentialityCopy.localAiLink.label}
+                    <span className={styles.arrow} aria-hidden="true">→</span>
+                  </a>
+                )}
+              </ScrollReveal>
+            ))}
+          </ol>
+
+          <ScrollReveal className={styles.reveal} delay={0.1}>
+            <p className={`${styles.note} ${styles.confNote}`}>{confidentialityCopy.note}</p>
           </ScrollReveal>
         </div>
       </section>

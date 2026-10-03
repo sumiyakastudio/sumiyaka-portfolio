@@ -288,7 +288,7 @@ export default function LocalAiDiagram() {
     <figure className={styles.fig} data-localai-diagram>
       <figcaption className={styles.head}>
         <span className={styles.figNo} aria-hidden="true">
-          FIG. 09-A
+          FIG. 10-A
         </span>
         <span className={styles.figLabel}>AIも、御社のパソコンの中で動く</span>
         <span className={styles.rule} aria-hidden="true" />

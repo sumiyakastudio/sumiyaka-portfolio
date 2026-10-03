@@ -239,7 +239,7 @@ export default function InsideDiagram() {
     <figure className={styles.fig} data-inside-diagram>
       <figcaption className={styles.head}>
         <span className={styles.figNo} aria-hidden="true">
-          FIG. 08-A
+          FIG. 09-A
         </span>
         <span className={styles.figLabel}>データは、御社のパソコンの中だけ</span>
         <span className={styles.rule} aria-hidden="true" />

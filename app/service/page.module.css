@@ -1698,3 +1698,103 @@
     display: inline;
   }
 }
+
+/* ==========================================================================
+   CONFIDENTIALITY（FIG. 08・2026-10-04 追加）— 守秘。TRUST の直後・DATA の前。
+   文言の正本＝data/confidentiality.ts（一言一句不変）。
+   骨組みは既存の部品をそのまま使う：見出し＝TRUST と同じ .headGrid／.title／.brief、
+   板＝.plate（四隅のトンボ・落ち影）、番号・題・本文＝WHAT I DO（.doNum／.doName／.doDesc）、
+   何で守るかの小ラベル＝.label、03 末尾の導線＝.arrowLink、注記＝.note。
+   h2 の句の折り目は LOCAL AI と同じ .localPhrase（renderPhrases）を借りる。
+   ここに足すのは、この節だけの部品：板3枚の並び／板の頭の行／題の折り方／導線と注記の間合い。
+   色は --svc-* のみ。動きは既存の ScrollReveal だけ（板ごとに 0.1 秒ずつ遅らせる）。
+   ⚠ 既存の宣言は書き換えない。レスポンシブもこの塊の中で完結させる。
+   ========================================================================== */
+
+/* 板3枚：PC 横3列（版面 1080px に等幅・板の間は WHAT I DO の3項目 .doList と同じ 24px）。
+   高さは grid の stretch でそろう。1023px 以下は縦積み（下の @media） */
+.confList {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+  margin: 12px 0 0;
+  padding: 0;
+}
+
+/* 板の内側は .doItem と同じ */
+.confItem {
+  padding: 26px 26px 28px;
+}
+
+/* 板の頭の行：番号（.doNum）＋何で守るか（.label） */
+.confHead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.confBy {
+  margin-bottom: 0;
+}
+
+/* 題は文節でだけ折る（page.tsx の renderBunsetsu が <wbr> を足す・文言は不変）。
+   keep-all は WebKit/Blink/Gecko 共通（components/home/Way の .phrased と同じ作法）。
+   万一1文節が行より長い時だけ字の途中で折る（はみ出し防止） */
+.confName {
+  word-break: keep-all;
+  overflow-wrap: break-word; /* anywhere 非対応の旧 Safari 向け */
+  overflow-wrap: anywhere;
+}
+
+/* 本文の最後の行に1〜2字だけ残さない（非対応ブラウザは従来どおり＝進行的強化） */
+.confBody {
+  text-wrap: pretty;
+}
+
+/* 03 の末尾の導線（.arrowLink）。本文との間は見本の導線（.sampleLink）と同じ拍に詰める */
+.confLink {
+  margin-top: 22px;
+}
+
+/* 注記：板の列の下。.note の組みに、左の縦罫（要約の板 .brief の縁より一段細く淡い）を足す */
+.confNote {
+  margin-top: 40px;
+  padding-left: 16px;
+  border-left: 1px solid var(--svc-rule-strong);
+}
+
+@media (min-width: 768px) and (max-width: 1279px) {
+  .confList {
+    gap: 20px;
+  }
+
+  .confItem {
+    padding: 22px 20px 24px;
+  }
+}
+
+@media (max-width: 1023px) {
+  .confList {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 767px) {
+  .confList {
+    gap: 18px;
+  }
+
+  .confItem {
+    padding: 22px 20px 24px;
+  }
+
+  .confLink {
+    margin-top: 18px;
+  }
+
+  .confNote {
+    margin-top: 32px;
+    padding-left: 14px;
+  }
+}
