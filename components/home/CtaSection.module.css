@@ -73,6 +73,12 @@
   border-radius: 50%;
   background: radial-gradient(circle, var(--accent-halo), transparent 70%);
   animation: ctaBreath 5s ease-in-out infinite;
+  /* 画面外では止める（InViewGate が .live を付けた時だけ running）＝契約の規則4 */
+  animation-play-state: paused;
+}
+.live .lampHalo,
+.live .btnGlow {
+  animation-play-state: running;
 }
 
 @keyframes ctaBreath {
@@ -143,6 +149,7 @@
   background: radial-gradient(50% 70% at 50% 62%, var(--accent-halo), transparent 68%);
   opacity: 0.3;
   animation: ctaBreath 7s ease-in-out infinite;
+  animation-play-state: paused;
 }
 
 .btn::after {

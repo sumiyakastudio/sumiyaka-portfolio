@@ -68,8 +68,9 @@ import styles from "./TenkiStage.module.css";
  *
  * 経路の分岐
  *  - PC（pointer:fine）           → 断片・筆・墨の一滴（canvas 2D）＋ 灯
- *  - タッチ・狭幅・reduced-motion  → 短縮版 → 静止 1 コマ（rAF は変形と一滴の余韻の間だけ）。
- *                                    DOM の題字は Hero 側が出す
+ *  - タッチ・狭幅・reduced-motion  → 短縮版 → 変形 → 静止 1 コマ。変形が終わったら背景の動画へ
+ *                                    渡し、静止 1 コマ（断片の帯・一滴の余韻）も CSS で退く
+ *                                    （rAF は変形の終わりまで）。DOM の題字は Hero 側が出す
  *  検証用 ?tenki=still（旧 ?bokujin=still も受ける）
  *
  * ★題字の筆画の上には何も残さない：版下は「筆が通った letterFade 秒後に完全に透明」
@@ -236,17 +237,17 @@ export default function TenkiStage({
       return 0.62 + 0.38 * Math.min(1, s);
     };
 
-    /* ============ 軽量経路：短縮版の第1幕 → 変形 → 静止 1 コマ ============ */
+    /* ===== 軽量経路：短縮版の第1幕 → 変形 → 静止 1 コマ（背景の動画へ渡して退く） ===== */
     if (lightNow) {
       const opLight = createOpening(OP_LIGHT, true);
       const mctx = mainCanvas.getContext("2d");
       const D = Math.max(1, Math.min(dpr, 2));
       let ready = false;
       let raf = 0;
-      /** 変形を終えて背景の動画へ渡した時刻（rAF の時刻・ms）。-1＝まだ */
-      let handAt = -1;
-      /** 一滴の余韻（着地点の印）の強さ。渡したあと bgFade かけて 0 へ */
-      let dropK = 1;
+      /** 変形を終えて背景の動画へ渡した（静止 1 コマは CSS で退いている途中か、退き切った） */
+      let out = false;
+      /** 退き切って描画面を手放した＝以後は何もしない */
+      let gone = false;
 
       const stillOpts = () => ({
         cssW: cw,
@@ -256,7 +257,6 @@ export default function TenkiStage({
         ink: INK255,
         labelFont: `500 ${cl((sheet?.fontPx ?? 24) * 0.17, 8, 11).toFixed(1)}px ${monoFamily}`,
         drop: landingPoint(cw, ch),
-        dropK,
       });
 
       /** 灯は lantern の主灯だけ（OP の点灯時刻から立ち上げ、変形の終わりで全体へ） */
@@ -288,8 +288,37 @@ export default function TenkiStage({
           fps: 0,
           t: tt,
           letters: sheet?.letters.length ?? 0,
-          finished: handAt >= 0 && dropK <= 0,
+          finished: gone,
         };
+      };
+
+      /**
+       * 背景の動画へ渡す：灯・暈・ビネットに加え、静止 1 コマ（断片の帯・送りの罫・着地点の
+       * 一滴の余韻）も CSS の opacity で bgFade かけて退かせる（2026-10-04）。
+       * PC では断片が筆に吸い込まれて題字になり消える＝スマホも「帯が残らない」体験に揃える
+       * （残すと低い画面ではボタンに、高い画面ではスマホ用動画の上端の灯に重なる）。
+       * 退く間も rAF は回さない。退き切ったら描画面の画素を手放す（フル経路の finish と同じ水準）。
+       * 「動きを減らす」設定では最後の 1 コマを描かずに即座に消す（背景はポスター 1 枚になる）。
+       */
+      const goOut = () => {
+        if (out) return;
+        out = true;
+        cancelAnimationFrame(raf);
+        hostEl.classList.add(styles.stillOut);
+        handOff();
+        const release = window.setTimeout(
+          () => {
+            if (disposed) return;
+            mainCanvas.width = 1;
+            mainCanvas.height = 1;
+            glowCanvas.width = 1;
+            glowCanvas.height = 1;
+            gone = true;
+            publishStill(0);
+          },
+          reduced ? 0 : TENKI_T.bgFade * 1000 + 150
+        );
+        cleanups.push(() => window.clearTimeout(release));
       };
 
       /** 静止画を 1 枚描く（変形の途中も同じ関数で描ける） */
@@ -302,11 +331,11 @@ export default function TenkiStage({
         });
       };
 
-      const frame = (ts: number) => {
-        if (disposed) return;
+      const frame = () => {
+        if (disposed || out) return;
         // 描画面が取れない環境では何も描かない＝オープニングは無いので、すぐ背景の動画へ渡す
         if (!mctx) {
-          handOff();
+          goOut();
           return;
         }
         if (!ready) {
@@ -341,18 +370,15 @@ export default function TenkiStage({
           raf = requestAnimationFrame(frame);
           return;
         }
-        // 変形が終わった＝軽量経路のオープニングの終わり（一滴は落ちない）。ここで背景の動画の
-        // 導入を始め、灯・暈は CSS で退かせる。着地点に出る一滴の余韻（印）だけ bgFade かけて
-        // 薄め、消えたら rAF を止める（以後は描き直さない）
-        if (handAt < 0) {
-          handAt = ts;
+        // 変形が終わった＝軽量経路のオープニングの終わり（一滴は落ちない）。最後の 1 コマ
+        // （完成した帯と、着地点の一滴の余韻）を描いて背景の動画へ渡し、静止 1 コマごと退かせる。
+        // rAF はここで終わり（goOut は次を頼まない）
+        if (!reduced) {
           paintLantern(99);
-          handOff();
+          paintStill(undefined);
         }
-        dropK = reduced ? 0 : 1 - smooth01((ts - handAt) / 1000, 0.15, TENKI_T.bgFade);
-        paintStill(undefined);
         publishStill(0);
-        if (dropK > 0) raf = requestAnimationFrame(frame);
+        goOut();
       };
       raf = requestAnimationFrame(frame);
       cleanups.push(() => cancelAnimationFrame(raf));
@@ -361,16 +387,14 @@ export default function TenkiStage({
       const onResize = () => {
         window.clearTimeout(timer);
         timer = window.setTimeout(() => {
-          if (disposed) return;
+          // 背景の動画へ渡したあとは灯も静止 1 コマも退いている＝何も描き直さない
+          if (disposed || out) return;
           cw = host.clientWidth;
           ch = host.clientHeight;
           sheet = buildGlyphSheet(stage, getLetters(), { extra: getContent() });
           opLight.bake(cw, ch, dpr, displayFamily());
-          // 背景の動画へ渡したあとの灯は見えない（CSS で退いた）＝描き直さない
-          if (handAt < 0) {
-            lantern?.resize();
-            paintLantern(99);
-          }
+          lantern?.resize();
+          paintLantern(99);
           paintStill(undefined);
         }, 300);
       };
@@ -952,7 +976,7 @@ export default function TenkiStage({
       <canvas ref={glowRef} className={`${styles.canvas} ${styles.glow}`} />
       <div className={styles.vignette} />
       <div className={styles.scrim} />
-      <canvas ref={mainRef} className={styles.canvas} />
+      <canvas ref={mainRef} className={`${styles.canvas} ${styles.main}`} />
     </div>
   );
 }

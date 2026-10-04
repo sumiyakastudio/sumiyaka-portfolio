@@ -1,4 +1,5 @@
 import Link from "next/link";
+import InViewGate from "@/components/animation/InViewGate";
 import ScrollReveal from "@/components/animation/ScrollReveal";
 import styles from "./CtaSection.module.css";
 
@@ -12,7 +13,8 @@ import styles from "./CtaSection.module.css";
  */
 export default function CtaSection() {
   return (
-    <section className={styles.section}>
+    // 灯の呼吸（常時の CSS アニメ）は画面に入っている間だけ回す（.live の時だけ running）
+    <InViewGate as="section" className={styles.section} activeClassName={styles.live} threshold={0}>
       {/* 沈み巨大タイポ（装飾・読ませない） */}
       <span className={styles.ghost} aria-hidden="true">
         灯
@@ -55,6 +57,6 @@ export default function CtaSection() {
           <p className={styles.note}>通常24時間以内にご返信します</p>
         </ScrollReveal>
       </div>
-    </section>
+    </InViewGate>
   );
 }

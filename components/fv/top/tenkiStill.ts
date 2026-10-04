@@ -3,6 +3,8 @@
  *
  * シミュレーションも rAF も走らせず、「断片が整列して線になり、題字になった」と
  * 読める絵を canvas 2D で一度だけ描く（ポスター判定）。
+ * 2026-10-04：背景を動画へ替えてからは、この絵はオープニングの終わりの 1 コマ。
+ * 背景の動画の導入が始まると TenkiStage が CSS で退かせる（常設の絵ではなくなった）。
  *
  * ★題字の筆画の上には絶対に何も置かない。演出はすべて題字の帯の外——
  *   既定では題字の真上の細い帯——に置き、そこから題字へ向かう「送りの罫」を
@@ -40,8 +42,6 @@ export interface StillOptions {
   opArt?: OpeningArt | null;
   /** 墨の一滴の着地点（ステージ css 座標）＝背景の動画の導入が広がる中心。余韻をここに置く */
   drop?: { x: number; y: number };
-  /** 一滴の余韻の強さ（0..1・既定 1）。背景の動画へ渡したあと 0 へ薄める */
-  dropK?: number;
 }
 
 const cl = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
@@ -170,9 +170,9 @@ export function drawTenkiStill(
   /* ---- 墨の一滴の余韻（着地点の印・本文カラムの外にだけ置く） ----
      2026-10-04：着地点（drop）が渡された時はそこへ置く＝背景の動画の導入がここから広がる。
      着地点が本文の帯の中なら置かない（動画は文字の裏から広がる＝印だけ離れて浮かせない）。
-     背景の動画へ渡したあとは dropK で薄めて消す（流体の代わりの役目は動画が引き継ぐ） */
+     背景の動画へ渡したあとは、静止 1 コマごと CSS で退く（TenkiStage の .stillOut） */
   const belowTop = Math.max(sheet.band[3], rowY + rowH * 2);
-  const dk = Math.max(0, Math.min(1, o.dropK ?? 1)) * deco;
+  const dk = deco;
   if (up && H - belowTop > H * 0.1 && dk > 0.004 && (!o.drop || o.drop.y > belowTop)) {
     const bx = o.drop ? o.drop.x : cl(sheet.centerX * W, W * 0.14, W * 0.86);
     const by = o.drop ? o.drop.y : belowTop + (H - belowTop) * 0.46;

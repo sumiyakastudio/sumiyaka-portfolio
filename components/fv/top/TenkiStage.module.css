@@ -8,6 +8,7 @@
      （旧 .base は動画を隠すので外した。墨の流体の canvas も外した）。
    ★着地（.handoff）で 灯・和紙の暈・ビネットは --tenki-handoff（TENKI_T.bgFade）かけて退く。
      動画の承認済みの見た目（四辺は動画の中で地色へ溶かしてある）に重ね物を残さないため。
+     軽量経路は .stillOut も付け、静止 1 コマ（断片の帯・一滴の余韻）も同じ長さで退く。
    ★ビネットは転記の下に置く：墨の一滴の着地点（動画の導入の中心・PC y 82%／スマホ y 92%）が
      ビネットの下端の溶かしに沈まないように（旧来は転記の上）。
    ★scrim を灯と転記のあいだに置くのが要点：灯は題字の下で抑えられ、
@@ -89,6 +90,15 @@
   opacity: 0;
 }
 
+/* 軽量経路（スマホ等）：静止 1 コマ（断片の帯・送りの罫・一滴の余韻）も同じ長さで退く
+   （.stillOut は軽量経路だけが付ける。フル経路の転記は筆に吸い込まれて自分で消える） */
+.main {
+  transition: opacity var(--tenki-handoff, 1.3s) ease;
+}
+.stillOut .main {
+  opacity: 0;
+}
+
 @media (max-width: 767px) {
   .scrim {
     top: 48%;
@@ -101,7 +111,8 @@
   .stage,
   .orbs,
   .glow,
-  .vignette {
+  .vignette,
+  .main {
     transition: none;
   }
 }

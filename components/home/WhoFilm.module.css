@@ -198,6 +198,8 @@ button.rowBtn {
   background: var(--ink-deep);
   transform: scaleX(0);
   transform-origin: 0 50%;
+  /* 毎フレーム scaleX を書くので、線だけの層に分ける＝周りを描き直さない（2026-10-04 実測で約20%→） */
+  will-change: transform;
 }
 
 /* 1100〜1279：写真が低くなるぶん、行間だけ詰める（説明の文字サイズは変えない） */

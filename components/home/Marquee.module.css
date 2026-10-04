@@ -20,6 +20,16 @@
   animation: marqueeScrollReverse 40s linear infinite;
 }
 
+/* 画面外では止める（InViewGate が .live を付けた時だけ running）＝契約の規則4（2026-10-04） */
+.track,
+.track.reverse {
+  animation-play-state: paused;
+}
+.live .track,
+.live .track.reverse {
+  animation-play-state: running;
+}
+
 .item {
   display: inline-flex;
   align-items: center;

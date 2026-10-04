@@ -1,3 +1,4 @@
+import InViewGate from "@/components/animation/InViewGate";
 import styles from "./Marquee.module.css";
 
 interface MarqueeProps {
@@ -57,17 +58,20 @@ export default function Marquee({
 
   const ariaLabel = itemsProp ? itemsProp.join(` ${sepChar} `) : text;
 
+  // 流れる帯（常時の CSS アニメ）は画面に入っている間だけ回す（.live の時だけ running）
   return (
-    <div
-      className={`${styles.marquee} ${isCode ? styles.codeMarquee : ""} ${isWashi ? styles.washiMarquee : ""} ${className}`}
-      aria-label={ariaLabel}
-    >
+    <InViewGate activeClassName={styles.live} threshold={0}>
       <div
-        className={`${styles.track} ${isWashi ? styles.washiTrack : ""} ${reverse ? styles.reverse : ""}`}
+        className={`${styles.marquee} ${isCode ? styles.codeMarquee : ""} ${isWashi ? styles.washiMarquee : ""} ${className}`}
+        aria-label={ariaLabel}
       >
-        {renderSet("a")}
-        {renderSet("b")}
+        <div
+          className={`${styles.track} ${isWashi ? styles.washiTrack : ""} ${reverse ? styles.reverse : ""}`}
+        >
+          {renderSet("a")}
+          {renderSet("b")}
+        </div>
       </div>
-    </div>
+    </InViewGate>
   );
 }
