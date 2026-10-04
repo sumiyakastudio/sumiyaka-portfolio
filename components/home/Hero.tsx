@@ -1,12 +1,16 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, useSyncExternalStore } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import TenkiStage from "@/components/fv/top/TenkiStage";
 import { TENKI_T, TENKI_STILL } from "@/components/fv/top/tenkiTiming";
+import FvBgVideo from "@/components/fv/bg/FvBgVideo";
+import PointerGlow from "@/components/fv/bg/PointerGlow";
+import { TOP_FV_BG } from "@/data/fvBackgrounds";
 import { useLenis } from "@/components/animation/SmoothScroll";
 import { useLightVisuals } from "@/lib/useLightVisuals";
+import { useMediaQuery } from "@/lib/useMediaQuery";
 import { prefersLightVisuals } from "@/lib/device";
 import styles from "./Hero.module.css";
 
@@ -18,6 +22,15 @@ const reducedMotion = () =>
   typeof window !== "undefined" &&
   typeof window.matchMedia === "function" &&
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* 検証用 ?tenki=still（旧 ?bokujin=still）＝静止 1 コマのモード。
+   hydration 安全に読む（サーバーと最初の hydration では false） */
+const subscribeNone = () => () => {};
+const readForcedStill = () => {
+  const q = new URLSearchParams(window.location.search);
+  return (q.get("tenki") || q.get("bokujin")) === "still";
+};
+const serverFalse = () => false;
 
 /** 文字列を個別spanに分割するヘルパー
  *  各文字は opacity:0 で置かれ、転記ステージの onLetter(i)（＝筆がその文字を書き上げた
@@ -66,6 +79,19 @@ export default function Hero({ openingDone }: HeroProps) {
   const [settled, setSettled] = useState(false);
   /** FV がスクロールで出ていく進捗 0→1（ScrollTrigger の scrub が書き、ステージが読む） */
   const exitRef = useRef(0);
+
+  /* ---- FV 背景の動画（Blender の水盤・2026-10-04） ----
+     転記ステージが「墨の一滴が着地した」（軽量経路は「変形が終わった」）と告げたら導入を流す。
+     オープニングを飛ばす条件（「動きを減らす」設定＝OP を張らない／?tenki=still）は
+     導入を省いてループから（「動きを減らす」では FvBgVideo がポスター 1 枚にする）。
+     保険：定着（settled・hardDeadline の保険を含む）でも始める。 */
+  const [bgStart, setBgStart] = useState(false);
+  const bgRef = useRef<HTMLDivElement>(null);
+  const reducedMQ = useMediaQuery("(prefers-reduced-motion: reduce)");
+  const forcedStill = useSyncExternalStore(subscribeNone, readForcedStill, serverFalse);
+  const skipIntro = reducedMQ || forcedStill;
+  const bgPlay = bgStart || settled || skipIntro;
+  const handleBgStart = useCallback(() => setBgStart(true), []);
 
   const lettersRef = useRef<HTMLElement[] | null>(null);
   const shownRef = useRef<Set<number>>(new Set());
@@ -192,8 +218,9 @@ export default function Hero({ openingDone }: HeroProps) {
     return () => window.clearTimeout(id);
   }, [openingDone, revealAllLetters]);
 
-  // 入場アニメーション（題字以外）→ 肩書き/サブ/HR/宣言/エッジ/コーナー
-  // 起点＝転記ステージの onSettled（墨の一滴が落ちて灯がともる瞬間）
+  // 入場アニメーション（題字以外）→ 肩書き/サブ/HR/宣言/エッジ
+  // 起点＝転記ステージの onSettled（墨の一滴が着地し、背景の動画が広がり始める瞬間）
+  // 四隅の「」形の線（旧 data-hero-corners-svg）は文字に被るので外した（2026-10-04 あおきさん指示）
   useEffect(() => {
     if (!openingDone || !settled) return;
 
@@ -217,7 +244,6 @@ export default function Hero({ openingDone }: HeroProps) {
       const singleSelectors = [
         "[data-hero-sub]", "[data-hero-sub2]",
         "[data-hero-hr]", "[data-hero-decl]",
-        "[data-hero-corners-svg]",
       ];
       singleSelectors.forEach((sel) => {
         const el = heroRef.current?.querySelector(sel);
@@ -265,14 +291,6 @@ export default function Hero({ openingDone }: HeroProps) {
         { opacity: 0 },
         { opacity: 1, duration: 1.0, ease: "power2.out" },
       0.15);
-
-      // コーナーSVGコンテナ
-      tl.to("[data-hero-corners-svg]", { opacity: 1, duration: 0.01 }, 0.2);
-
-      // コーナーライン
-      tl.from("[data-hero-corner-line]", {
-        strokeDashoffset: 80, opacity: 0, duration: 1.0, ease: EASE, stagger: 0.1,
-      }, 0.2);
     }, heroRef);
 
     return () => ctx.revert();
@@ -291,6 +309,10 @@ export default function Hero({ openingDone }: HeroProps) {
     // ステージへ渡す退場進捗は PC のフル経路のみ（静止1コマ側は書かない）
     const writeExit = !prefersLightVisuals();
     const exit = exitRef;
+    // 背景の動画の退場＝旧流体と同じく opacity を 1 − 0.9×exit へ（全経路）。
+    // 書くのは値（小数 2 桁）が変わった時だけ＝スクロールが止まれば何も書かない（常時ループなし）
+    const bgEl = bgRef.current;
+    let bgOpacity = 1;
 
     const stConfig = {
       trigger: scrollArea,
@@ -307,23 +329,28 @@ export default function Hero({ openingDone }: HeroProps) {
       // 使用プロパティは transform / opacity のみ（filter・blend・3D 不使用）。
       const exitTl = gsap.timeline({ scrollTrigger: stConfig });
 
-      // 粒への退場進捗（scrub 済みの 0→1）。粒は上へ流れ去り、灯は遠のく。
-      if (writeExit) {
-        const proxy = { v: 0 };
-        exitTl.fromTo(
-          proxy,
-          { v: 0 },
-          {
-            v: 1,
-            ease: "none",
-            duration: 1,
-            onUpdate() {
-              exit.current = proxy.v;
-            },
+      // 退場進捗（scrub 済みの 0→1）。ステージ（オープニング中の断片・灯）と背景の動画が読む
+      const proxy = { v: 0 };
+      exitTl.fromTo(
+        proxy,
+        { v: 0 },
+        {
+          v: 1,
+          ease: "none",
+          duration: 1,
+          onUpdate() {
+            if (writeExit) exit.current = proxy.v;
+            if (bgEl) {
+              const o = Math.round((1 - 0.9 * proxy.v) * 100) / 100;
+              if (o !== bgOpacity) {
+                bgOpacity = o;
+                bgEl.style.opacity = String(o);
+              }
+            }
           },
-          0
-        );
-      }
+        },
+        0
+      );
 
       // 沈み — 下の要素ほど深く沈む（3Dなしの奥行き感）
       exitTl.fromTo("[data-hero-main]", { y: 0 }, { y: 36, ease: "power1.in", duration: 1 }, 0);
@@ -340,12 +367,12 @@ export default function Hero({ openingDone }: HeroProps) {
         0.15
       );
 
-      // 周辺要素のフェード（肩書き・サブ・HR・エッジ・コーナー）
+      // 周辺要素のフェード（肩書き・サブ・HR・エッジ）
       exitTl.fromTo(
         [
           "[data-hero-sub]", "[data-hero-sub2]", "[data-hero-hr]",
           "[data-hero-decl]",
-          "[data-hero-corner]", "[data-hero-corners-svg]",
+          "[data-hero-corner]",
         ],
         { opacity: 1 },
         { opacity: 0, ease: "power1.in", duration: 0.6 },
@@ -355,6 +382,7 @@ export default function Hero({ openingDone }: HeroProps) {
 
     return () => {
       exit.current = 0;
+      if (bgEl) bgEl.style.opacity = "";
       ctx.revert();
     };
   }, [settled]);
@@ -459,18 +487,31 @@ export default function Hero({ openingDone }: HeroProps) {
             <span className={styles.floatingLogoJp}>灯敷</span>
           </div>
 
-          {/* Background — 転記（てんき）
+          {/* Background — 背景の動画（Blender の水盤・2026-10-04）
+              重なり順＝ヒーローの地色の上・転記ステージ（オープニングの描画面）の下。
+              箱は .hero に inset:0＝転記ステージと同じ箱（一滴の着地点を動画へ合わせる前提）。
+              外側の箱はスクロール退場の opacity を書く場所（FvBgVideo の契約は変えない） */}
+          <div ref={bgRef} className={styles.fvBg} aria-hidden="true">
+            <FvBgVideo bg={TOP_FV_BG} start={bgPlay} skipIntro={skipIntro} />
+          </div>
+
+          {/* マウスの位置の弱い光（旧 灯のポインタ反応の代わり）＝動画の上・文字の下。
+              親（この sticky の箱）の pointermove を拾うので、ここに直に置く */}
+          <PointerGlow />
+
+          {/* Opening — 転記（てんき）
               事務のデータの断片（CSV の行・Excel の升目・PDF の紙片）がばらばらに
               漂い（バラバラな事務作業）、誰も触らないのに整列して繋がり（ひとりでに）、
               一本の線になって題字を書き上げる（仕組みに変えます）。書き終えた瞬間に
-              墨の一滴が落ちて背景に滲み、灯が一点ともる。
-              可読性スクリムと灯（lantern.ts）はこのステージの内側にある。 */}
+              墨の一滴が落ち、着地点から背景の動画の導入が広がる。
+              可読性スクリムと灯（lantern.ts・着地後に退く）はこのステージの内側にある。 */}
           <TenkiStage
             active={openingDone}
             light={light}
             exitRef={exitRef}
             onLetter={handleLetter}
             onSettled={handleSettled}
+            onBgStart={handleBgStart}
           />
 
           {/* Content Container — 2カラム（PC≥1280：左＝H1演出／右＝宣言）・以下は縦積み
@@ -542,21 +583,6 @@ export default function Hero({ openingDone }: HeroProps) {
           <div data-hero-corner className={styles.edgeBr} style={{ visibility: "hidden" }}>
             <span className={styles.edgeText}>{magChars("TOKYO, JAPAN")}</span>
           </div>
-
-          {/* Corner Frames SVG */}
-          <svg
-            data-hero-corners-svg
-            className={styles.corners}
-            style={{ visibility: "hidden" }}
-            aria-hidden="true"
-            viewBox="0 0 1920 1080"
-            preserveAspectRatio="none"
-          >
-            <polyline data-hero-corner-line className={styles.corner} points="40,80 40,40 80,40" />
-            <polyline data-hero-corner-line className={styles.corner} points="1840,40 1880,40 1880,80" />
-            <polyline data-hero-corner-line className={styles.corner} points="40,1000 40,1040 80,1040" />
-            <polyline data-hero-corner-line className={styles.corner} points="1840,1040 1880,1040 1880,1000" />
-          </svg>
 
           {/* Scanline Overlay */}
           <div className={styles.scanline} aria-hidden="true" />

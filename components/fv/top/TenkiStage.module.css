@@ -1,12 +1,18 @@
 /* =============================================
-   転記（てんき）ステージ — トップ FV の背景層
+   転記（てんき）ステージ — トップ FV のオープニングの描画面
    層順は DOM 順：
-     base（地色）→ 流体（WebGL・墨）→ orbs（和紙の暈）→ grain（紙の粒・静的）
-     → 灯（canvas 2D・加算）→ scrim（可読性の最終防御）→ 転記（canvas 2D）
-     → ビネット
-   ★scrim を灯と転記のあいだに置くのが要点：背景（流体・灯）は題字の下で
-     抑えられ、筆と断片は scrim の上＝地の明るさに負けずに読める。
-   色は theme-top.css のトークンのみ参照。
+     orbs（和紙の暈）→ grain（紙の粒・静的）→ 灯（canvas 2D・加算）→ ビネット
+     → scrim（可読性の最終防御）→ 転記（canvas 2D：断片・筆・墨の一滴）
+   ★2026-10-04 背景は Blender の動画（FvBgVideo）へ替えた。動画とポインタの光（PointerGlow）は
+     Hero 側でこのステージの下に敷く＝地色はヒーローの背景（var(--paper)）が持つ
+     （旧 .base は動画を隠すので外した。墨の流体の canvas も外した）。
+   ★着地（.handoff）で 灯・和紙の暈・ビネットは --tenki-handoff（TENKI_T.bgFade）かけて退く。
+     動画の承認済みの見た目（四辺は動画の中で地色へ溶かしてある）に重ね物を残さないため。
+   ★ビネットは転記の下に置く：墨の一滴の着地点（動画の導入の中心・PC y 82%／スマホ y 92%）が
+     ビネットの下端の溶かしに沈まないように（旧来は転記の上）。
+   ★scrim を灯と転記のあいだに置くのが要点：灯は題字の下で抑えられ、
+     筆と断片は scrim の上＝地の明るさに負けずに読める。
+   動かすのは opacity だけ。色は theme-top.css のトークンのみ参照。
    ============================================= */
 .stage {
   position: absolute;
@@ -23,13 +29,6 @@
   opacity: 1;
 }
 
-/* 地色（流体が使えない環境でもここだけで成立する） */
-.base {
-  position: absolute;
-  inset: 0;
-  background-color: var(--paper, var(--color-background));
-}
-
 .canvas {
   position: absolute;
   inset: 0;
@@ -39,12 +38,7 @@
   background: transparent;
 }
 
-/* 墨の流体（/about で iOS 実機実証済みの手法）。地色に馴染ませて敷く */
-.fluid {
-  opacity: 0.92;
-}
-
-/* 和紙の暈（流体の上・粒の下） */
+/* 和紙の暈（粒の下） */
 .orbs {
   position: absolute;
   inset: 0;
@@ -53,9 +47,18 @@
     radial-gradient(ellipse 54% 46% at 12% 80%, var(--washi-orb-c, transparent), transparent 72%);
 }
 
-/* 紙の粒（静的・極薄） */
+/* 紙の粒（静的・極薄。描くのは起動時とリサイズ時だけ） */
 .grain {
   opacity: 0.6;
+}
+
+/* ビネット＋下端は地色へ溶かす（オープニングのあいだの見た目。着地で退く） */
+.vignette {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to bottom, transparent 72%, var(--paper, var(--color-background)) 100%),
+    radial-gradient(120% 90% at 50% 42%, transparent 60%, var(--paper-deep, var(--color-background)) 100%);
 }
 
 /* 可読性スクリム＝題字＋宣言の帯にだけ地色を薄く敷く（静的・アニメなし） */
@@ -74,13 +77,16 @@
   opacity: 0.42;
 }
 
-/* ビネット＋下端は地色へ溶かす（次セクションと地続きに） */
+/* 着地のあと：灯・暈・ビネットは退き、背景は動画が引き継ぐ */
+.orbs,
+.glow,
 .vignette {
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(to bottom, transparent 72%, var(--paper, var(--color-background)) 100%),
-    radial-gradient(120% 90% at 50% 42%, transparent 60%, var(--paper-deep, var(--color-background)) 100%);
+  transition: opacity var(--tenki-handoff, 1.3s) ease;
+}
+.handoff .orbs,
+.handoff .glow,
+.handoff .vignette {
+  opacity: 0;
 }
 
 @media (max-width: 767px) {
@@ -92,7 +98,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .stage {
+  .stage,
+  .orbs,
+  .glow,
+  .vignette {
     transition: none;
   }
 }

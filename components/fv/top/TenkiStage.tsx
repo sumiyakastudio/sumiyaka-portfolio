@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, type MutableRefObject } from "react";
 import { prefersLightVisuals } from "@/lib/device";
-import { createFluidSim, type FluidSimAPI } from "@/lib/webgl/fluidSim";
+import { TOP_FV_BG, coverPoint } from "@/data/fvBackgrounds";
 import { createLantern } from "./lantern";
 import {
   buildGlyphSheet,
@@ -34,7 +34,7 @@ import { TENKI_T } from "./tenkiTiming";
 import styles from "./TenkiStage.module.css";
 
 /**
- * 転記（てんき）— トップ FV の背景ステージ
+ * 転記（てんき）— トップ FV のオープニングの描画面
  *
  * 軸コピー「バラバラな事務作業を、／ひとりでに回る／仕組みに変えます。」を、
  * 抽象な粒ではなく "実務のデータの断片" そのもので演じる。
@@ -45,8 +45,20 @@ import styles from "./TenkiStage.module.css";
  *   0.80  一本化    帯が 1 本の細い白線に潰れる
  *   0.97  筆        その線が左端から題字へ流れ込み、字画を書き上げる。書かれた側から
  *                   DOM の文字がクロスフェードして現れ、版下は同じだけ薄れて消える
- *   1.51  定着      墨の一滴が落ちて背景に滲み（流体の起動）、灯が一点ともる
- *   以後            墨の流体が背景でゆっくり漂い、灯が明滅する
+ *   1.51  定着      墨の一滴が着地する。そこを中心に背景の動画（水盤）の導入が広がる
+ *   以後            灯・和紙の暈・ビネットは導入が広がるあいだ（TENKI_T.bgFade）に退き、
+ *                   描くものが無くなったら rAF を恒久的に止める（finished）
+ *
+ * ★2026-10-04 背景を「毎フレーム描くキャンバス」から Blender の動画へ替えた：
+ *   - 墨の流体（WebGL）は外した。背景は Hero 側の FvBgVideo（導入 → ループ）、
+ *     マウスの光は PointerGlow が持ち、どちらもこのステージの下に敷かれる。
+ *   - 灯（lantern）はオープニングの見た目の一部＝着地までは従来どおり断片と筆を照らす。
+ *     着地で ignite はせず、CSS の opacity で退かせる。ポインタにも反応させない。
+ *   - 一滴の着地点＝動画の枠に対する割合（data/fvBackgrounds.ts の landing）を coverPoint で
+ *     この箱の px へ直した点。動画の箱とステージはどちらも .hero に inset:0 で敷かれた
+ *     同じ箱なので補正は要らない。落ち始めは従来どおり最終行の下。ただし着地点の x で
+ *     文字を横切る時は、横切る文字の下まで落ち始めを下げる（縦長の画面は中央を縦に落ちる）。
+ *   - 着地の瞬間に onBgStart を告げる（軽量経路は一滴が落ちないので、変形が終わった時）。
  *
  * ★初速：t=0 はマウント直後の最初の rAF。散らばり〜一本化は題字の版下を要さないので、
  *   書体の読込も版下の焼き付けも待たずに始める（帯の位置は DOM の矩形の速報値で置き、
@@ -55,34 +67,36 @@ import styles from "./TenkiStage.module.css";
  *   超えたら筆を省いて題字を出し、定着へ進む＝読めないまま止まらない）。
  *
  * 経路の分岐
- *  - PC（pointer:fine）           → 断片・筆（canvas 2D）＋ 墨の流体（WebGL）＋ 灯
- *  - WebGL 不成立 / 生成失敗       → 同じ canvas 2D の演出をそのまま。流体だけ出ない
- *  - タッチ・狭幅・reduced-motion  → 静止 1 コマ（rAF なし）。DOM の題字は Hero 側が出す
- *  検証用 ?tenki=still|nofluid（旧 ?bokujin=still も受ける）
+ *  - PC（pointer:fine）           → 断片・筆・墨の一滴（canvas 2D）＋ 灯
+ *  - タッチ・狭幅・reduced-motion  → 短縮版 → 静止 1 コマ（rAF は変形と一滴の余韻の間だけ）。
+ *                                    DOM の題字は Hero 側が出す
+ *  検証用 ?tenki=still（旧 ?bokujin=still も受ける）
  *
  * ★題字の筆画の上には何も残さない：版下は「筆が通った letterFade 秒後に完全に透明」
- *   になる横方向のアルファ勾配で描かれ、筆先も掃引の終わりに消える。流体と灯は
+ *   になる横方向のアルファ勾配で描かれ、筆先も掃引の終わりに消える。灯は
  *   保護帯（本文カラム＋余白）の外にだけ置く。
  *
  * 可視性ゲート：IntersectionObserver ＋ visibilitychange で画面外・背面タブは
- * rAF も流体も止める。時計は dt の上限 33ms で進むので戻っても演出は飛ばない。
+ * rAF を止める。時計は dt の上限で進むので戻っても演出は飛ばない。
+ * オープニングを描き終えたらゲートごと外し、以後は再開しない（finished）。
  * iOS/WebKit 配慮：filter / mix-blend / 3D / 複雑な clip-path は不使用。
  */
 
-export type TenkiMode = "full" | "nofluid" | "still";
+export type TenkiMode = "full" | "still";
 
 interface TenkiDebug {
   mode: TenkiMode;
-  fluid: boolean;
   fps: number;
   t: number;
   letters: number;
   /** 版下待ちで足踏みしている時間（秒）。0 なら待っていない */
   hold?: number;
-  /** 注いだ墨の総量（調整用の実測値） */
-  dye?: number;
-  /** 墨の一滴の着地点（ステージ css 座標） */
+  /** 墨の一滴の着地点（ステージ css 座標）＝背景の動画の導入の中心 */
   drop?: [number, number];
+  /** 墨の一滴の落ち始め（ステージ css 座標の y） */
+  dropFrom?: number;
+  /** オープニングを描き終えて rAF を恒久的に止めた */
+  finished?: boolean;
 }
 
 declare global {
@@ -100,12 +114,12 @@ interface TenkiStageProps {
   exitRef: MutableRefObject<number>;
   onLetter: (i: number) => void;
   onSettled: () => void;
+  /** 背景の動画の導入を始める合図（フル＝墨の一滴の着地と同時／軽量＝変形が終わった時） */
+  onBgStart: () => void;
 }
 
 /** 墨の色（暖色白 --ink #f1eaec） */
 const INK255: [number, number, number] = [241, 234, 236];
-/** 流体の地色＝--paper #1f1c1c の平均輝度（29/255）。地色との継ぎ目を消す */
-const FLUID_BG = 29 / 255;
 const TAU = Math.PI * 2;
 
 const clamp01 = (v: number) => (v < 0 ? 0 : v > 1 ? 1 : v);
@@ -115,35 +129,49 @@ const smooth01 = (v: number, a: number, b: number) => {
 };
 const cl = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
 
+/**
+ * 墨の一滴の着地点＝背景の動画の導入が広がる中心（ステージの css px）。
+ * 動画の箱（FvBgVideo）とステージはどちらも .hero に inset:0 で敷かれた同じ箱なので、
+ * ステージの寸法をそのまま coverPoint へ渡す。wide / narrow は FvBgVideo と同じ式で選ぶ。
+ */
+function landingPoint(w: number, h: number): { x: number; y: number } {
+  const wide =
+    typeof window.matchMedia === "function" && window.matchMedia(TOP_FV_BG.wideQuery).matches;
+  const v = wide ? TOP_FV_BG.wide : TOP_FV_BG.narrow;
+  const [fx, fy] = v.landing ?? [0.5, 0.9];
+  const p = coverPoint(fx, fy, w, h, v);
+  // 極端な縦横比で着地点が箱の外へ出る時だけ、見える所へ寄せる
+  return { x: cl(p.x, 8, Math.max(8, w - 8)), y: cl(p.y, 8, Math.max(8, h - 8)) };
+}
+
 export default function TenkiStage({
   active,
   light,
   exitRef,
   onLetter,
   onSettled,
+  onBgStart,
 }: TenkiStageProps) {
   const activeRef = useRef(active);
   useEffect(() => {
     activeRef.current = active;
   }, [active]);
   const hostRef = useRef<HTMLDivElement>(null);
-  const fluidRef = useRef<HTMLCanvasElement>(null);
   const grainRef = useRef<HTMLCanvasElement>(null);
   const mainRef = useRef<HTMLCanvasElement>(null);
   const glowRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     const host = hostRef.current;
-    const fluidCanvas = fluidRef.current;
     const grainCanvas = grainRef.current;
     const mainCanvas = mainRef.current;
     const glowCanvas = glowRef.current;
-    if (!host || !fluidCanvas || !grainCanvas || !mainCanvas || !glowCanvas) return;
+    if (!host || !grainCanvas || !mainCanvas || !glowCanvas) return;
     /* 巻き上げられる関数宣言（sizeMain など）の中では絞り込みが効かないので、
        型を確定させた別名を持つ（2026-09-07 統合QC・tsc TS18047 の修正） */
     const hostEl: HTMLElement = host;
     const mainEl: HTMLCanvasElement = mainCanvas;
-    const fluidEl: HTMLCanvasElement = fluidCanvas;
+    const glowEl: HTMLCanvasElement = glowCanvas;
     const stage: HTMLElement = host;
 
     const params = new URLSearchParams(window.location.search);
@@ -180,10 +208,21 @@ export default function TenkiStage({
       return f || "serif";
     };
 
+    // 紙の粒は静的＝ここと、リサイズの時にだけ描く（毎フレームは描かない）
     const sizeGrain = () => drawPaperGrain(grainCanvas, host.clientWidth, host.clientHeight);
     sizeGrain();
 
     const lantern = createLantern(glowCanvas, { full: !lightNow && !reduced, dpr });
+
+    /** 背景の動画へ渡す（一度だけ）：灯・和紙の暈・ビネットは CSS の opacity で退く */
+    let handed = false;
+    const handOff = () => {
+      if (handed) return;
+      handed = true;
+      hostEl.style.setProperty("--tenki-handoff", `${TENKI_T.bgFade}s`);
+      hostEl.classList.add(styles.handoff);
+      onBgStart();
+    };
 
     /** 灯からの明るさ（ステージ css 座標 → u 空間） */
     const lit = (x: number, y: number) => {
@@ -199,12 +238,15 @@ export default function TenkiStage({
 
     /* ============ 軽量経路：短縮版の第1幕 → 変形 → 静止 1 コマ ============ */
     if (lightNow) {
-      fluidCanvas.style.display = "none";
       const opLight = createOpening(OP_LIGHT, true);
       const mctx = mainCanvas.getContext("2d");
       const D = Math.max(1, Math.min(dpr, 2));
       let ready = false;
       let raf = 0;
+      /** 変形を終えて背景の動画へ渡した時刻（rAF の時刻・ms）。-1＝まだ */
+      let handAt = -1;
+      /** 一滴の余韻（着地点の印）の強さ。渡したあと bgFade かけて 0 へ */
+      let dropK = 1;
 
       const stillOpts = () => ({
         cssW: cw,
@@ -213,6 +255,8 @@ export default function TenkiStage({
         lights,
         ink: INK255,
         labelFont: `500 ${cl((sheet?.fontPx ?? 24) * 0.17, 8, 11).toFixed(1)}px ${monoFamily}`,
+        drop: landingPoint(cw, ch),
+        dropK,
       });
 
       /** 灯は lantern の主灯だけ（OP の点灯時刻から立ち上げ、変形の終わりで全体へ） */
@@ -241,10 +285,10 @@ export default function TenkiStage({
       const publishStill = (tt: number) => {
         window.__tenki = {
           mode: "still",
-          fluid: false,
           fps: 0,
           t: tt,
           letters: sheet?.letters.length ?? 0,
+          finished: handAt >= 0 && dropK <= 0,
         };
       };
 
@@ -258,9 +302,14 @@ export default function TenkiStage({
         });
       };
 
-      const frame = () => {
+      const frame = (ts: number) => {
         if (disposed) return;
-        if (!ready || !mctx) {
+        // 描画面が取れない環境では何も描かない＝オープニングは無いので、すぐ背景の動画へ渡す
+        if (!mctx) {
+          handOff();
+          return;
+        }
+        if (!ready) {
           raf = requestAnimationFrame(frame);
           return;
         }
@@ -284,12 +333,26 @@ export default function TenkiStage({
           raf = requestAnimationFrame(frame);
           return;
         }
-        // 変形（破片がそのまま書類になる）→ 完成したら止める
-        const done = mT >= OP_LIGHT.morphDur;
-        paintLantern(done ? 99 : ot);
-        paintStill(done ? undefined : Math.max(0, mT));
+        if (mT < OP_LIGHT.morphDur) {
+          // 変形（破片がそのまま書類になる）
+          paintLantern(ot);
+          paintStill(Math.max(0, mT));
+          publishStill(0);
+          raf = requestAnimationFrame(frame);
+          return;
+        }
+        // 変形が終わった＝軽量経路のオープニングの終わり（一滴は落ちない）。ここで背景の動画の
+        // 導入を始め、灯・暈は CSS で退かせる。着地点に出る一滴の余韻（印）だけ bgFade かけて
+        // 薄め、消えたら rAF を止める（以後は描き直さない）
+        if (handAt < 0) {
+          handAt = ts;
+          paintLantern(99);
+          handOff();
+        }
+        dropK = reduced ? 0 : 1 - smooth01((ts - handAt) / 1000, 0.15, TENKI_T.bgFade);
+        paintStill(undefined);
         publishStill(0);
-        if (!done) raf = requestAnimationFrame(frame);
+        if (dropK > 0) raf = requestAnimationFrame(frame);
       };
       raf = requestAnimationFrame(frame);
       cleanups.push(() => cancelAnimationFrame(raf));
@@ -303,8 +366,11 @@ export default function TenkiStage({
           ch = host.clientHeight;
           sheet = buildGlyphSheet(stage, getLetters(), { extra: getContent() });
           opLight.bake(cw, ch, dpr, displayFamily());
-          lantern?.resize();
-          paintLantern(99);
+          // 背景の動画へ渡したあとの灯は見えない（CSS で退いた）＝描き直さない
+          if (handAt < 0) {
+            lantern?.resize();
+            paintLantern(99);
+          }
           paintStill(undefined);
         }, 300);
       };
@@ -325,35 +391,6 @@ export default function TenkiStage({
     // ★第1幕と第2幕を同じ描画面で描く。幕は最初から開けておく
     host.classList.add(styles.on);
     const mainCtx = mainCanvas.getContext("2d");
-
-    /* ---- 墨の流体（WebGL・/about の実証済み実装）。失敗しても演出は続く ---- */
-    let fluid: FluidSimAPI | null = null;
-    const makeFluid = () => {
-      if (flag === "nofluid" || fluid) return;
-      if (!host.clientWidth || !host.clientHeight) return;
-      try {
-        fluid = createFluidSim(fluidCanvas, {
-          // 圧力の反復が少ないと Jacobi の市松模様（odd-even 分離）が墨の粒に見える。
-          // /about と同じ 20 回に戻し、解像度も 0.40 まで上げて滲みを滑らかにする。
-          resolution: 0.4,
-          brightness: 0.3,
-          bgBase: FLUID_BG,
-          velocityDissipation: 0.972,
-          // 墨は消えずに漂い続ける（0.9965 だと数秒で無くなる）。注ぎ足しと釣り合って
-          // 保護帯の外に薄い靄が残り、ゆっくり形を変える
-          dyeDissipation: 0.9975,
-          // 渦の強さは控えめに。強いと低解像度の格子で高周波の斑（ざらつき）になる
-          vorticity: 14,
-          pressureIterations: 20,
-        });
-      } catch {
-        fluid = null;
-      }
-      fluidCanvas.style.display = fluid ? "block" : "none";
-      // 一度だけ描いて地色（bgBase）を出す。以後は定着の直前まで回さない
-      // （＝断片と筆の 1.7 秒を流体の負荷で間延びさせない）
-      fluid?.step(0.0005);
-    };
 
     /* ---- 状態 ---- */
     /** OP（第1幕）の絵。第2幕と同じ描画面に描く＝境目でクロスフェードしない */
@@ -403,26 +440,25 @@ export default function TenkiStage({
     let dropX = 0;
     let dropY0 = 0;
     let dropY1 = 0;
-    let inkK = 1;
-    let nextAmbient = 0;
-    let free: [number, number, number, number][] = [];
+    /** 落ち始めの直前に着地点と落ち始めを測り直した */
+    let dropArmed = false;
+    /** オープニングを描き終えた＝以後 rAF を回さない（可視性ゲートでも再開しない） */
+    let finished = false;
     let fps = 0;
     let fpsAcc = 0;
     let fpsN = 0;
     let fpsAt = 0;
-    let exitApplied = -1;
-    let dbgDye = 0;
 
     function publish() {
       window.__tenki = {
-        mode: fluid ? "full" : "nofluid",
-        fluid: !!fluid,
+        mode: "full",
         fps,
         t,
         letters: sheet?.letters.length ?? 0,
         hold: Math.round(holdT * 1000) / 1000,
-        dye: Math.round(dbgDye * 1000) / 1000,
         drop: [Math.round(dropX), Math.round(dropY1)],
+        dropFrom: Math.round(dropY0),
+        finished,
       };
     }
 
@@ -437,33 +473,59 @@ export default function TenkiStage({
       }
     }
 
-    /** 保護帯（本文カラム＋余白）の外側＝墨を置いてよい場所 */
-    function computeFree(band: [number, number, number, number]) {
+    /** 文字が実際にある範囲（ステージ座標・上から順）。落ちる一滴が文字を横切らないかの判定用。
+     *  段落は箱ではなく Range で中身の範囲を取る（中央揃え・2 カラムの空きを正しく扱う） */
+    function textRects(): [number, number, number, number][] {
+      const rc = stage.getBoundingClientRect();
       const out: [number, number, number, number][] = [];
-      const m = 0.05;
-      if (band[1] > ch * 0.1) out.push([cw * m, ch * m, cw * (1 - m), band[1] - 6]);
-      if (ch - band[3] > ch * 0.1) out.push([cw * m, band[3] + 6, cw * (1 - m), ch * (1 - m)]);
-      if (band[0] > cw * 0.1) out.push([cw * m, ch * 0.12, band[0] - 6, ch * 0.88]);
-      if (cw - band[2] > cw * 0.1) out.push([band[2] + 6, ch * 0.12, cw * (1 - m), ch * 0.88]);
-      if (!out.length) out.push([cw * 0.06, ch * 0.9, cw * 0.94, ch * 0.97]);
-      free = out;
-    }
-
-    function pickFree(): [number, number] {
-      let area = 0;
-      for (const r of free) area += Math.max(0, (r[2] - r[0]) * (r[3] - r[1]));
-      let k = Math.random() * Math.max(1, area);
-      for (const r of free) {
-        const a = Math.max(0, (r[2] - r[0]) * (r[3] - r[1]));
-        if (k <= a) {
-          return [r[0] + Math.random() * (r[2] - r[0]), r[1] + Math.random() * (r[3] - r[1])];
+      const add = (r: DOMRect) => {
+        if (r.width > 0 && r.height > 0) {
+          out.push([r.left - rc.left, r.top - rc.top, r.right - rc.left, r.bottom - rc.top]);
         }
-        k -= a;
+      };
+      const range = document.createRange();
+      sticky
+        .querySelectorAll<HTMLElement>(
+          "[data-hero-line], [data-hero-sub], [data-hero-sub2], [data-hero-decl] p"
+        )
+        .forEach((el) => {
+          range.selectNodeContents(el);
+          add(range.getBoundingClientRect());
+        });
+      sticky
+        .querySelectorAll<HTMLElement>("[data-hero-hr], [data-hero-decl] a, [data-hero-corner]")
+        .forEach((el) => add(el.getBoundingClientRect()));
+      // 2 カラムの宣言ブロックの左端の縦罫（::before）＝箱の左端の細い帯
+      const decl = sticky.querySelector<HTMLElement>("[data-hero-decl]");
+      if (decl) {
+        const r = decl.getBoundingClientRect();
+        if (r.height > 0) {
+          out.push([r.left - rc.left - 1, r.top - rc.top, r.left - rc.left + 1, r.bottom - rc.top]);
+        }
       }
-      return [cw * 0.5, ch * 0.9];
+      return out.sort((a, b) => a[1] - b[1]);
     }
 
-    /** 速報：版下も書体も待たず、DOM の矩形だけで断片を用意する（初速の要） */
+    /** 墨の一滴：着地点は背景の動画に合わせて固定し、落ち始めは最終行の字箱の下
+     *  （＝筆画には決してかからない）。着地点の x で文字を横切るなら、その文字の下から落とす */
+    function placeDrop() {
+      if (!sheet) return;
+      const land = landingPoint(cw, ch);
+      dropX = land.x;
+      dropY1 = land.y;
+      const lastLine = sheet.lines[sheet.lines.length - 1];
+      let y0 = lastLine.bottom + 4;
+      for (const r of textRects()) {
+        // 文字の横（12px より外）を通る
+        if (dropX < r[0] - 12 || dropX > r[2] + 12) continue;
+        // 落ちる区間（一滴の尾 20px を含む）と縦に重ならない
+        if (r[3] + 20 <= y0 || r[1] - 8 >= dropY1) continue;
+        y0 = Math.max(y0, r[3] + 20);
+      }
+      // 着地点が文字の下に余地を残さない時は、着地点にそのまま現れる（上へは落とさない）
+      dropY0 = Math.min(y0, dropY1);
+    }
+
     /** 灯敷の破片を書類へ結びつける（版下と断片が揃ってから一度だけ） */
     function linkChips() {
       if (chipsDone || !op || !op.ready || !frags || !op.sheet) return;
@@ -479,6 +541,7 @@ export default function TenkiStage({
       linkChips();
     }
 
+    /** 速報：版下も書体も待たず、DOM の矩形だけで断片を用意する（初速の要） */
     function primeLayout(): boolean {
       sizeMain();
       const rough = probeGlyphLayout(stage, getLetters());
@@ -518,18 +581,7 @@ export default function TenkiStage({
       }
       labelFont = `500 ${cl(s.fontPx * 0.17, 8, 11).toFixed(1)}px ${monoFamily}`;
       lantern?.setIgniteX(s.centerX);
-
-      // 墨の一滴：最後に書いた字の右下から落ち、本文カラムの外へ着地する
-      const lastLine = s.lines[s.lines.length - 1];
-      dropX = cl(lastLine.right + 3, cw * 0.08, cw * 0.92);
-      // 出発点は最終行の字箱の下端＝筆画には決してかからない
-      dropY0 = lastLine.bottom + 4;
-      const below = ch - s.band[3];
-      // ビネット（下端 28% で地色へ溶ける）に飲まれない高さへ着地させる
-      dropY1 = below > ch * 0.1 ? s.band[3] + below * 0.34 : ch * 0.88;
-      dropY1 = cl(dropY1, dropY0 + 26, ch * 0.88);
-      inkK = below > ch * 0.1 ? 1 : 0.5;
-      computeFree(s.band);
+      placeDrop();
       linkChips();
       mainDone = false;
       // 待たせている最中に版下が来たら、帯が実測値へ寄り切るぶんだけ余分に待つ
@@ -537,55 +589,15 @@ export default function TenkiStage({
       return true;
     }
 
-    /* ---- 墨の一滴・漂い（流体へ注ぐ） ----
-       注入量はフレーム数ではなく時間に比例させる（k = dt×60 ＝ 60fps 相当への正規化）。
-       これをしないと低フレームレートの端末で墨がほとんど出ない。 */
-    function feedFluid(now: number, dt: number) {
-      if (!fluid || !sheet) return; // 着地点は版下（保護帯）が決まってから
-      const T = TENKI_T;
-      const k = Math.min(4, dt * 60);
-      const ux = dropX / Math.max(1, cw);
-      const uy = 1 - dropY1 / Math.max(1, ch);
-      if (now >= T.settle && now < T.settle + 0.5) {
-        const u = (now - T.settle) / 0.5;
-        const decay = Math.pow(1 - u, 3);
-        // 着地の飛沫＝横へ広く、上へわずかに。紙の上を滲むように低く広がる。
-        // 速度は「テクセル/秒」なので dt では割り増さない（割り増すと墨が画面外へ飛ぶ）
-        for (let i = 0; i < 4; i++) {
-          const ang = (i / 4) * TAU + now * 3.2;
-          fluid.splat(
-            ux,
-            uy,
-            Math.cos(ang) * 44 * decay,
-            Math.sin(ang) * 17 * decay,
-            0,
-            0.011
-          );
-        }
-        fluid.splat(ux, uy, 0, 0, 0.2 * decay * inkK * k, 0.012);
-        dbgDye += 0.2 * decay * inkK * k;
-        return;
-      }
-      if (now > T.settle + 0.7 && now >= nextAmbient) {
-        nextAmbient = now + 2.2 + Math.random() * 1.4;
-        const [px, py] = pickFree();
-        const a = Math.random() * TAU;
-        fluid.splat(
-          px / Math.max(1, cw),
-          1 - py / Math.max(1, ch),
-          Math.cos(a) * 22,
-          Math.sin(a) * 14,
-          0.28 * inkK,
-          0.014
-        );
-        dbgDye += 0.28 * inkK;
-      }
-    }
-
     /* ---- 転記（canvas 2D） ---- */
     function drawMain(exit: number) {
       const ctx = mainCtx;
-      if (!ctx || mainDone) return;
+      // 描画面が取れない環境＝描くものは最初から無い（finished へ進めるように印だけ付ける）
+      if (!ctx) {
+        mainDone = true;
+        return;
+      }
+      if (mainDone) return;
       const T = TENKI_T;
       ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
       ctx.globalCompositeOperation = "source-over";
@@ -614,7 +626,9 @@ export default function TenkiStage({
         any = true;
       }
       const morphT = opAlive && chipsDone ? opT - OPT.unravelAt : undefined;
-      if (morphT !== undefined && morphT >= -0.001) any = true;
+      // 変形の最中だけ「描くものがある」と数える。OP の時計は終端で止まったまま live が
+      // 残るので、上限が無いと mainDone に永遠に届かず毎フレーム描き直していた（2026-10-04 修正）
+      if (morphT !== undefined && morphT >= -0.001 && morphT <= OPT.morphDur) any = true;
 
       /* 断片：散らばり → 整列 → 一本化。筆が来たところから消費される */
       const writing = !!(sheet && plan) && t >= T.writeStart;
@@ -655,7 +669,7 @@ export default function TenkiStage({
         any = any || w1 || w2;
       }
 
-      /* 墨の一滴が落ちる（着地＝定着で流体が起動する） */
+      /* 墨の一滴が落ちる（着地＝背景の動画の導入がそこから広がる） */
       if (sheet && t >= T.settle - T.dropFall && t <= T.settle + 0.03) {
         const u = clamp01((t - (T.settle - T.dropFall)) / T.dropFall);
         const y = dropY0 + (dropY1 - dropY0) * u * u;
@@ -680,7 +694,7 @@ export default function TenkiStage({
 
     function tick(ts: number) {
       rafId = requestAnimationFrame(tick);
-      if (!running || disposed) return;
+      if (!running || disposed || finished) return;
       const raw = (ts - last) / 1000;
       last = ts;
       if (raw <= 0) return;
@@ -763,7 +777,8 @@ export default function TenkiStage({
       }
       if (!settled && t >= T.settle) {
         settled = true;
-        lantern?.ignite();
+        // 着地：背景の動画の導入がここから広がる。灯は広げず（ignite しない）、退かせる
+        handOff();
         onSettled();
       }
 
@@ -782,16 +797,14 @@ export default function TenkiStage({
       lantern?.step(dt);
       lantern?.getLights(lights);
 
-      drawMain(exit);
-      feedFluid(t, dt);
-      if (fluid && t >= T.settle - 0.2) {
-        fluid.step(dt);
-        const want = Math.round(0.92 * (1 - exit * 0.9) * 100) / 100;
-        if (want !== exitApplied) {
-          exitApplied = want;
-          fluidEl.style.opacity = String(want);
-        }
+      // 一滴が落ち始める瞬間に、着地点と落ち始めを測り直す（本文の書体が後から届いて
+      // 組み直された場合も、その時点の実寸で文字を避ける）
+      if (!dropArmed && sheet && t >= T.settle - T.dropFall) {
+        dropArmed = true;
+        placeDrop();
       }
+
+      drawMain(exit);
 
       fpsAcc += raw;
       fpsN++;
@@ -803,10 +816,20 @@ export default function TenkiStage({
         fpsAt = ts;
         publish();
       }
+
+      // 一滴が着地し、灯も退き切った＝以後このステージは毎フレームの仕事をしない
+      if (
+        settled &&
+        mainDone &&
+        t >= T.settle + T.bgFade &&
+        typeof window.__tenkiScrub !== "number"
+      ) {
+        finish();
+      }
     }
 
     function start() {
-      if (running || disposed) return;
+      if (running || disposed || finished) return;
       running = true;
       last = performance.now();
       rafId = requestAnimationFrame(tick);
@@ -816,7 +839,25 @@ export default function TenkiStage({
       cancelAnimationFrame(rafId);
     }
 
-    /* ---- 可視性ゲート ---- */
+    /** オープニングを描き終えた：rAF を恒久的に止め、可視性ゲートも外す（再開しない） */
+    function finish() {
+      if (finished) return;
+      finished = true;
+      stop();
+      io?.disconnect();
+      document.removeEventListener("visibilitychange", syncRun);
+      op?.destroy();
+      op = null;
+      // 描くものはもう無い＝全画面ぶんの描画面の画素を手放す（透明の 1×1 になる）。
+      // 灯の面は CSS で退き切っている（bgFade は壁時計で同じ長さ・t は壁時計より速く進まない）
+      mainEl.width = 1;
+      mainEl.height = 1;
+      glowEl.width = 1;
+      glowEl.height = 1;
+      publish();
+    }
+
+    /* ---- 可視性ゲート（オープニングのあいだだけ） ---- */
     let inView = true;
     const syncRun = () => {
       const want = inView && document.visibilityState !== "hidden";
@@ -842,39 +883,6 @@ export default function TenkiStage({
       document.removeEventListener("visibilitychange", syncRun);
     });
 
-    /* ---- ポインタ：手元の灯と、墨をそっとかき混ぜる（染料は足さない） ---- */
-    let stirAt = 0;
-    let px = 0;
-    let py = 0;
-    const onMove = (e: PointerEvent) => {
-      const rc = host.getBoundingClientRect();
-      if (!rc.width || !rc.height) return;
-      const x = e.clientX - rc.left;
-      const y = e.clientY - rc.top;
-      lantern?.setPointer(x / rc.width, y / rc.height, true);
-      const now = performance.now();
-      if (fluid && now - stirAt > 50) {
-        const vx = cl((x - px) * 6, -320, 320);
-        const vy = cl((y - py) * 6, -320, 320);
-        stirAt = now;
-        px = x;
-        py = y;
-        if (Math.abs(vx) + Math.abs(vy) > 12) {
-          fluid.splat(x / rc.width, 1 - y / rc.height, vx, -vy, 0, 0.012);
-        }
-      } else if (!fluid) {
-        px = x;
-        py = y;
-      }
-    };
-    const onLeave = () => lantern?.setPointer(px / Math.max(1, cw), py / Math.max(1, ch), false);
-    sticky.addEventListener("pointermove", onMove);
-    sticky.addEventListener("pointerleave", onLeave);
-    cleanups.push(() => {
-      sticky.removeEventListener("pointermove", onMove);
-      sticky.removeEventListener("pointerleave", onLeave);
-    });
-
     /* ---- リサイズ ---- */
     let rt: number | undefined;
     const onResize = () => {
@@ -882,16 +890,12 @@ export default function TenkiStage({
       rt = window.setTimeout(() => {
         if (disposed) return;
         sizeGrain();
+        // オープニングを終えたら紙の粒（静的）だけ描き直す
+        if (finished) return;
         lantern?.resize();
         bakeOpening();
         if (sheet) applySheet();
         else primeLayout();
-        // 流体は生成時の寸法で FBO を持つ。大きく変わったときだけ作り直す
-        if (fluid && (Math.abs(fluidCanvas.clientWidth - cw) > 80 || Math.abs(fluidCanvas.clientHeight - ch) > 80)) {
-          fluid.destroy();
-          fluid = null;
-          makeFluid();
-        }
       }, 240);
     };
     window.addEventListener("resize", onResize);
@@ -907,10 +911,6 @@ export default function TenkiStage({
     primeLayout();
     start();
     publish();
-    const initId = requestAnimationFrame(() => {
-      if (!disposed) makeFluid();
-    });
-    cleanups.push(() => cancelAnimationFrame(initId));
     (async () => {
       await waitForGlyphFonts(getLetters()[0] ?? null, 1200);
       // 検証用：版下の到着を遅らせて待ちの経路を確認する
@@ -939,24 +939,20 @@ export default function TenkiStage({
       disposed = true;
       stop();
       cleanups.forEach((c) => c());
-      fluid?.destroy();
-      fluid = null;
       op?.destroy();
       op = null;
       lantern?.destroy();
     };
-  }, [light, exitRef, onLetter, onSettled]);
+  }, [light, exitRef, onLetter, onSettled, onBgStart]);
 
   return (
     <div ref={hostRef} className={styles.stage} aria-hidden="true">
-      <div className={styles.base} />
-      <canvas ref={fluidRef} className={`${styles.canvas} ${styles.fluid}`} />
       <div className={styles.orbs} />
       <canvas ref={grainRef} className={`${styles.canvas} ${styles.grain}`} />
-      <canvas ref={glowRef} className={styles.canvas} />
+      <canvas ref={glowRef} className={`${styles.canvas} ${styles.glow}`} />
+      <div className={styles.vignette} />
       <div className={styles.scrim} />
       <canvas ref={mainRef} className={styles.canvas} />
-      <div className={styles.vignette} />
     </div>
   );
 }

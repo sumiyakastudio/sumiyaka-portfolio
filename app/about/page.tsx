@@ -8,10 +8,11 @@ import DrawRule from "@/components/animation/DrawRule";
 import Disclose from "@/components/animation/Disclose";
 import Highlight from "@/components/animation/Highlight";
 import CountUp from "@/components/animation/CountUp";
-import DynamicInkFluid from "@/components/webgl/DynamicInkFluid";
 import CtaSection from "@/components/home/CtaSection";
 import AboutFVStage from "@/components/fv/about/AboutFVStage";
-import InkMotes from "@/components/fv/about/InkMotes";
+import FvBgVideo from "@/components/fv/bg/FvBgVideo";
+import PointerGlow from "@/components/fv/bg/PointerGlow";
+import { ABOUT_FV_BG } from "@/data/fvBackgrounds";
 import InkTimeline from "@/components/about/InkTimeline";
 import InkStroke from "@/components/about/InkStroke";
 import AboutProgress from "@/components/about/AboutProgress";
@@ -181,15 +182,15 @@ function SectionRule() {
 export default function AboutPage() {
   return (
     <main className={styles.page}>
-      {/* ========== B-1 FV（DynamicInkFluid・読み込み方とフォールバックは現行維持）
-          奥＝流体（data-fv-depth=1・収縮で沈む）／手前＝墨の粒・題字（残る） ========== */}
+      {/* ========== B-1 FV（2026-10-04＝流体から Blender の動画「夜のサーバー室」へ）
+          奥＝動画（data-fv-depth=1・収縮で沈む）／手前＝マウスの光・題字（残る） ========== */}
       <SubPageFVAnim className={styles.fv} customEntrance>
         <AboutFVStage className={styles.fvStage} stillClassName={styles.fvStill}>
           <div className={styles.fvDeep} data-fv-depth="1">
-            <DynamicInkFluid />
-            <div className={styles.fvDeepVeil} aria-hidden="true" />
+            <FvBgVideo bg={ABOUT_FV_BG} start posterBeforeStart />
           </div>
-          <InkMotes />
+          {/* マウスの光＝動画の上・題字の下。親（fvStage）の pointermove を拾う */}
+          <PointerGlow className={styles.fvGlow} />
           <div className={styles.fvGrain} aria-hidden="true" />
           <div className={styles.fvContent}>
             <span data-about-fv="label" className={styles.fvLabel} aria-hidden="true">

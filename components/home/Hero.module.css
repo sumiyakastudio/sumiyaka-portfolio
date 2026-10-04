@@ -66,8 +66,20 @@
 }
 
 /* =============================================
+   FV 背景の動画（FvBgVideo）の置き場所（2026-10-04）
+   ヒーローの地色の上・転記ステージの下（DOM 順）。箱は .hero に inset:0
+   ＝転記ステージと同じ箱（一滴の着地点を動画に合わせる前提）。
+   スクロール退場の opacity は Hero のスクロール連動が値の変わった時だけ書く。
+   ============================================= */
+.fvBg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* =============================================
    ※可読性スクリムは転記ステージの内側（灯と筆のあいだ）へ移した。
-     背景（墨の流体・灯）は題字の下で抑えつつ、筆と断片はスクリムの上に置く
+     灯は題字の下で抑えつつ、筆と断片はスクリムの上に置く
      ため。→ components/fv/top/TenkiStage.module.css の .scrim
    ============================================= */
 
@@ -302,24 +314,7 @@
   right: 40px;
 }
 
-/* =============================================
-   Corner Frames SVG
-   ============================================= */
-.corners {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 2;
-}
-
-.corner {
-  fill: none;
-  stroke: var(--color-foreground);
-  stroke-width: 1;
-  stroke-dasharray: 80;
-}
+/* ※四隅の「」形の線（旧 .corners / .corner）は文字に被るので外した（2026-10-04） */
 
 /* =============================================
    Scanline Overlay
@@ -389,10 +384,6 @@
   }
 
   .floatingLogo {
-    display: none;
-  }
-
-  .corners {
     display: none;
   }
 }

@@ -1,0 +1,29 @@
+/* PointerGlow — マウスの位置の弱い白い光（2026-10-04）。動かすのは transform と opacity だけ */
+
+.glow {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.8s ease;
+}
+.glow[data-on="1"] {
+  opacity: 1;
+}
+
+.spot {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: var(--glow-size, 620px);
+  height: var(--glow-size, 620px);
+  border-radius: 50%;
+  background: radial-gradient(
+    closest-side,
+    rgba(241, 234, 236, var(--glow-a, 0.07)),
+    rgba(241, 234, 236, var(--glow-b, 0.025)) 45%,
+    rgba(241, 234, 236, 0) 100%
+  );
+  will-change: transform;
+}

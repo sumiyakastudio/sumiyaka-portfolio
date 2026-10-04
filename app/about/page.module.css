@@ -61,27 +61,23 @@
   z-index: 0;
 }
 
-/* 墨の井戸＝縁を地色（濃）へ溶かす覆い。
-   楕円の半径を 50%×50% にして四辺の中点で必ず地色に到達させる
-   ＝沈んで縮んだ時にも継ぎ目が出ない。高さは流体 canvas と同じ 100svh に固定
-   （収縮中に再描画させない） */
-.fvDeepVeil {
+/* 下端の影＝直下の PROFILE の上端の影（.secProfile::before の rgba(20,18,18,.45)）と同じ暗さへ溶かす。
+   背景を動画にして旧来の覆い（fvDeepVeil）を外したら、FV の下端だけ約 8 段明るい継ぎ目が出た（2026-10-04 実測）。
+   動画の本体は暗くしない（下 45% だけ）。fvDeep は収縮中に奥へ沈む（scale・yPercent）ので、
+   沈んだ分の地色が下端に帯で残る＝影は沈まない FV の箱そのものへ付ける。
+   重なり＝動画（z0）・粒と光（z1）の上、題字（z2）の下 */
+.fv::after {
+  content: "";
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100vh;
-  height: 100svh;
+  inset: 0;
+  z-index: 1;
   pointer-events: none;
-  background:
-    radial-gradient(
-      ellipse 50% 50% at 50% 50%,
-      rgba(31, 28, 28, 0) 0%,
-      rgba(31, 28, 28, 0) 40%,
-      rgba(31, 28, 28, 0.5) 72%,
-      var(--sumi-noh) 100%
-    ),
-    linear-gradient(180deg, rgba(31, 28, 28, 0.55) 0%, rgba(31, 28, 28, 0) 32%);
+  background: linear-gradient(180deg, rgba(20, 18, 18, 0) 55%, rgba(20, 18, 18, 0.6) 100%);
+}
+
+/* マウスの光（PointerGlow）＝動画（fvDeep z0）の上・粒（z1）と同階層・題字（z2）の下 */
+.fvGlow {
+  z-index: 1;
 }
 
 /* 紙の目（静的・ループなし） */
@@ -1339,22 +1335,6 @@
    ======================================== */
 @media (max-width: 767px) {
   .brSp { display: inline; }
-
-  /* 覆い＝フォールバック（静止画）に合わせて箱に追従させ、楕円を横に広げる
-     （狭い箱で 50%×50% のままだと縦長の卵形になる＝390 実測）。
-     縁の溶かしはフォールバック自身の外周色（地）が受け持つので、四辺で地色に届かなくてよい */
-  .fvDeepVeil {
-    height: 100%;
-    background:
-      radial-gradient(
-        ellipse 64% 58% at 50% 50%,
-        rgba(31, 28, 28, 0) 0%,
-        rgba(31, 28, 28, 0) 42%,
-        rgba(31, 28, 28, 0.45) 74%,
-        var(--sumi-noh) 100%
-      ),
-      linear-gradient(180deg, rgba(31, 28, 28, 0.5) 0%, rgba(31, 28, 28, 0) 30%);
-  }
 
   .fvLabel { font-size: 10px; margin-bottom: 20px; }
   .fvTitle { font-size: 31px; line-height: 1.55; }

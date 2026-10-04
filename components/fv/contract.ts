@@ -33,11 +33,14 @@
  *      使わない：filter・backdrop-filter のアニメ、mix-blend-mode、3D transform・
  *      perspective、複雑な clip-path、vw 単位のフォント、JS スクロール連動の視差、
  *      100vh 単独指定（必ず 100vh と 100svh の二段）。
- *   3. WebGL は /about の実証済み流体（DynamicInkFluid）だけ。他ページは追加しない。
+ *   3. WebGL は使わない（2026-10-04 トップと /about の流体は Blender の背景動画
+ *      FvBgVideo へ置き換えた＝全画面を毎フレーム描き直す負荷を外すため）。
  *   4. 常時走る演出は InViewGate（components/animation/InViewGate）で囲い、
  *      画面外では止める。ScrollReveal と同じ要素に CSS アニメを当てない（内側に1枚）。
  *   5. タッチ端末・狭幅（lib/device の prefersLightVisuals() が true）では
  *      常時ループを起動しない。静止1コマでも同じ個性が出る「ポスター判定」を満たす。
+ *      ※ 動画（LoopVideo・FvBgVideo）はハードウェア再生のため対象外。ただし画面外・
+ *        背面タブでは止め、「動きを減らす」設定・省データ・自動再生の拒否ではポスターだけ。
  *   6. 金（--color-accent #c8a96e）はサブページの新規要素で使わない。差し色は白系。
  *   7. 件数は data から取り、数字をハードコードしない。
  *   8. 1920 / 1280 / 390 の3幅で撮影して確認する。横あふれ 0。

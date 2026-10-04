@@ -38,6 +38,10 @@ export interface StillOptions {
   morphDur?: number;
   /** 破片の出どころ（OP の版下） */
   opArt?: OpeningArt | null;
+  /** 墨の一滴の着地点（ステージ css 座標）＝背景の動画の導入が広がる中心。余韻をここに置く */
+  drop?: { x: number; y: number };
+  /** 一滴の余韻の強さ（0..1・既定 1）。背景の動画へ渡したあと 0 へ薄める */
+  dropK?: number;
 }
 
 const cl = (v: number, a: number, b: number) => Math.max(a, Math.min(b, v));
@@ -163,19 +167,23 @@ export function drawTenkiStill(
     }
   }
 
-  /* ---- 墨の一滴の余韻（流体の代わり・本文カラムの外にだけ置く） ---- */
+  /* ---- 墨の一滴の余韻（着地点の印・本文カラムの外にだけ置く） ----
+     2026-10-04：着地点（drop）が渡された時はそこへ置く＝背景の動画の導入がここから広がる。
+     着地点が本文の帯の中なら置かない（動画は文字の裏から広がる＝印だけ離れて浮かせない）。
+     背景の動画へ渡したあとは dropK で薄めて消す（流体の代わりの役目は動画が引き継ぐ） */
   const belowTop = Math.max(sheet.band[3], rowY + rowH * 2);
-  if (up && H - belowTop > H * 0.1) {
-    const bx = cl(sheet.centerX * W, W * 0.14, W * 0.86);
-    const by = belowTop + (H - belowTop) * 0.46;
+  const dk = Math.max(0, Math.min(1, o.dropK ?? 1)) * deco;
+  if (up && H - belowTop > H * 0.1 && dk > 0.004 && (!o.drop || o.drop.y > belowTop)) {
+    const bx = o.drop ? o.drop.x : cl(sheet.centerX * W, W * 0.14, W * 0.86);
+    const by = o.drop ? o.drop.y : belowTop + (H - belowTop) * 0.46;
     const br = Math.min(H * 0.16, W * 0.2);
     const bg = ctx.createRadialGradient(bx, by, 0, bx, by, br);
-    bg.addColorStop(0, col(0.075 * deco));
-    bg.addColorStop(0.45, col(0.028 * deco));
+    bg.addColorStop(0, col(0.075 * dk));
+    bg.addColorStop(0.45, col(0.028 * dk));
     bg.addColorStop(1, col(0));
     ctx.fillStyle = bg;
     ctx.fillRect(bx - br, by - br, br * 2, br * 2);
-    ctx.fillStyle = col(0.3 * deco);
+    ctx.fillStyle = col(0.3 * dk);
     ctx.beginPath();
     ctx.arc(bx, by, 1.6, 0, Math.PI * 2);
     ctx.fill();
