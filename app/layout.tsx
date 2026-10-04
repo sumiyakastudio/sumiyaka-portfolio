@@ -27,6 +27,7 @@ const notoSansJP = Noto_Sans_JP({
   subsets: ["latin"],
   weight: ["100", "300", "400", "500", "700"],
   display: "swap",
+  preload: false,
 });
 
 const ibmPlexMono = IBM_Plex_Mono({
@@ -44,11 +45,15 @@ const anton = Anton({
 });
 
 // トップページ用フォント（見出し=Shippori Mincho／本文=Zen Kaku）。既存4フォントはサブページが使用中のため残す。
+// 日本語フォント（Noto Sans JP・Shippori Mincho・Zen Kaku）は preload: false（2026-10-05）。
+// 日本語は約120分割の全ファイルが先読みされ、初回表示で約14.8MB・613本を取得していた（受け入れ検査 A-1）。
+// 先読みをやめると、ブラウザはページで使う文字の分割ファイルだけを取得する。
 const shipporiMincho = Shippori_Mincho({
   variable: "--font-shippori-mincho",
   subsets: ["latin"],
   weight: ["400", "500", "600", "800"],
   display: "swap",
+  preload: false,
 });
 
 const zenKakuGothicNew = Zen_Kaku_Gothic_New({
@@ -56,6 +61,7 @@ const zenKakuGothicNew = Zen_Kaku_Gothic_New({
   subsets: ["latin"],
   weight: ["300", "400", "500"],
   display: "swap",
+  preload: false,
 });
 
 export const metadata: Metadata = {
